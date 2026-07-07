@@ -1,0 +1,17 @@
+{
+  "name": "molten-editor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Molten's WYSIWYG editing surface: Milkdown Crepe bundled offline for the WKWebView shell.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "dependencies": {
+    "@milkdown/crepe": "^7.21.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

@@ -1,0 +1,519 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0D5C85462A8D17749D814194 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C1CA5D7AEA1874EF4D9DC1 /* main.swift */; };
+		20206DE87C4F13E73B17D0C0 /* MoltenEditorBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824B85B547ECFF97AEE3A93A /* MoltenEditorBridgeTests.swift */; };
+		205063E9639C387B0DB1F9ED /* MoltenEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B9B890670FCE5A4A517E87 /* MoltenEditorViewController.swift */; };
+		288FEDCB52E4D3CCE520EDCC /* MoltenLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 985A890ADC043124F74615CC /* MoltenLog.swift */; };
+		4BF1666B909FE3A793977811 /* MoltenAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 393B627AAD075257FD4369B8 /* MoltenAppDelegate.swift */; };
+		747299B76B610BAA7532E785 /* MoltenDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = C089F2045DF7F5AECE92D4FC /* MoltenDocument.swift */; };
+		ABE4566A09CC1B06742BF5EF /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6BDBC09D8CB002C8F8CBB5A2 /* WebKit.framework */; };
+		B7DEA19F47FDEB4C04E8B447 /* MoltenDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACCAF3BCEB4738AE0C62C29 /* MoltenDocumentTests.swift */; };
+		EDE1030EFA7B18D7398610FD /* JavaScriptStringLiteral.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCFDE872D5FA41BF846D8872 /* JavaScriptStringLiteral.swift */; };
+		F820BB566CDCC61B1107DFC1 /* dist in Resources */ = {isa = PBXBuildFile; fileRef = 1B8A2DDA6085B50FE670D647 /* dist */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		47BBB15F8EA228D10494C4AC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96F2D1ABA9235DDF21F94D48 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E6CCD85BEE81D8FF2ED073CA;
+			remoteInfo = Molten;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		1B8A2DDA6085B50FE670D647 /* dist */ = {isa = PBXFileReference; lastKnownFileType = folder; name = dist; path = Resources/dist; sourceTree = SOURCE_ROOT; };
+		2AABB7864A1D73695F8A1F5F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		32C1CA5D7AEA1874EF4D9DC1 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		393B627AAD075257FD4369B8 /* MoltenAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenAppDelegate.swift; sourceTree = "<group>"; };
+		6ACCAF3BCEB4738AE0C62C29 /* MoltenDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDocumentTests.swift; sourceTree = "<group>"; };
+		6BDBC09D8CB002C8F8CBB5A2 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		7E2F036BA734652323B095D1 /* Molten.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Molten.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		824B85B547ECFF97AEE3A93A /* MoltenEditorBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenEditorBridgeTests.swift; sourceTree = "<group>"; };
+		985A890ADC043124F74615CC /* MoltenLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenLog.swift; sourceTree = "<group>"; };
+		B579A50421E03159FDEC17EC /* MoltenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoltenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B9B9B890670FCE5A4A517E87 /* MoltenEditorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenEditorViewController.swift; sourceTree = "<group>"; };
+		C089F2045DF7F5AECE92D4FC /* MoltenDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDocument.swift; sourceTree = "<group>"; };
+		DCFDE872D5FA41BF846D8872 /* JavaScriptStringLiteral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JavaScriptStringLiteral.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		9FAC36CEB083EBDA03DF61BF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ABE4566A09CC1B06742BF5EF /* WebKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0C2788C3BCF1FE19FCA774A4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7E2F036BA734652323B095D1 /* Molten.app */,
+				B579A50421E03159FDEC17EC /* MoltenTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		150AC1F352B23620805ED69A /* Document */ = {
+			isa = PBXGroup;
+			children = (
+				C089F2045DF7F5AECE92D4FC /* MoltenDocument.swift */,
+			);
+			path = Document;
+			sourceTree = "<group>";
+		};
+		31A914154D1AA43E73B011DA /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				6ACCAF3BCEB4738AE0C62C29 /* MoltenDocumentTests.swift */,
+				824B85B547ECFF97AEE3A93A /* MoltenEditorBridgeTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		4E3DE2444AE20E7E6D334ABA /* App */ = {
+			isa = PBXGroup;
+			children = (
+				2AABB7864A1D73695F8A1F5F /* Info.plist */,
+				32C1CA5D7AEA1874EF4D9DC1 /* main.swift */,
+				393B627AAD075257FD4369B8 /* MoltenAppDelegate.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		62CD1E33A8262114CD4FEB5D /* Editor */ = {
+			isa = PBXGroup;
+			children = (
+				B9B9B890670FCE5A4A517E87 /* MoltenEditorViewController.swift */,
+			);
+			path = Editor;
+			sourceTree = "<group>";
+		};
+		A1F6D693FEB444936272668B /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				DCFDE872D5FA41BF846D8872 /* JavaScriptStringLiteral.swift */,
+				985A890ADC043124F74615CC /* MoltenLog.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		AA6876C74C807417C55F757D /* Mac */ = {
+			isa = PBXGroup;
+			children = (
+				4E3DE2444AE20E7E6D334ABA /* App */,
+				62CD1E33A8262114CD4FEB5D /* Editor */,
+			);
+			path = Mac;
+			sourceTree = "<group>";
+		};
+		BB8E77C1AE8241ADBD2F419C /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				150AC1F352B23620805ED69A /* Document */,
+				A1F6D693FEB444936272668B /* Support */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		C08F1550FA3C05DA2BF862F0 = {
+			isa = PBXGroup;
+			children = (
+				1B8A2DDA6085B50FE670D647 /* dist */,
+				AA6876C74C807417C55F757D /* Mac */,
+				BB8E77C1AE8241ADBD2F419C /* Shared */,
+				31A914154D1AA43E73B011DA /* Tests */,
+				F8DD1A085AB9448B399F2BC1 /* Frameworks */,
+				0C2788C3BCF1FE19FCA774A4 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F8DD1A085AB9448B399F2BC1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6BDBC09D8CB002C8F8CBB5A2 /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		60A8688906865AFAED51C458 /* MoltenTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C4B22BD859FF2F785D4C7FAC /* Build configuration list for PBXNativeTarget "MoltenTests" */;
+			buildPhases = (
+				D00D7F2851D3B1DA8EA371D4 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				252C98AA1FDBAF5C2F00423B /* PBXTargetDependency */,
+			);
+			name = MoltenTests;
+			packageProductDependencies = (
+			);
+			productName = MoltenTests;
+			productReference = B579A50421E03159FDEC17EC /* MoltenTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		E6CCD85BEE81D8FF2ED073CA /* Molten */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 60B9711E78DDFA660AB8084E /* Build configuration list for PBXNativeTarget "Molten" */;
+			buildPhases = (
+				023149311AB0B31D58D734D1 /* Sources */,
+				7C7F2B91214C24F109EC4F23 /* Resources */,
+				9FAC36CEB083EBDA03DF61BF /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Molten;
+			packageProductDependencies = (
+			);
+			productName = Molten;
+			productReference = 7E2F036BA734652323B095D1 /* Molten.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		96F2D1ABA9235DDF21F94D48 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					60A8688906865AFAED51C458 = {
+						ProvisioningStyle = Manual;
+					};
+					E6CCD85BEE81D8FF2ED073CA = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = C39B6B7C097878D7BA63FD10 /* Build configuration list for PBXProject "Molten" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = C08F1550FA3C05DA2BF862F0;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E6CCD85BEE81D8FF2ED073CA /* Molten */,
+				60A8688906865AFAED51C458 /* MoltenTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7C7F2B91214C24F109EC4F23 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F820BB566CDCC61B1107DFC1 /* dist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		023149311AB0B31D58D734D1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EDE1030EFA7B18D7398610FD /* JavaScriptStringLiteral.swift in Sources */,
+				4BF1666B909FE3A793977811 /* MoltenAppDelegate.swift in Sources */,
+				747299B76B610BAA7532E785 /* MoltenDocument.swift in Sources */,
+				205063E9639C387B0DB1F9ED /* MoltenEditorViewController.swift in Sources */,
+				288FEDCB52E4D3CCE520EDCC /* MoltenLog.swift in Sources */,
+				0D5C85462A8D17749D814194 /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D00D7F2851D3B1DA8EA371D4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B7DEA19F47FDEB4C04E8B447 /* MoltenDocumentTests.swift in Sources */,
+				20206DE87C4F13E73B17D0C0 /* MoltenEditorBridgeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		252C98AA1FDBAF5C2F00423B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E6CCD85BEE81D8FF2ED073CA /* Molten */;
+			targetProxy = 47BBB15F8EA228D10494C4AC /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		2A9C8E46101BCADBD3278900 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		53746D9951173192169F1A2E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.molten.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Molten.app/Contents/MacOS/Molten";
+			};
+			name = Release;
+		};
+		53BF8890B1104E0C662987CC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		74060D405E0540CC4E490636 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Molten.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Mac/App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.molten;
+				PRODUCT_NAME = Molten;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		9CE147326890C2B7BF172552 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Molten.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Mac/App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.molten;
+				PRODUCT_NAME = Molten;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		A31B83F710CD116849FE8DA0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.molten.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Molten.app/Contents/MacOS/Molten";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		60B9711E78DDFA660AB8084E /* Build configuration list for PBXNativeTarget "Molten" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				74060D405E0540CC4E490636 /* Debug */,
+				9CE147326890C2B7BF172552 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C39B6B7C097878D7BA63FD10 /* Build configuration list for PBXProject "Molten" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2A9C8E46101BCADBD3278900 /* Debug */,
+				53BF8890B1104E0C662987CC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C4B22BD859FF2F785D4C7FAC /* Build configuration list for PBXNativeTarget "MoltenTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A31B83F710CD116849FE8DA0 /* Debug */,
+				53746D9951173192169F1A2E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 96F2D1ABA9235DDF21F94D48 /* Project object */;
+}
