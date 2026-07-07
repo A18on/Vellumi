@@ -15,7 +15,6 @@
 		747299B76B610BAA7532E785 /* MoltenDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = C089F2045DF7F5AECE92D4FC /* MoltenDocument.swift */; };
 		ABE4566A09CC1B06742BF5EF /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6BDBC09D8CB002C8F8CBB5A2 /* WebKit.framework */; };
 		B7DEA19F47FDEB4C04E8B447 /* MoltenDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACCAF3BCEB4738AE0C62C29 /* MoltenDocumentTests.swift */; };
-		EDE1030EFA7B18D7398610FD /* JavaScriptStringLiteral.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCFDE872D5FA41BF846D8872 /* JavaScriptStringLiteral.swift */; };
 		F820BB566CDCC61B1107DFC1 /* dist in Resources */ = {isa = PBXBuildFile; fileRef = 1B8A2DDA6085B50FE670D647 /* dist */; };
 /* End PBXBuildFile section */
 
@@ -42,7 +41,6 @@
 		B579A50421E03159FDEC17EC /* MoltenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoltenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9B9B890670FCE5A4A517E87 /* MoltenEditorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenEditorViewController.swift; sourceTree = "<group>"; };
 		C089F2045DF7F5AECE92D4FC /* MoltenDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDocument.swift; sourceTree = "<group>"; };
-		DCFDE872D5FA41BF846D8872 /* JavaScriptStringLiteral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JavaScriptStringLiteral.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,7 +102,6 @@
 		A1F6D693FEB444936272668B /* Support */ = {
 			isa = PBXGroup;
 			children = (
-				DCFDE872D5FA41BF846D8872 /* JavaScriptStringLiteral.swift */,
 				985A890ADC043124F74615CC /* MoltenLog.swift */,
 			);
 			path = Support;
@@ -242,7 +239,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EDE1030EFA7B18D7398610FD /* JavaScriptStringLiteral.swift in Sources */,
 				4BF1666B909FE3A793977811 /* MoltenAppDelegate.swift in Sources */,
 				747299B76B610BAA7532E785 /* MoltenDocument.swift in Sources */,
 				205063E9639C387B0DB1F9ED /* MoltenEditorViewController.swift in Sources */,
@@ -275,7 +271,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -348,7 +343,6 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.molten.tests;
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Molten.app/Contents/MacOS/Molten";
@@ -359,7 +353,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -430,7 +423,6 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.molten;
 				PRODUCT_NAME = Molten;
@@ -455,7 +447,6 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.molten;
 				PRODUCT_NAME = Molten;
@@ -476,7 +467,6 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.molten.tests;
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Molten.app/Contents/MacOS/Molten";

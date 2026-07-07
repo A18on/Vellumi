@@ -2,7 +2,7 @@
 // Everything the WKWebView loads — JS, CSS, fonts — must come out of this build;
 // the app ships no network access for the editor surface.
 import { build, context } from "esbuild";
-import { cpSync, mkdirSync, rmSync } from "node:fs";
+import { cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -50,14 +50,21 @@ const themeOptions = {
   assetNames: "assets/[name]-[hash]",
 };
 
+// Themes and the page shell are cheap and rarely change — emit them in every
+// mode so a watch session never produces a dist with 404ing stylesheets.
+await build(themeOptions);
+cpSync(join(here, "public", "index.html"), join(outDir, "index.html"));
+// The dir is git-ignored except for this marker, which keeps the folder
+// present for xcodegen on fresh clones; recreate it after the wipe above.
+writeFileSync(join(outDir, ".gitkeep"), "");
+
 if (watch) {
-  const ctx = await context(options);
+  // Dev loop: skip minification (the slowest phase) and keep readable stacks.
+  const ctx = await context({ ...options, minify: false, sourcemap: "inline" });
   await ctx.watch();
   console.log("watching…");
 } else {
   await build(options);
-  await build(themeOptions);
 }
 
-cpSync(join(here, "public", "index.html"), join(outDir, "index.html"));
 console.log("dist ready:", outDir);

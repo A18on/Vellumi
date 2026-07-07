@@ -49,8 +49,10 @@ enum MoltenMainMenuBuilder {
 
     private static func editMenu() -> NSMenu {
         let menu = NSMenu(title: "Edit")
-        menu.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
-        let redo = menu.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "z")
+        // Compile-checked selectors targeting MoltenEditorViewController via
+        // the responder chain (WKWebView itself does not respond to undo:).
+        menu.addItem(withTitle: "Undo", action: #selector(MoltenEditorViewController.undo(_:)), keyEquivalent: "z")
+        let redo = menu.addItem(withTitle: "Redo", action: #selector(MoltenEditorViewController.redo(_:)), keyEquivalent: "z")
         redo.keyEquivalentModifierMask = [.command, .shift]
         menu.addItem(.separator())
         menu.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")

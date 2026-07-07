@@ -7,9 +7,6 @@ final class MoltenEditorViewController: NSViewController {
     private weak var document: MoltenDocument?
     private var webView: WKWebView!
     private var isEditorReady = false
-    /// Content that arrived before the editor booted (document read can beat
-    /// the web view's load) — delivered on the ready message.
-    private var pendingText: String?
 
     init(document: MoltenDocument) {
         self.document = document
@@ -31,7 +28,10 @@ final class MoltenEditorViewController: NSViewController {
         // retains its handlers, which would otherwise cycle-retain this controller.
         configuration.userContentController.add(WeakScriptMessageHandler(self), name: Self.bridgeName)
 
-        webView = WKWebView(frame: NSRect(x: 0, y: 0, width: 900, height: 720), configuration: configuration)
+        webView = WKWebView(
+            frame: NSRect(origin: .zero, size: MoltenDocument.defaultContentSize),
+            configuration: configuration
+        )
         webView.navigationDelegate = self
         webView.setValue(false, forKey: "drawsBackground")
         view = webView
@@ -42,6 +42,9 @@ final class MoltenEditorViewController: NSViewController {
     override func viewDidAppear() {
         super.viewDidAppear()
         view.window?.makeFirstResponder(webView)
+        // The editor may have finished building before the window became key;
+        // a DOM focus set back then didn't stick. Re-focus now that it can.
+        webView.evaluateJavaScript("window.moltenAPI?.focus();")
     }
 
     private func loadEditorPage() {
@@ -61,23 +64,28 @@ final class MoltenEditorViewController: NSViewController {
 
     // MARK: - Swift → JS
 
-    /// Pushes document content into the editor, queueing it if the surface
-    /// hasn't booted yet.
+    /// Pushes document content into the editor. Before the ready message this
+    /// is a no-op: the surface pulls the authoritative text from the document
+    /// via editorDidBecomeReady, so there is exactly one delivery path.
     func loadDocumentText(_ text: String) {
-        guard isEditorReady else {
-            pendingText = text
-            return
-        }
-        webView.evaluateJavaScript("window.moltenAPI.setMarkdown(\(text.javaScriptStringLiteral));") { _, error in
-            if let error {
+        guard isEditorReady else { return }
+        // callAsyncJavaScript marshals the string as an argument — no O(N)
+        // escaping pass, no parsing a megabytes-long script literal.
+        webView.callAsyncJavaScript(
+            "window.moltenAPI.setMarkdown(md);",
+            arguments: ["md": text],
+            in: nil,
+            in: .page
+        ) { result in
+            if case .failure(let error) = result {
                 MoltenLog.editor.error("setMarkdown failed: \(error.localizedDescription, privacy: .public)")
             }
         }
     }
 
-    /// Pulls the current serialization synchronously from the editor's point
-    /// of view (flushes its debounce). Completion receives nil on failure so
-    /// callers fall back to the last bridged text rather than saving garbage.
+    /// Pulls the current serialization from the editor. Completion receives
+    /// nil when no live editor exists (booting/rebuilding) so callers keep
+    /// the text they already have rather than saving garbage.
     func pullMarkdown(completion: @escaping (String?) -> Void) {
         guard isEditorReady else {
             completion(nil)
@@ -91,6 +99,19 @@ final class MoltenEditorViewController: NSViewController {
             }
             completion(result as? String)
         }
+    }
+
+    // MARK: - Native menu actions → ProseMirror history
+
+    // WKWebView does not respond to undo:/redo:, so menu clicks land here via
+    // the responder chain and forward to the editor's own history plugin
+    // (Cmd+Z already works through the web view's key handling).
+    @objc func undo(_ sender: Any?) {
+        webView.evaluateJavaScript("window.moltenAPI.undo();")
+    }
+
+    @objc func redo(_ sender: Any?) {
+        webView.evaluateJavaScript("window.moltenAPI.redo();")
     }
 }
 
@@ -107,16 +128,14 @@ extension MoltenEditorViewController: WKScriptMessageHandler {
         switch type {
         case "ready":
             isEditorReady = true
-            if let pendingText {
-                self.pendingText = nil
-                loadDocumentText(pendingText)
-            } else {
-                document?.editorDidBecomeReady()
-            }
+            document?.editorDidBecomeReady()
         case "change":
             if let markdown = body["markdown"] as? String {
                 document?.editorTextDidChange(markdown)
             }
+        case "boot-error":
+            let detail = body["message"] as? String ?? "unknown"
+            MoltenLog.editor.error("Editor surface failed to boot: \(detail, privacy: .public)")
         default:
             MoltenLog.editor.debug("Unknown bridge message: \(type, privacy: .public)")
         }

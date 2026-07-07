@@ -7,24 +7,38 @@
 //
 // Bridge contract (keep in sync with MoltenEditorViewController.swift):
 //   JS → Swift  window.webkit.messageHandlers.molten.postMessage(…)
-//     {type: "ready"}                       editor booted, safe to setMarkdown
+//     {type: "ready"}                       surface booted, safe to setMarkdown
 //     {type: "change", markdown: String}    debounced content update
+//     {type: "boot-error", message: String} editor failed to construct
 //   Swift → JS  window.moltenAPI.*
-//     setMarkdown(md)   load document content (rebuilds the editor)
-//     getMarkdown()     synchronous pull of the current serialization
-//     setAppearance(a)  "light" | "dark" — mirrors the host window appearance
+//     setMarkdown(md)   load document content (builds/rebuilds the editor)
+//     getMarkdown()     current serialization, or null while no editor is
+//                       live (booting/rebuilding) — callers must treat null
+//                       as "keep what you already have", never as empty
+//     undo()/redo()     forward native menu actions to ProseMirror history
+//     focus()           re-assert DOM focus once the host window is key
+//
+// The editor is constructed lazily on the first setMarkdown — building a
+// throwaway empty editor at boot would double every document-open.
 
 import { Crepe } from "@milkdown/crepe";
+import { undoCommand, redoCommand } from "@milkdown/plugin-history";
+import { callCommand } from "@milkdown/utils";
 import "@milkdown/crepe/theme/common/style.css";
 // Frame theme ships as separate light/dark files (each redefines the same
 // variables), so they are built as standalone stylesheets and index.html
 // swaps them via prefers-color-scheme media queries.
 
+// Trailing debounce for change messages, with a max-latency bound: a fluent
+// typist never pausing 150ms must still flush at least once per second, or
+// Swift's copy (autosave, crash recovery) goes unboundedly stale.
 const CHANGE_DEBOUNCE_MS = 150;
+const CHANGE_MAX_LATENCY_MS = 1000;
 
 const root = document.getElementById("editor");
 let crepe = null;
 let changeTimer = null;
+let oldestPendingChangeAt = null;
 let lastSentMarkdown = null;
 // Guards the async rebuild in setMarkdown: a stale create() must not clobber
 // a newer document load.
@@ -38,18 +52,40 @@ function post(message) {
   }
 }
 
-function scheduleChange(markdown) {
+// Serialization happens HERE, once per flush — not per keystroke. The editor
+// listener only marks dirty; a large document is stringified when the timer
+// fires, not on every transaction.
+function flushChange() {
   clearTimeout(changeTimer);
-  changeTimer = setTimeout(() => {
-    if (markdown !== lastSentMarkdown) {
-      lastSentMarkdown = markdown;
-      post({ type: "change", markdown });
-    }
-  }, CHANGE_DEBOUNCE_MS);
+  changeTimer = null;
+  oldestPendingChangeAt = null;
+  if (!crepe) return;
+  const markdown = crepe.getMarkdown();
+  if (markdown !== lastSentMarkdown) {
+    lastSentMarkdown = markdown;
+    post({ type: "change", markdown });
+  }
+}
+
+function scheduleChange() {
+  const now = Date.now();
+  oldestPendingChangeAt ??= now;
+  if (now - oldestPendingChangeAt >= CHANGE_MAX_LATENCY_MS) {
+    flushChange();
+    return;
+  }
+  clearTimeout(changeTimer);
+  changeTimer = setTimeout(flushChange, CHANGE_DEBOUNCE_MS);
 }
 
 async function createEditor(markdown) {
   const generation = ++loadGeneration;
+  // A timer armed against the outgoing editor must not fire into the new one
+  // with pre-load content (it would resurrect reverted-away edits).
+  clearTimeout(changeTimer);
+  changeTimer = null;
+  oldestPendingChangeAt = null;
+
   if (crepe) {
     const old = crepe;
     crepe = null;
@@ -65,9 +101,11 @@ async function createEditor(markdown) {
 
   const next = new Crepe({ root, defaultValue: markdown });
   next.on((listener) => {
-    listener.markdownUpdated((_ctx, md) => {
+    // `updated` fires per transaction WITHOUT serializing; markdown is pulled
+    // lazily in flushChange.
+    listener.updated(() => {
       if (next === crepe) {
-        scheduleChange(md);
+        scheduleChange();
       }
     });
   });
@@ -83,12 +121,12 @@ async function createEditor(markdown) {
   // normalizes (list markers, blank lines), and that echo must not count as
   // an edit — otherwise every document opens already dirty.
   lastSentMarkdown = next.getMarkdown();
-  // AppKit gives the WKWebView first-responder status, but typing only lands
-  // once the contenteditable itself has DOM focus.
   focusEditor();
 }
 
 function focusEditor() {
+  // AppKit gives the WKWebView first-responder status, but typing only lands
+  // once the contenteditable itself has DOM focus.
   requestAnimationFrame(() => {
     root.querySelector(".ProseMirror")?.focus();
   });
@@ -96,34 +134,40 @@ function focusEditor() {
 
 window.moltenAPI = {
   setMarkdown(markdown) {
-    createEditor(typeof markdown === "string" ? markdown : "");
+    createEditor(typeof markdown === "string" ? markdown : "").catch((error) => {
+      window.__moltenBootError = String(error?.stack ?? error);
+      post({ type: "boot-error", message: String(error) });
+    });
   },
   getMarkdown() {
-    // Flush the pending debounce so Swift never saves stale content.
-    clearTimeout(changeTimer);
-    if (!crepe) return lastSentMarkdown ?? "";
+    // No live editor (booting, or mid-rebuild between destroy and create):
+    // return null so the shell keeps its current text. Returning "" here
+    // once let a save during the window truncate the document to zero bytes.
+    if (!crepe) return null;
     const markdown = crepe.getMarkdown();
     lastSentMarkdown = markdown;
     return markdown;
   },
-  setAppearance(appearance) {
-    document.documentElement.dataset.appearance =
-      appearance === "dark" ? "dark" : "light";
-  },
+  // Called when the hosting window becomes ready: the editor may finish
+  // building BEFORE the window is key, in which case the DOM focus set at
+  // construction time doesn't stick and typing goes nowhere.
   focus() {
     focusEditor();
   },
+  // Native Edit ▸ Undo/Redo menu items forward here — WKWebView exposes no
+  // responder-chain undo, and ProseMirror's history is the real stack.
+  undo() {
+    crepe?.editor.action(callCommand(undoCommand.key));
+  },
+  redo() {
+    crepe?.editor.action(callCommand(redoCommand.key));
+  },
 };
 
-// Boot failures must be loud: surface them to the shell log and keep the
-// stack readable for tests/debugging via window.__moltenBootError.
+// Boot failures must be loud: reach Swift over the bridge AND stay readable
+// for tests/debugging via window.__moltenBootError.
 window.addEventListener("error", (event) => {
   window.__moltenBootError ??= String(event.error?.stack ?? event.message);
 });
 
-createEditor("")
-  .then(() => post({ type: "ready" }))
-  .catch((error) => {
-    window.__moltenBootError = String(error?.stack ?? error);
-    post({ type: "boot-error", message: String(error) });
-  });
+post({ type: "ready" });

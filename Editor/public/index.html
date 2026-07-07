@@ -23,10 +23,9 @@
       padding: 48px 56px 40vh;
       box-sizing: border-box;
     }
-    /* Crepe frame theme reads prefers-color-scheme; data-appearance mirrors the
-       host window so an in-app appearance override also wins. */
-    :root[data-appearance="dark"] { color-scheme: dark; }
-    :root[data-appearance="light"] { color-scheme: light; }
+    /* Theming follows prefers-color-scheme only (WKWebView mirrors the host
+       appearance); an in-app override would need to swap the theme <link>s,
+       not just color-scheme. */
     .milkdown { background: transparent; }
   </style>
 </head>
