@@ -174,6 +174,57 @@ final class MoltenDocument: NSDocument {
         workspaceViewController?.noteContentChanged(text)
     }
 
+    // MARK: - Image attachments
+
+    /// Writes a pasted/dropped image into `assets/` next to the document and
+    /// returns the document-relative path, or nil when it can't (no file yet,
+    /// permission declined, bad payload). Runs on the main thread — the write
+    /// is small and the open panel needs it anyway.
+    func saveImageAttachment(name: String, base64: String) -> String? {
+        guard let fileURL else {
+            let alert = NSAlert()
+            alert.messageText = L10n.string("image.needsSave.title")
+            alert.informativeText = L10n.string("image.needsSave.message")
+            alert.runModal()
+            return nil
+        }
+        guard let data = Data(base64Encoded: base64), !data.isEmpty else { return nil }
+
+        let folder = fileURL.deletingLastPathComponent()
+        guard MoltenFolderAccess.shared.ensureAccess(to: folder, interactive: true) else {
+            return nil
+        }
+
+        let assetsDirectory = folder.appendingPathComponent("assets", isDirectory: true)
+        do {
+            try FileManager.default.createDirectory(at: assetsDirectory, withIntermediateDirectories: true)
+            let target = Self.uniqueAssetURL(in: assetsDirectory, preferredName: name)
+            try data.write(to: target, options: .withoutOverwriting)
+            return "assets/\(target.lastPathComponent)"
+        } catch {
+            MoltenLog.document.error("Image save failed: \(error.localizedDescription, privacy: .public)")
+            return nil
+        }
+    }
+
+    /// Sanitized, collision-free file URL inside the assets directory.
+    static func uniqueAssetURL(in directory: URL, preferredName: String) -> URL {
+        // Strip any path components and characters that complicate markdown.
+        let base = (preferredName as NSString).lastPathComponent
+            .replacingOccurrences(of: "[\\\\/:*?\"<>|()\\[\\]\\s]+", with: "-", options: .regularExpression)
+        let ext = (base as NSString).pathExtension.isEmpty ? "png" : (base as NSString).pathExtension
+        var stem = (base as NSString).deletingPathExtension
+        if stem.isEmpty { stem = "image" }
+
+        var candidate = directory.appendingPathComponent("\(stem).\(ext)")
+        var counter = 1
+        while FileManager.default.fileExists(atPath: candidate.path) {
+            candidate = directory.appendingPathComponent("\(stem)-\(counter).\(ext)")
+            counter += 1
+        }
+        return candidate
+    }
+
     // MARK: - External changes on disk
 
     /// Another process rewrote the file (git checkout, sync, another editor).

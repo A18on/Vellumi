@@ -34,3 +34,9 @@
 "menu.window" = "Window";
 "menu.minimize" = "Minimize";
 "menu.zoom" = "Zoom";
+
+/* Image attachments */
+"folderAccess.message" = "Molten needs permission to save images into the \"%@\" folder (an assets/ subfolder will be created). Click Allow to grant access.";
+"folderAccess.prompt" = "Allow";
+"image.needsSave.title" = "Save the Document First";
+"image.needsSave.message" = "Images are stored in an assets/ folder next to your file. Save the document, then paste the image again.";

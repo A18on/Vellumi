@@ -22,11 +22,15 @@ final class MoltenEditorViewController: NSViewController {
 
     private static let bridgeName = "molten"
 
+    private let assetSchemeHandler = MoltenAssetSchemeHandler()
+
     override func loadView() {
         let configuration = WKWebViewConfiguration()
         // The handler is registered through a weak proxy: WKUserContentController
         // retains its handlers, which would otherwise cycle-retain this controller.
         configuration.userContentController.add(WeakScriptMessageHandler(self), name: Self.bridgeName)
+        // Serves document-relative images (assets/…) to the sandboxed surface.
+        configuration.setURLSchemeHandler(assetSchemeHandler, forURLScheme: MoltenAssetSchemeHandler.scheme)
 
         webView = WKWebView(
             frame: NSRect(origin: .zero, size: MoltenDocument.defaultContentSize),
@@ -41,9 +45,14 @@ final class MoltenEditorViewController: NSViewController {
 
     override func viewDidAppear() {
         super.viewDidAppear()
+        focusEditingSurface()
+    }
+
+    /// Routes both AppKit first-responder status AND DOM focus to the editing
+    /// surface — each alone is insufficient (typing goes to the sidebar, or
+    /// nowhere). Callers: window appear, find-bar dismissal, sidebar toggle.
+    func focusEditingSurface() {
         view.window?.makeFirstResponder(webView)
-        // The editor may have finished building before the window became key;
-        // a DOM focus set back then didn't stick. Re-focus now that it can.
         webView.evaluateJavaScript("window.moltenAPI?.focus();")
     }
 
@@ -68,6 +77,8 @@ final class MoltenEditorViewController: NSViewController {
     /// is a no-op: the surface pulls the authoritative text from the document
     /// via editorDidBecomeReady, so there is exactly one delivery path.
     func loadDocumentText(_ text: String) {
+        // Keep the asset scheme pointed at the (possibly new) document folder.
+        assetSchemeHandler.documentDirectory = document?.fileURL?.deletingLastPathComponent()
         guard isEditorReady else { return }
         // callAsyncJavaScript marshals the string as an argument — no O(N)
         // escaping pass, no parsing a megabytes-long script literal.
@@ -176,6 +187,22 @@ extension MoltenEditorViewController: WKScriptMessageHandler {
         case "boot-error":
             let detail = body["message"] as? String ?? "unknown"
             MoltenLog.editor.error("Editor surface failed to boot: \(detail, privacy: .public)")
+        case "image-save":
+            guard let id = body["id"] as? Int,
+                  let name = body["name"] as? String,
+                  let base64 = body["base64"] as? String else { return }
+            let path = document?.saveImageAttachment(name: name, base64: base64)
+            MoltenLog.editor.info("image-save id=\(id) → \(path ?? "nil", privacy: .public)")
+            webView.callAsyncJavaScript(
+                "window.moltenAPI.resolveImageSave(id, path);",
+                arguments: ["id": id, "path": path ?? NSNull()],
+                in: nil,
+                in: .page
+            ) { result in
+                if case .failure(let error) = result {
+                    MoltenLog.editor.error("resolveImageSave failed: \(error.localizedDescription, privacy: .public)")
+                }
+            }
         default:
             MoltenLog.editor.debug("Unknown bridge message: \(type, privacy: .public)")
         }

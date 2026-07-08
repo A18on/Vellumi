@@ -97,6 +97,40 @@ final class MoltenEditorBridgeTests: XCTestCase {
         _ = try evaluate("window.moltenAPI.undo(); window.moltenAPI.redo(); 'ok'")
     }
 
+    func testImageNodeSurvivesSerialization() throws {
+        try loadEditorPage()
+        try setMarkdown("before\n\n![alt text](assets/pic.png)\n\nafter")
+        let markdown = try XCTUnwrap(try evaluate("window.moltenAPI.getMarkdown()") as? String)
+        XCTAssertTrue(
+            markdown.contains("](assets/pic.png)"),
+            "image node must survive load→serialize round trip, got: \(markdown)"
+        )
+        // Display-time src is rewritten to the asset scheme, but the MODEL keeps
+        // the relative path (otherwise saves would leak molten-asset:// URLs).
+        XCTAssertFalse(markdown.contains("molten-asset"), "scheme must not leak into markdown: \(markdown)")
+    }
+
+    func testAssetURLRewriteAndImageSaveResolution() throws {
+        try loadEditorPage()
+
+        // Relative srcs rewrite to the molten-asset scheme; absolute pass through.
+        XCTAssertEqual(
+            try evaluate("window.moltenAPI.rewriteAssetURL('assets/图 1.png')") as? String,
+            "molten-asset://asset/assets/%E5%9B%BE%201.png"
+        )
+        XCTAssertEqual(
+            try evaluate("window.moltenAPI.rewriteAssetURL('https://x.com/a.png')") as? String,
+            "https://x.com/a.png"
+        )
+        XCTAssertEqual(
+            try evaluate("window.moltenAPI.rewriteAssetURL('data:image/png;base64,AA==')") as? String,
+            "data:image/png;base64,AA=="
+        )
+
+        // resolveImageSave with an unknown id must be a harmless no-op.
+        _ = try evaluate("window.moltenAPI.resolveImageSave(9999, 'assets/x.png'); 'ok'")
+    }
+
     func testOutlineExtractionScrollAndFind() throws {
         try loadEditorPage()
         try setMarkdown("# 一级\n\n正文 target 词。\n\n## 二级标题\n\n### 三级")

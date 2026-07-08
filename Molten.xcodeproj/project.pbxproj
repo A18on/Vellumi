@@ -16,12 +16,15 @@
 		3AA68C4032D8F2C1FC602725 /* en.lproj in Resources */ = {isa = PBXBuildFile; fileRef = A90A2BCB1FAF2D99E30C42C2 /* en.lproj */; };
 		4A458458C2E3311DB26F47D4 /* MoltenWorkspaceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB52B1E366015150046034BB /* MoltenWorkspaceViewController.swift */; };
 		4BF1666B909FE3A793977811 /* MoltenAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 393B627AAD075257FD4369B8 /* MoltenAppDelegate.swift */; };
+		744E8B972E2F12D641D38DFC /* MoltenAssetSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA525551E7A60DF5D24E2470 /* MoltenAssetSchemeHandler.swift */; };
 		747299B76B610BAA7532E785 /* MoltenDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = C089F2045DF7F5AECE92D4FC /* MoltenDocument.swift */; };
 		A4131B567265C427608C7DD4 /* MoltenWordCountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D82EA379B0128A30CE49CC7 /* MoltenWordCountTests.swift */; };
 		A67E238727EE7930752DEEC9 /* MoltenWordCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E4425EA69A153621A4DE98 /* MoltenWordCount.swift */; };
 		ABE4566A09CC1B06742BF5EF /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6BDBC09D8CB002C8F8CBB5A2 /* WebKit.framework */; };
 		B7DEA19F47FDEB4C04E8B447 /* MoltenDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACCAF3BCEB4738AE0C62C29 /* MoltenDocumentTests.swift */; };
+		BBFB02FC84DC34D2AA2057CF /* MoltenImageAttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8512B471BC06414A58CC903 /* MoltenImageAttachmentTests.swift */; };
 		D6F3CE95E133E1F60AF493F5 /* MoltenExternalReloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E758BBBFCA1CD1894CAF1D9 /* MoltenExternalReloadTests.swift */; };
+		DE568BF4BFFD3C3D41C202E1 /* MoltenFolderAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F7E958C8E053540B6AAFC1 /* MoltenFolderAccess.swift */; };
 		F820BB566CDCC61B1107DFC1 /* dist in Resources */ = {isa = PBXBuildFile; fileRef = 1B8A2DDA6085B50FE670D647 /* dist */; };
 /* End PBXBuildFile section */
 
@@ -52,8 +55,11 @@
 		985A890ADC043124F74615CC /* MoltenLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenLog.swift; sourceTree = "<group>"; };
 		A90A2BCB1FAF2D99E30C42C2 /* en.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder; name = en.lproj; path = Resources/en.lproj; sourceTree = SOURCE_ROOT; };
 		B579A50421E03159FDEC17EC /* MoltenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoltenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B5F7E958C8E053540B6AAFC1 /* MoltenFolderAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenFolderAccess.swift; sourceTree = "<group>"; };
+		B8512B471BC06414A58CC903 /* MoltenImageAttachmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenImageAttachmentTests.swift; sourceTree = "<group>"; };
 		B9B9B890670FCE5A4A517E87 /* MoltenEditorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenEditorViewController.swift; sourceTree = "<group>"; };
 		C089F2045DF7F5AECE92D4FC /* MoltenDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDocument.swift; sourceTree = "<group>"; };
+		CA525551E7A60DF5D24E2470 /* MoltenAssetSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenAssetSchemeHandler.swift; sourceTree = "<group>"; };
 		EB52B1E366015150046034BB /* MoltenWorkspaceViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenWorkspaceViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -92,6 +98,7 @@
 				6ACCAF3BCEB4738AE0C62C29 /* MoltenDocumentTests.swift */,
 				824B85B547ECFF97AEE3A93A /* MoltenEditorBridgeTests.swift */,
 				3E758BBBFCA1CD1894CAF1D9 /* MoltenExternalReloadTests.swift */,
+				B8512B471BC06414A58CC903 /* MoltenImageAttachmentTests.swift */,
 				0D82EA379B0128A30CE49CC7 /* MoltenWordCountTests.swift */,
 			);
 			path = Tests;
@@ -110,6 +117,7 @@
 		62CD1E33A8262114CD4FEB5D /* Editor */ = {
 			isa = PBXGroup;
 			children = (
+				CA525551E7A60DF5D24E2470 /* MoltenAssetSchemeHandler.swift */,
 				B9B9B890670FCE5A4A517E87 /* MoltenEditorViewController.swift */,
 				EB52B1E366015150046034BB /* MoltenWorkspaceViewController.swift */,
 			);
@@ -120,6 +128,7 @@
 			isa = PBXGroup;
 			children = (
 				705C94FA269E283DFB0085F8 /* L10n.swift */,
+				B5F7E958C8E053540B6AAFC1 /* MoltenFolderAccess.swift */,
 				985A890ADC043124F74615CC /* MoltenLog.swift */,
 				00E4425EA69A153621A4DE98 /* MoltenWordCount.swift */,
 			);
@@ -264,8 +273,10 @@
 			files = (
 				1FE7F87AF5697C05008B516C /* L10n.swift in Sources */,
 				4BF1666B909FE3A793977811 /* MoltenAppDelegate.swift in Sources */,
+				744E8B972E2F12D641D38DFC /* MoltenAssetSchemeHandler.swift in Sources */,
 				747299B76B610BAA7532E785 /* MoltenDocument.swift in Sources */,
 				205063E9639C387B0DB1F9ED /* MoltenEditorViewController.swift in Sources */,
+				DE568BF4BFFD3C3D41C202E1 /* MoltenFolderAccess.swift in Sources */,
 				288FEDCB52E4D3CCE520EDCC /* MoltenLog.swift in Sources */,
 				A67E238727EE7930752DEEC9 /* MoltenWordCount.swift in Sources */,
 				4A458458C2E3311DB26F47D4 /* MoltenWorkspaceViewController.swift in Sources */,
@@ -280,6 +291,7 @@
 				B7DEA19F47FDEB4C04E8B447 /* MoltenDocumentTests.swift in Sources */,
 				20206DE87C4F13E73B17D0C0 /* MoltenEditorBridgeTests.swift in Sources */,
 				D6F3CE95E133E1F60AF493F5 /* MoltenExternalReloadTests.swift in Sources */,
+				BBFB02FC84DC34D2AA2057CF /* MoltenImageAttachmentTests.swift in Sources */,
 				A4131B567265C427608C7DD4 /* MoltenWordCountTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -10,6 +10,8 @@
 //     {type: "ready"}                       surface booted, safe to setMarkdown
 //     {type: "change", markdown: String}    debounced content update
 //     {type: "boot-error", message: String} editor failed to construct
+//     {type: "image-save", id, name, base64} pasted/dropped image payload;
+//                       Swift answers via moltenAPI.resolveImageSave(id, path)
 //   Swift → JS  window.moltenAPI.*
 //     setMarkdown(md)   load document content (builds/rebuilds the editor)
 //     getMarkdown()     current serialization, or null while no editor is
@@ -83,6 +85,48 @@ function scheduleChange() {
   changeTimer = setTimeout(flushChange, CHANGE_DEBOUNCE_MS);
 }
 
+// ---- Image save pipeline -------------------------------------------------
+// Pasted/dropped images go to Swift (which owns sandbox permissions and the
+// document's folder) and come back as a document-relative path like
+// "assets/pic.png". Display-time, relative srcs are rewritten to the
+// molten-asset:// scheme served by the shell.
+
+const IMAGE_SAVE_TIMEOUT_MS = 30_000;
+const pendingImageSaves = new Map();
+let imageSaveCounter = 0;
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  const chunk = 0x8000; // keep String.fromCharCode argument counts sane
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+async function uploadImage(file) {
+  const base64 = arrayBufferToBase64(await file.arrayBuffer());
+  const id = ++imageSaveCounter;
+  return new Promise((resolve, reject) => {
+    pendingImageSaves.set(id, { resolve, reject });
+    post({ type: "image-save", id, name: file.name || "image.png", base64 });
+    setTimeout(() => {
+      if (pendingImageSaves.delete(id)) {
+        reject(new Error("image save timed out"));
+      }
+    }, IMAGE_SAVE_TIMEOUT_MS);
+  });
+}
+
+function rewriteAssetURL(url) {
+  if (typeof url !== "string" || !url) return url;
+  // Absolute/self-describing URLs pass through untouched.
+  if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|\/)/i.test(url)) return url;
+  return `molten-asset://asset/${encodeURI(url)}`;
+}
+// ---------------------------------------------------------------------------
+
 async function createEditor(markdown) {
   const generation = ++loadGeneration;
   // A timer armed against the outgoing editor must not fire into the new one
@@ -104,7 +148,18 @@ async function createEditor(markdown) {
   if (generation !== loadGeneration) return;
   root.replaceChildren();
 
-  const next = new Crepe({ root, defaultValue: markdown });
+  const next = new Crepe({
+    root,
+    defaultValue: markdown,
+    featureConfigs: {
+      [Crepe.Feature.ImageBlock]: {
+        onUpload: uploadImage,
+        inlineOnUpload: uploadImage,
+        blockOnUpload: uploadImage,
+        proxyDomURL: rewriteAssetURL,
+      },
+    },
+  });
   next.on((listener) => {
     // `updated` fires per transaction WITHOUT serializing; markdown is pulled
     // lazily in flushChange.
@@ -202,6 +257,19 @@ window.moltenAPI = {
     if (typeof term !== "string" || !term) return false;
     return window.find(term, false, Boolean(backwards), true, false, true, false);
   },
+  // Swift answers an image-save request; null/undefined path = failure.
+  resolveImageSave(id, path) {
+    const pending = pendingImageSaves.get(id);
+    if (!pending) return;
+    pendingImageSaves.delete(id);
+    if (typeof path === "string" && path) {
+      pending.resolve(path);
+    } else {
+      pending.reject(new Error("image save failed"));
+    }
+  },
+  // Exposed for tests: the display-time rewrite of document-relative srcs.
+  rewriteAssetURL,
 };
 
 // Boot failures must be loud: reach Swift over the bridge AND stay readable

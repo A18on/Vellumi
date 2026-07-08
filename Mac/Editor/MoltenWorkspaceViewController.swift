@@ -164,7 +164,7 @@ final class MoltenWorkspaceViewController: NSViewController {
     @objc private func hideFindBar(_ sender: Any?) {
         findBar.isHidden = true
         findBarHeightConstraint?.constant = 0
-        view.window?.makeFirstResponder(editorViewController.view)
+        editorViewController.focusEditingSurface()
     }
 
     @objc private func findNext(_ sender: Any?) {

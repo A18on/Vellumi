@@ -34,3 +34,9 @@
 "menu.window" = "窗口";
 "menu.minimize" = "最小化";
 "menu.zoom" = "缩放";
+
+/* 图片附件 */
+"folderAccess.message" = "Molten 需要权限把图片保存到「%@」文件夹(将创建 assets/ 子文件夹)。点击「允许」授权。";
+"folderAccess.prompt" = "允许";
+"image.needsSave.title" = "请先保存文档";
+"image.needsSave.message" = "图片会存放在文件旁边的 assets/ 文件夹中。请先保存文档,再重新粘贴图片。";
