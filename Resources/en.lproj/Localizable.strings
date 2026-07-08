@@ -40,3 +40,8 @@
 "folderAccess.prompt" = "Allow";
 "image.needsSave.title" = "Save the Document First";
 "image.needsSave.message" = "Images are stored in an assets/ folder next to your file. Save the document, then paste the image again.";
+
+/* Replace */
+"replace.placeholder" = "Replace with";
+"replace.one" = "Replace";
+"replace.all" = "All";

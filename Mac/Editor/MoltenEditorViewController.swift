@@ -152,6 +152,40 @@ final class MoltenEditorViewController: NSViewController {
         }
     }
 
+    /// Replaces the selected match (if it equals `term`) and advances;
+    /// completion(true) when a replacement happened.
+    func replaceNext(_ term: String, with replacement: String, completion: @escaping (Bool) -> Void) {
+        guard isEditorReady, !term.isEmpty else {
+            completion(false)
+            return
+        }
+        webView.callAsyncJavaScript(
+            "return window.moltenAPI.replaceNext(term, replacement);",
+            arguments: ["term": term, "replacement": replacement],
+            in: nil,
+            in: .page
+        ) { result in
+            completion((try? result.get()) as? Bool ?? false)
+        }
+    }
+
+    /// Replaces every occurrence in one undoable transaction; completion
+    /// receives the replacement count.
+    func replaceAll(_ term: String, with replacement: String, completion: @escaping (Int) -> Void) {
+        guard isEditorReady, !term.isEmpty else {
+            completion(0)
+            return
+        }
+        webView.callAsyncJavaScript(
+            "return window.moltenAPI.replaceAll(term, replacement);",
+            arguments: ["term": term, "replacement": replacement],
+            in: nil,
+            in: .page
+        ) { result in
+            completion((try? result.get()) as? Int ?? 0)
+        }
+    }
+
     // MARK: - Native menu actions → ProseMirror history
 
     // WKWebView does not respond to undo:/redo:, so menu clicks land here via

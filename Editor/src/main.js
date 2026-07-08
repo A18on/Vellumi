@@ -257,6 +257,55 @@ window.moltenAPI = {
     if (typeof term !== "string" || !term) return false;
     return window.find(term, false, Boolean(backwards), true, false, true, false);
   },
+  // Replaces every occurrence of `term` (within single text nodes — matches
+  // spanning formatting boundaries are out of scope) in one undoable
+  // transaction. Returns the replacement count.
+  replaceAll(term, replacement) {
+    if (!crepe || typeof term !== "string" || !term) return 0;
+    const safeReplacement = typeof replacement === "string" ? replacement : "";
+    let count = 0;
+    crepe.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      const { state } = view;
+      const ranges = [];
+      state.doc.descendants((node, pos) => {
+        if (!node.isText) return;
+        const text = node.text ?? "";
+        let index = 0;
+        while ((index = text.indexOf(term, index)) !== -1) {
+          ranges.push({ from: pos + index, to: pos + index + term.length });
+          index += term.length;
+        }
+      });
+      if (!ranges.length) return;
+      let tr = state.tr;
+      // Back to front so earlier replacements don't shift later ranges.
+      for (let i = ranges.length - 1; i >= 0; i -= 1) {
+        tr = tr.insertText(safeReplacement, ranges[i].from, ranges[i].to);
+      }
+      view.dispatch(tr);
+      count = ranges.length;
+    });
+    return count;
+  },
+  // Replaces the current selection when it equals `term`, then advances to
+  // the next match either way. Returns whether a replacement happened.
+  replaceNext(term, replacement) {
+    if (!crepe || typeof term !== "string" || !term) return false;
+    const safeReplacement = typeof replacement === "string" ? replacement : "";
+    let replaced = false;
+    crepe.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      const { state } = view;
+      const { from, to } = state.selection;
+      if (from !== to && state.doc.textBetween(from, to) === term) {
+        view.dispatch(state.tr.insertText(safeReplacement, from, to));
+        replaced = true;
+      }
+    });
+    window.find(term, false, false, true, false, true, false);
+    return replaced;
+  },
   // Swift answers an image-save request; null/undefined path = failure.
   resolveImageSave(id, path) {
     const pending = pendingImageSaves.get(id);

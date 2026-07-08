@@ -26,6 +26,7 @@ final class MoltenWorkspaceViewController: NSViewController {
     private var outlineItem: NSSplitViewItem!
     private let findBar = NSVisualEffectView()
     private let findField = NSSearchField()
+    private let replaceField = NSTextField()
     private let statusBar = NSVisualEffectView()
     private let wordCountLabel = NSTextField(labelWithString: "")
     private var showsOutline = UserDefaults.standard.bool(forKey: "Molten.showsOutline")
@@ -177,12 +178,28 @@ final class MoltenWorkspaceViewController: NSViewController {
 
     private func runFind(backwards: Bool) {
         let term = findField.stringValue
-        editorViewController.find(term, backwards: backwards) { [weak self] found in
+        editorViewController.find(term, backwards: backwards) { found in
             if !found {
                 NSSound.beep()
             }
             // Keep typing focus in the field for repeated Enter presses.
-            _ = self
+        }
+    }
+
+    @objc private func replaceNext(_ sender: Any?) {
+        editorViewController.replaceNext(findField.stringValue, with: replaceField.stringValue) { replaced in
+            if !replaced {
+                // Nothing selected/matched yet — the call already advanced to
+                // the next match, so the next click replaces it.
+            }
+        }
+    }
+
+    @objc private func replaceAll(_ sender: Any?) {
+        editorViewController.replaceAll(findField.stringValue, with: replaceField.stringValue) { count in
+            if count == 0 {
+                NSSound.beep()
+            }
         }
     }
 
@@ -196,17 +213,31 @@ final class MoltenWorkspaceViewController: NSViewController {
         findField.action = #selector(findNext(_:))
         findField.sendsSearchStringImmediately = false
 
+        replaceField.placeholderString = L10n.string("replace.placeholder")
+        replaceField.bezelStyle = .roundedBezel
+        replaceField.font = findField.font
+
         let previous = NSButton(title: "‹", target: self, action: #selector(findPrevious(_:)))
         let next = NSButton(title: "›", target: self, action: #selector(findNext(_:)))
+        let replaceOne = NSButton(
+            title: L10n.string("replace.one"),
+            target: self,
+            action: #selector(replaceNext(_:))
+        )
+        let replaceEvery = NSButton(
+            title: L10n.string("replace.all"),
+            target: self,
+            action: #selector(replaceAll(_:))
+        )
         let done = NSButton(
             title: L10n.string("find.done"),
             target: self,
             action: #selector(hideFindBar(_:))
         )
-        [previous, next, done].forEach { $0.bezelStyle = .accessoryBarAction }
+        [previous, next, replaceOne, replaceEvery, done].forEach { $0.bezelStyle = .accessoryBarAction }
         done.keyEquivalent = "\u{1b}" // Esc closes the bar
 
-        let row = NSStackView(views: [findField, previous, next, done])
+        let row = NSStackView(views: [findField, previous, next, replaceField, replaceOne, replaceEvery, done])
         row.orientation = .horizontal
         row.spacing = 6
         row.edgeInsets = NSEdgeInsets(top: 6, left: 10, bottom: 6, right: 10)
@@ -221,7 +252,8 @@ final class MoltenWorkspaceViewController: NSViewController {
             row.trailingAnchor.constraint(equalTo: findBar.trailingAnchor),
             row.topAnchor.constraint(equalTo: findBar.topAnchor),
             row.heightAnchor.constraint(equalToConstant: 34),
-            findField.widthAnchor.constraint(greaterThanOrEqualToConstant: 240),
+            findField.widthAnchor.constraint(greaterThanOrEqualToConstant: 180),
+            replaceField.widthAnchor.constraint(greaterThanOrEqualToConstant: 150),
         ])
     }
 

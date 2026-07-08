@@ -97,6 +97,31 @@ final class MoltenEditorBridgeTests: XCTestCase {
         _ = try evaluate("window.moltenAPI.undo(); window.moltenAPI.redo(); 'ok'")
     }
 
+    func testReplaceAllRewritesEveryOccurrenceInOneTransaction() throws {
+        try loadEditorPage()
+        try setMarkdown("foo bar foo\n\n## foo heading\n\nfoo **bold foo** end")
+
+        let count = try XCTUnwrap(try evaluate("window.moltenAPI.replaceAll('foo', 'qux')") as? Int)
+        XCTAssertEqual(count, 5)
+        let markdown = try XCTUnwrap(try evaluate("window.moltenAPI.getMarkdown()") as? String)
+        XCTAssertFalse(markdown.contains("foo"), "all occurrences replaced, got: \(markdown)")
+        XCTAssertTrue(markdown.contains("qux bar qux"))
+        XCTAssertTrue(markdown.contains("## qux heading"), "matches inside headings replaced too")
+        XCTAssertTrue(markdown.contains("**bold qux**"), "inline formatting must survive replacement")
+
+        // One transaction → one undo returns the whole document.
+        _ = try evaluate("window.moltenAPI.undo(); 'ok'")
+        let undone = try XCTUnwrap(try evaluate("window.moltenAPI.getMarkdown()") as? String)
+        XCTAssertTrue(undone.contains("foo bar foo"), "replaceAll must undo as a single step, got: \(undone)")
+    }
+
+    func testReplaceAllWithNoMatchReturnsZero() throws {
+        try loadEditorPage()
+        try setMarkdown("nothing here")
+        XCTAssertEqual(try evaluate("window.moltenAPI.replaceAll('absent', 'x')") as? Int, 0)
+        XCTAssertEqual(try evaluate("window.moltenAPI.replaceAll('', 'x')") as? Int, 0)
+    }
+
     func testImageNodeSurvivesSerialization() throws {
         try loadEditorPage()
         try setMarkdown("before\n\n![alt text](assets/pic.png)\n\nafter")
