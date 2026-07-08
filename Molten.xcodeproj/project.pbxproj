@@ -8,9 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		0D5C85462A8D17749D814194 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C1CA5D7AEA1874EF4D9DC1 /* main.swift */; };
+		0EF2DD5FAD7CEE59AB6BBFB9 /* zh-Hans.lproj in Resources */ = {isa = PBXBuildFile; fileRef = 65A34CEF3F71C4A7D8F56296 /* zh-Hans.lproj */; };
+		1FE7F87AF5697C05008B516C /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 705C94FA269E283DFB0085F8 /* L10n.swift */; };
 		20206DE87C4F13E73B17D0C0 /* MoltenEditorBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824B85B547ECFF97AEE3A93A /* MoltenEditorBridgeTests.swift */; };
 		205063E9639C387B0DB1F9ED /* MoltenEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B9B890670FCE5A4A517E87 /* MoltenEditorViewController.swift */; };
 		288FEDCB52E4D3CCE520EDCC /* MoltenLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 985A890ADC043124F74615CC /* MoltenLog.swift */; };
+		3AA68C4032D8F2C1FC602725 /* en.lproj in Resources */ = {isa = PBXBuildFile; fileRef = A90A2BCB1FAF2D99E30C42C2 /* en.lproj */; };
 		4A458458C2E3311DB26F47D4 /* MoltenWorkspaceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB52B1E366015150046034BB /* MoltenWorkspaceViewController.swift */; };
 		4BF1666B909FE3A793977811 /* MoltenAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 393B627AAD075257FD4369B8 /* MoltenAppDelegate.swift */; };
 		747299B76B610BAA7532E785 /* MoltenDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = C089F2045DF7F5AECE92D4FC /* MoltenDocument.swift */; };
@@ -40,11 +43,14 @@
 		32C1CA5D7AEA1874EF4D9DC1 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		393B627AAD075257FD4369B8 /* MoltenAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenAppDelegate.swift; sourceTree = "<group>"; };
 		3E758BBBFCA1CD1894CAF1D9 /* MoltenExternalReloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenExternalReloadTests.swift; sourceTree = "<group>"; };
+		65A34CEF3F71C4A7D8F56296 /* zh-Hans.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "zh-Hans.lproj"; path = "Resources/zh-Hans.lproj"; sourceTree = SOURCE_ROOT; };
 		6ACCAF3BCEB4738AE0C62C29 /* MoltenDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDocumentTests.swift; sourceTree = "<group>"; };
 		6BDBC09D8CB002C8F8CBB5A2 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		705C94FA269E283DFB0085F8 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		7E2F036BA734652323B095D1 /* Molten.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Molten.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		824B85B547ECFF97AEE3A93A /* MoltenEditorBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenEditorBridgeTests.swift; sourceTree = "<group>"; };
 		985A890ADC043124F74615CC /* MoltenLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenLog.swift; sourceTree = "<group>"; };
+		A90A2BCB1FAF2D99E30C42C2 /* en.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder; name = en.lproj; path = Resources/en.lproj; sourceTree = SOURCE_ROOT; };
 		B579A50421E03159FDEC17EC /* MoltenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoltenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9B9B890670FCE5A4A517E87 /* MoltenEditorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenEditorViewController.swift; sourceTree = "<group>"; };
 		C089F2045DF7F5AECE92D4FC /* MoltenDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDocument.swift; sourceTree = "<group>"; };
@@ -113,6 +119,7 @@
 		A1F6D693FEB444936272668B /* Support */ = {
 			isa = PBXGroup;
 			children = (
+				705C94FA269E283DFB0085F8 /* L10n.swift */,
 				985A890ADC043124F74615CC /* MoltenLog.swift */,
 				00E4425EA69A153621A4DE98 /* MoltenWordCount.swift */,
 			);
@@ -141,6 +148,8 @@
 			isa = PBXGroup;
 			children = (
 				1B8A2DDA6085B50FE670D647 /* dist */,
+				A90A2BCB1FAF2D99E30C42C2 /* en.lproj */,
+				65A34CEF3F71C4A7D8F56296 /* zh-Hans.lproj */,
 				AA6876C74C807417C55F757D /* Mac */,
 				BB8E77C1AE8241ADBD2F419C /* Shared */,
 				31A914154D1AA43E73B011DA /* Tests */,
@@ -241,6 +250,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				F820BB566CDCC61B1107DFC1 /* dist in Resources */,
+				3AA68C4032D8F2C1FC602725 /* en.lproj in Resources */,
+				0EF2DD5FAD7CEE59AB6BBFB9 /* zh-Hans.lproj in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,6 +262,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1FE7F87AF5697C05008B516C /* L10n.swift in Sources */,
 				4BF1666B909FE3A793977811 /* MoltenAppDelegate.swift in Sources */,
 				747299B76B610BAA7532E785 /* MoltenDocument.swift in Sources */,
 				205063E9639C387B0DB1F9ED /* MoltenEditorViewController.swift in Sources */,

@@ -1,0 +1,36 @@
+/* 文档错误 */
+"document.error.tooLarge" = "此文件超过 %d MB,Molten 目前无法编辑。";
+"document.error.encoding" = "此文件不是 UTF-8 文本。Molten 拒绝猜测编码,以免损坏文件。";
+
+/* 工作区 */
+"status.wordCount" = "字数 %d";
+"find.placeholder" = "查找";
+"find.done" = "完成";
+"outline.empty" = "暂无标题";
+
+/* 菜单 */
+"menu.about" = "关于 Molten";
+"menu.hide" = "隐藏 Molten";
+"menu.hideOthers" = "隐藏其他";
+"menu.showAll" = "全部显示";
+"menu.quit" = "退出 Molten";
+"menu.file" = "文件";
+"menu.new" = "新建";
+"menu.open" = "打开…";
+"menu.close" = "关闭";
+"menu.save" = "保存…";
+"menu.saveAs" = "另存为…";
+"menu.revert" = "恢复到已保存";
+"menu.edit" = "编辑";
+"menu.undo" = "撤销";
+"menu.redo" = "重做";
+"menu.cut" = "剪切";
+"menu.copy" = "拷贝";
+"menu.paste" = "粘贴";
+"menu.selectAll" = "全选";
+"menu.find" = "查找…";
+"menu.view" = "显示";
+"menu.toggleOutline" = "开关大纲";
+"menu.window" = "窗口";
+"menu.minimize" = "最小化";
+"menu.zoom" = "缩放";

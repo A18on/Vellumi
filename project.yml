@@ -24,6 +24,12 @@ targets:
       - path: Resources/dist
         buildPhase: resources
         type: folder
+      - path: Resources/en.lproj
+        buildPhase: resources
+        type: folder
+      - path: Resources/zh-Hans.lproj
+        buildPhase: resources
+        type: folder
     dependencies:
       - sdk: WebKit.framework
     settings:

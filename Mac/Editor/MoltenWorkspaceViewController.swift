@@ -93,7 +93,7 @@ final class MoltenWorkspaceViewController: NSViewController {
             DispatchQueue.main.async {
                 guard let self, self.statsGeneration == generation else { return }
                 self.wordCountLabel.stringValue = String(
-                    format: NSLocalizedString("status.wordCount", value: "%d words", comment: "word count"),
+                    format: L10n.string("status.wordCount"),
                     count
                 )
             }
@@ -191,7 +191,7 @@ final class MoltenWorkspaceViewController: NSViewController {
         findBar.blendingMode = .withinWindow
         findBar.isHidden = true
 
-        findField.placeholderString = NSLocalizedString("find.placeholder", value: "Find", comment: "find field")
+        findField.placeholderString = L10n.string("find.placeholder")
         findField.target = self
         findField.action = #selector(findNext(_:))
         findField.sendsSearchStringImmediately = false
@@ -199,7 +199,7 @@ final class MoltenWorkspaceViewController: NSViewController {
         let previous = NSButton(title: "‹", target: self, action: #selector(findPrevious(_:)))
         let next = NSButton(title: "›", target: self, action: #selector(findNext(_:)))
         let done = NSButton(
-            title: NSLocalizedString("find.done", value: "Done", comment: "close find"),
+            title: L10n.string("find.done"),
             target: self,
             action: #selector(hideFindBar(_:))
         )
@@ -254,7 +254,7 @@ struct MoltenOutlineSidebar: View {
     var body: some View {
         Group {
             if model.headings.isEmpty {
-                Text(NSLocalizedString("outline.empty", value: "No headings", comment: "empty outline"))
+                Text(L10n.string("outline.empty"))
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

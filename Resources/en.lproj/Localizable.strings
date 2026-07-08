@@ -1,0 +1,36 @@
+/* Document errors */
+"document.error.tooLarge" = "This file is larger than %d MB, which Molten cannot edit yet.";
+"document.error.encoding" = "This file is not UTF-8 text. Molten refuses to guess the encoding rather than risk corrupting it.";
+
+/* Workspace */
+"status.wordCount" = "%d words";
+"find.placeholder" = "Find";
+"find.done" = "Done";
+"outline.empty" = "No headings";
+
+/* Menus */
+"menu.about" = "About Molten";
+"menu.hide" = "Hide Molten";
+"menu.hideOthers" = "Hide Others";
+"menu.showAll" = "Show All";
+"menu.quit" = "Quit Molten";
+"menu.file" = "File";
+"menu.new" = "New";
+"menu.open" = "Open…";
+"menu.close" = "Close";
+"menu.save" = "Save…";
+"menu.saveAs" = "Save As…";
+"menu.revert" = "Revert to Saved";
+"menu.edit" = "Edit";
+"menu.undo" = "Undo";
+"menu.redo" = "Redo";
+"menu.cut" = "Cut";
+"menu.copy" = "Copy";
+"menu.paste" = "Paste";
+"menu.selectAll" = "Select All";
+"menu.find" = "Find…";
+"menu.view" = "View";
+"menu.toggleOutline" = "Toggle Outline";
+"menu.window" = "Window";
+"menu.minimize" = "Minimize";
+"menu.zoom" = "Zoom";

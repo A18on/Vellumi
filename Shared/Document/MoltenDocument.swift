@@ -63,11 +63,7 @@ final class MoltenDocument: NSDocument {
         guard data.count <= Self.maximumFileSize else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSFileReadTooLargeError, userInfo: [
                 NSLocalizedDescriptionKey: String(
-                    format: NSLocalizedString(
-                        "document.error.tooLarge",
-                        value: "This file is larger than %d MB, which Molten cannot edit yet.",
-                        comment: "file too large"
-                    ),
+                    format: L10n.string("document.error.tooLarge"),
                     Self.maximumFileSize / (1024 * 1024)
                 ),
             ])
@@ -91,11 +87,7 @@ final class MoltenDocument: NSDocument {
         }
         guard var decoded = String(data: data, encoding: .utf8) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSFileReadInapplicableStringEncodingError, userInfo: [
-                NSLocalizedDescriptionKey: NSLocalizedString(
-                    "document.error.encoding",
-                    value: "This file is not UTF-8 text. Molten refuses to guess the encoding rather than risk corrupting it.",
-                    comment: "not UTF-8"
-                ),
+                NSLocalizedDescriptionKey: L10n.string("document.error.encoding"),
             ])
         }
         if decoded.hasPrefix("\u{FEFF}") {

@@ -14,55 +14,55 @@ enum MoltenMainMenuBuilder {
         let mainMenu = NSMenu()
 
         mainMenu.addItem(submenu: appMenu(), title: "Molten")
-        mainMenu.addItem(submenu: fileMenu(), title: "File")
-        mainMenu.addItem(submenu: editMenu(), title: "Edit")
-        mainMenu.addItem(submenu: viewMenu(), title: "View")
-        mainMenu.addItem(submenu: windowMenu(), title: "Window")
+        mainMenu.addItem(submenu: fileMenu(), title: L10n.string("menu.file"))
+        mainMenu.addItem(submenu: editMenu(), title: L10n.string("menu.edit"))
+        mainMenu.addItem(submenu: viewMenu(), title: L10n.string("menu.view"))
+        mainMenu.addItem(submenu: windowMenu(), title: L10n.string("menu.window"))
 
         return mainMenu
     }
 
     private static func appMenu() -> NSMenu {
         let menu = NSMenu(title: "Molten")
-        menu.addItem(withTitle: "About Molten", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        menu.addItem(withTitle: L10n.string("menu.about"), action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Hide Molten", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
-        let hideOthers = menu.addItem(withTitle: "Hide Others", action: #selector(NSApplication.hideOtherApplications(_:)), keyEquivalent: "h")
+        menu.addItem(withTitle: L10n.string("menu.hide"), action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        let hideOthers = menu.addItem(withTitle: L10n.string("menu.hideOthers"), action: #selector(NSApplication.hideOtherApplications(_:)), keyEquivalent: "h")
         hideOthers.keyEquivalentModifierMask = [.command, .option]
-        menu.addItem(withTitle: "Show All", action: #selector(NSApplication.unhideAllApplications(_:)), keyEquivalent: "")
+        menu.addItem(withTitle: L10n.string("menu.showAll"), action: #selector(NSApplication.unhideAllApplications(_:)), keyEquivalent: "")
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit Molten", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: L10n.string("menu.quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         return menu
     }
 
     private static func fileMenu() -> NSMenu {
-        let menu = NSMenu(title: "File")
-        menu.addItem(withTitle: "New", action: #selector(NSDocumentController.newDocument(_:)), keyEquivalent: "n")
-        menu.addItem(withTitle: "Open…", action: #selector(NSDocumentController.openDocument(_:)), keyEquivalent: "o")
+        let menu = NSMenu(title: L10n.string("menu.file"))
+        menu.addItem(withTitle: L10n.string("menu.new"), action: #selector(NSDocumentController.newDocument(_:)), keyEquivalent: "n")
+        menu.addItem(withTitle: L10n.string("menu.open"), action: #selector(NSDocumentController.openDocument(_:)), keyEquivalent: "o")
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
-        menu.addItem(withTitle: "Save…", action: #selector(NSDocument.save(_:)), keyEquivalent: "s")
-        let saveAs = menu.addItem(withTitle: "Save As…", action: #selector(NSDocument.saveAs(_:)), keyEquivalent: "s")
+        menu.addItem(withTitle: L10n.string("menu.close"), action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        menu.addItem(withTitle: L10n.string("menu.save"), action: #selector(NSDocument.save(_:)), keyEquivalent: "s")
+        let saveAs = menu.addItem(withTitle: L10n.string("menu.saveAs"), action: #selector(NSDocument.saveAs(_:)), keyEquivalent: "s")
         saveAs.keyEquivalentModifierMask = [.command, .shift]
-        menu.addItem(withTitle: "Revert to Saved", action: #selector(NSDocument.revertToSaved(_:)), keyEquivalent: "")
+        menu.addItem(withTitle: L10n.string("menu.revert"), action: #selector(NSDocument.revertToSaved(_:)), keyEquivalent: "")
         return menu
     }
 
     private static func editMenu() -> NSMenu {
-        let menu = NSMenu(title: "Edit")
+        let menu = NSMenu(title: L10n.string("menu.edit"))
         // Compile-checked selectors targeting MoltenEditorViewController via
         // the responder chain (WKWebView itself does not respond to undo:).
-        menu.addItem(withTitle: "Undo", action: #selector(MoltenEditorViewController.undo(_:)), keyEquivalent: "z")
-        let redo = menu.addItem(withTitle: "Redo", action: #selector(MoltenEditorViewController.redo(_:)), keyEquivalent: "z")
+        menu.addItem(withTitle: L10n.string("menu.undo"), action: #selector(MoltenEditorViewController.undo(_:)), keyEquivalent: "z")
+        let redo = menu.addItem(withTitle: L10n.string("menu.redo"), action: #selector(MoltenEditorViewController.redo(_:)), keyEquivalent: "z")
         redo.keyEquivalentModifierMask = [.command, .shift]
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
-        menu.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
-        menu.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
-        menu.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        menu.addItem(withTitle: L10n.string("menu.cut"), action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        menu.addItem(withTitle: L10n.string("menu.copy"), action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        menu.addItem(withTitle: L10n.string("menu.paste"), action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        menu.addItem(withTitle: L10n.string("menu.selectAll"), action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
         menu.addItem(.separator())
         menu.addItem(
-            withTitle: "Find…",
+            withTitle: L10n.string("menu.find"),
             action: #selector(MoltenWorkspaceViewController.showFind(_:)),
             keyEquivalent: "f"
         )
@@ -70,9 +70,9 @@ enum MoltenMainMenuBuilder {
     }
 
     private static func viewMenu() -> NSMenu {
-        let menu = NSMenu(title: "View")
+        let menu = NSMenu(title: L10n.string("menu.view"))
         let outline = menu.addItem(
-            withTitle: "Toggle Outline",
+            withTitle: L10n.string("menu.toggleOutline"),
             action: #selector(MoltenWorkspaceViewController.toggleOutline(_:)),
             keyEquivalent: "1"
         )
@@ -81,9 +81,9 @@ enum MoltenMainMenuBuilder {
     }
 
     private static func windowMenu() -> NSMenu {
-        let menu = NSMenu(title: "Window")
-        menu.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
-        menu.addItem(withTitle: "Zoom", action: #selector(NSWindow.performZoom(_:)), keyEquivalent: "")
+        let menu = NSMenu(title: L10n.string("menu.window"))
+        menu.addItem(withTitle: L10n.string("menu.minimize"), action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        menu.addItem(withTitle: L10n.string("menu.zoom"), action: #selector(NSWindow.performZoom(_:)), keyEquivalent: "")
         NSApp.windowsMenu = menu
         return menu
     }
