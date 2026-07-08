@@ -22,6 +22,8 @@
 //     getOutline()      [{level, text, pos}] for the native outline sidebar
 //     scrollToHeading(pos)  move caret to a heading and scroll it into view
 //     find(term, backwards) incremental in-page search; returns whether found
+//     replaceNext/replaceAll(term, replacement)  find-bar replacement
+//     getContentHTML()  cleaned rendered HTML for export (null before boot)
 //
 // The editor is constructed lazily on the first setMarkdown — building a
 // throwaway empty editor at boot would double every document-open.
@@ -256,6 +258,26 @@ window.moltenAPI = {
   find(term, backwards) {
     if (typeof term !== "string" || !term) return false;
     return window.find(term, false, Boolean(backwards), true, false, true, false);
+  },
+  // Clean document HTML for export: the rendered ProseMirror subtree with
+  // editing chrome stripped and molten-asset:// srcs restored to the
+  // document-relative paths the exported file should reference.
+  getContentHTML() {
+    const surface = root.querySelector(".ProseMirror");
+    if (!crepe || !surface) return null;
+    const clone = surface.cloneNode(true);
+    clone.removeAttribute("contenteditable");
+    clone.removeAttribute("translate");
+    clone.querySelectorAll("[contenteditable]").forEach((el) => el.removeAttribute("contenteditable"));
+    // Editing-only artifacts: widget decorations, drop cursors, placeholders.
+    clone
+      .querySelectorAll(".ProseMirror-widget, .milkdown-block-handle, .crepe-placeholder, [data-crepe-placeholder]")
+      .forEach((el) => el.remove());
+    clone.querySelectorAll("img[src^='molten-asset://asset/']").forEach((img) => {
+      const raw = img.getAttribute("src").slice("molten-asset://asset/".length);
+      img.setAttribute("src", decodeURI(raw));
+    });
+    return clone.innerHTML;
   },
   // Replaces every occurrence of `term` (within single text nodes — matches
   // spanning formatting boundaries are out of scope) in one undoable

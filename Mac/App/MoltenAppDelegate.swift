@@ -45,6 +45,24 @@ enum MoltenMainMenuBuilder {
         let saveAs = menu.addItem(withTitle: L10n.string("menu.saveAs"), action: #selector(NSDocument.saveAs(_:)), keyEquivalent: "s")
         saveAs.keyEquivalentModifierMask = [.command, .shift]
         menu.addItem(withTitle: L10n.string("menu.revert"), action: #selector(NSDocument.revertToSaved(_:)), keyEquivalent: "")
+        menu.addItem(.separator())
+        let exportHTML = menu.addItem(
+            withTitle: L10n.string("menu.exportHTML"),
+            action: #selector(MoltenWorkspaceViewController.exportHTML(_:)),
+            keyEquivalent: "e"
+        )
+        exportHTML.keyEquivalentModifierMask = [.command, .shift]
+        menu.addItem(
+            withTitle: L10n.string("menu.exportPDF"),
+            action: #selector(MoltenWorkspaceViewController.exportPDF(_:)),
+            keyEquivalent: ""
+        )
+        menu.addItem(.separator())
+        menu.addItem(
+            withTitle: L10n.string("menu.print"),
+            action: #selector(MoltenWorkspaceViewController.printDocument(_:)),
+            keyEquivalent: "p"
+        )
         return menu
     }
 

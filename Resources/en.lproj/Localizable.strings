@@ -45,3 +45,8 @@
 "replace.placeholder" = "Replace with";
 "replace.one" = "Replace";
 "replace.all" = "All";
+
+/* Export */
+"menu.exportHTML" = "Export as HTML…";
+"menu.exportPDF" = "Export as PDF…";
+"menu.print" = "Print…";

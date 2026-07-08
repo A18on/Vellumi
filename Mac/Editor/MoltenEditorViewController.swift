@@ -152,6 +152,25 @@ final class MoltenEditorViewController: NSViewController {
         }
     }
 
+    /// The web view exposed for PDF/print snapshots.
+    var webViewForExport: WKWebView { webView }
+
+    /// Cleaned rendered HTML for export; nil while the editor isn't live.
+    func fetchContentHTML(completion: @escaping (String?) -> Void) {
+        guard isEditorReady else {
+            completion(nil)
+            return
+        }
+        webView.evaluateJavaScript("window.moltenAPI.getContentHTML();") { result, error in
+            if let error {
+                MoltenLog.editor.error("getContentHTML failed: \(error.localizedDescription, privacy: .public)")
+                completion(nil)
+                return
+            }
+            completion(result as? String)
+        }
+    }
+
     /// Replaces the selected match (if it equals `term`) and advances;
     /// completion(true) when a replacement happened.
     func replaceNext(_ term: String, with replacement: String, completion: @escaping (Bool) -> Void) {

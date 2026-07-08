@@ -97,6 +97,18 @@ final class MoltenEditorBridgeTests: XCTestCase {
         _ = try evaluate("window.moltenAPI.undo(); window.moltenAPI.redo(); 'ok'")
     }
 
+    func testContentHTMLIsCleanForExport() throws {
+        try loadEditorPage()
+        try setMarkdown("# 标题\n\n段落 **粗** 文。\n\n![pic](assets/p.png)")
+
+        let html = try XCTUnwrap(try evaluate("window.moltenAPI.getContentHTML()") as? String)
+        XCTAssertTrue(html.contains("<h1"), "rendered heading expected, got: \(html.prefix(200))")
+        XCTAssertTrue(html.contains("<strong>粗</strong>") || html.contains("<b>粗</b>"))
+        XCTAssertFalse(html.contains("contenteditable"), "editing chrome must be stripped")
+        XCTAssertFalse(html.contains("molten-asset://"), "asset scheme must be restored to relative paths")
+        XCTAssertTrue(html.contains("assets/p.png"), "relative image path preserved, got: \(html.prefix(400))")
+    }
+
     func testReplaceAllRewritesEveryOccurrenceInOneTransaction() throws {
         try loadEditorPage()
         try setMarkdown("foo bar foo\n\n## foo heading\n\nfoo **bold foo** end")

@@ -45,3 +45,8 @@
 "replace.placeholder" = "替换为";
 "replace.one" = "替换";
 "replace.all" = "全部";
+
+/* 导出 */
+"menu.exportHTML" = "导出为 HTML…";
+"menu.exportPDF" = "导出为 PDF…";
+"menu.print" = "打印…";

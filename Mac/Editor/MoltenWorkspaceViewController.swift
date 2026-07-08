@@ -34,9 +34,28 @@ final class MoltenWorkspaceViewController: NSViewController {
     private let statsQueue = DispatchQueue(label: "com.aaron.molten.stats", qos: .utility)
     private var statsGeneration = 0
 
+    private weak var document: MoltenDocument?
+
     init(document: MoltenDocument) {
+        self.document = document
         editorViewController = MoltenEditorViewController(document: document)
         super.init(nibName: nil, bundle: nil)
+    }
+
+    // MARK: - Export / print (File menu, via responder chain)
+
+    @objc func exportHTML(_ sender: Any?) {
+        guard let document else { return }
+        MoltenExporter.exportHTML(from: self, document: document)
+    }
+
+    @objc func exportPDF(_ sender: Any?) {
+        guard let document else { return }
+        MoltenExporter.exportPDF(from: self, document: document)
+    }
+
+    @objc func printDocument(_ sender: Any?) {
+        MoltenExporter.print(from: self)
     }
 
     @available(*, unavailable)
