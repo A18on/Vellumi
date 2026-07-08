@@ -101,6 +101,46 @@ final class MoltenEditorViewController: NSViewController {
         }
     }
 
+    /// Fetches [{level, text, pos}] headings for the outline sidebar.
+    func fetchOutline(completion: @escaping ([MoltenHeading]) -> Void) {
+        guard isEditorReady else {
+            completion([])
+            return
+        }
+        webView.evaluateJavaScript("window.moltenAPI.getOutline();") { result, _ in
+            let rows = (result as? [[String: Any]]) ?? []
+            completion(rows.compactMap { row in
+                guard let text = row["text"] as? String,
+                      let pos = row["pos"] as? Int else { return nil }
+                return MoltenHeading(level: row["level"] as? Int ?? 1, text: text, pos: pos)
+            })
+        }
+    }
+
+    func scrollToHeading(pos: Int) {
+        webView.evaluateJavaScript("window.moltenAPI.scrollToHeading(\(pos));")
+    }
+
+    /// Incremental in-page find; completion(false) when no match.
+    func find(_ term: String, backwards: Bool, completion: @escaping (Bool) -> Void) {
+        guard isEditorReady, !term.isEmpty else {
+            completion(false)
+            return
+        }
+        webView.callAsyncJavaScript(
+            "return window.moltenAPI.find(term, backwards);",
+            arguments: ["term": term, "backwards": backwards],
+            in: nil,
+            in: .page
+        ) { result in
+            if case .success(let value) = result {
+                completion((value as? Bool) ?? false)
+            } else {
+                completion(false)
+            }
+        }
+    }
+
     // MARK: - Native menu actions → ProseMirror history
 
     // WKWebView does not respond to undo:/redo:, so menu clicks land here via

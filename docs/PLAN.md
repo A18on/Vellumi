@@ -14,8 +14,8 @@ Typora 式单栏所见即所得 markdown 编辑器。存盘为规范化 markdown
 - [ ] 中英文本地化(复用 MarkMac L10n 模式)
 - [ ] 深浅色打磨 + 主题(映射 MarkMac 三主题)
 - [ ] 图片粘贴/拖入 → 沙盒安全落盘(assets/ 模式,复用 MarkMac 方案)
-- [ ] 查找替换、字数统计、大纲侧栏(Crepe outline 或桥回传 headings)
-- [ ] 外部改动检测(NSFilePresenter,复用 MarkMac 实现)
+- [x] 查找(⌘F 原生查找栏 + window.find)、字数统计状态栏(CJK+拉丁混排)、大纲侧栏(⌥⌘1,桥回传 headings,点击/方向键跳转)——查找的「替换」延后
+- [x] 外部改动检测(NSFilePresenter,干净文档自动重载,尺寸门槛+mtime 判重)
 
 ## M2 — 特色
 - [ ] 图片卡片长图导出(直接移植 MarkMac card.html 流水线)

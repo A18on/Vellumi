@@ -96,4 +96,22 @@ final class MoltenEditorBridgeTests: XCTestCase {
         // The native Edit menu forwards here; the calls must not throw.
         _ = try evaluate("window.moltenAPI.undo(); window.moltenAPI.redo(); 'ok'")
     }
+
+    func testOutlineExtractionScrollAndFind() throws {
+        try loadEditorPage()
+        try setMarkdown("# 一级\n\n正文 target 词。\n\n## 二级标题\n\n### 三级")
+
+        // Outline: three headings with correct levels/texts, in document order.
+        let summary = try XCTUnwrap(try evaluate(
+            "window.moltenAPI.getOutline().map(h => h.level + ':' + h.text).join('|')"
+        ) as? String)
+        XCTAssertEqual(summary, "1:一级|2:二级标题|3:三级")
+
+        // find() reports hit and miss correctly.
+        XCTAssertEqual(try evaluate("window.moltenAPI.find('target', false)") as? Bool, true)
+        XCTAssertEqual(try evaluate("window.moltenAPI.find('不存在的词', false)") as? Bool, false)
+
+        // scrollToHeading with a real pos executes without throwing.
+        _ = try evaluate("window.moltenAPI.scrollToHeading(window.moltenAPI.getOutline()[2].pos); 'ok'")
+    }
 }

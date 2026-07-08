@@ -17,12 +17,17 @@
 //                       as "keep what you already have", never as empty
 //     undo()/redo()     forward native menu actions to ProseMirror history
 //     focus()           re-assert DOM focus once the host window is key
+//     getOutline()      [{level, text, pos}] for the native outline sidebar
+//     scrollToHeading(pos)  move caret to a heading and scroll it into view
+//     find(term, backwards) incremental in-page search; returns whether found
 //
 // The editor is constructed lazily on the first setMarkdown — building a
 // throwaway empty editor at boot would double every document-open.
 
 import { Crepe } from "@milkdown/crepe";
+import { editorViewCtx } from "@milkdown/core";
 import { undoCommand, redoCommand } from "@milkdown/plugin-history";
+import { TextSelection } from "@milkdown/prose/state";
 import { callCommand } from "@milkdown/utils";
 import "@milkdown/crepe/theme/common/style.css";
 // Frame theme ships as separate light/dark files (each redefines the same
@@ -161,6 +166,41 @@ window.moltenAPI = {
   },
   redo() {
     crepe?.editor.action(callCommand(redoCommand.key));
+  },
+  // Headings for the native outline sidebar. Walking the ProseMirror tree is
+  // cheap relative to serialization; positions are document offsets usable
+  // with scrollToHeading below.
+  getOutline() {
+    if (!crepe) return [];
+    const outline = [];
+    crepe.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      view.state.doc.descendants((node, pos) => {
+        if (node.type.name === "heading") {
+          outline.push({
+            level: Number(node.attrs.level ?? 1),
+            text: node.textContent,
+            pos,
+          });
+        }
+      });
+    });
+    return outline;
+  },
+  scrollToHeading(pos) {
+    if (!crepe || typeof pos !== "number") return;
+    crepe.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      const clamped = Math.max(0, Math.min(pos + 1, view.state.doc.content.size));
+      const selection = TextSelection.near(view.state.doc.resolve(clamped));
+      view.dispatch(view.state.tr.setSelection(selection).scrollIntoView());
+      view.focus();
+    });
+  },
+  // Native find bar drives WebKit's window.find (selection-based, wraps).
+  find(term, backwards) {
+    if (typeof term !== "string" || !term) return false;
+    return window.find(term, false, Boolean(backwards), true, false, true, false);
   },
 };
 

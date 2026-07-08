@@ -22,14 +22,16 @@ final class MoltenDocument: NSDocument {
     /// document permanently "Edited".
     private var savedText: String = ""
     weak var editorViewController: MoltenEditorViewController?
+    weak var workspaceViewController: MoltenWorkspaceViewController?
 
     override class var autosavesInPlace: Bool { true }
     override class var readableTypes: [String] { [markdownType] }
     override class var writableTypes: [String] { [markdownType] }
 
     override func makeWindowControllers() {
-        let controller = MoltenEditorViewController(document: self)
-        editorViewController = controller
+        let workspace = MoltenWorkspaceViewController(document: self)
+        workspaceViewController = workspace
+        editorViewController = workspace.editorViewController
 
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: Self.defaultContentSize),
@@ -39,9 +41,18 @@ final class MoltenDocument: NSDocument {
         )
         window.minSize = NSSize(width: 480, height: 320)
         window.titlebarAppearsTransparent = true
-        window.contentViewController = controller
-        window.center()
+        window.contentViewController = workspace
+        // Assigning contentViewController resizes the window to the view's
+        // fitting size (tiny — the web view has no intrinsic size). Restore a
+        // saved frame if one exists; otherwise apply the default and center.
+        // Order matters: setFrameAutosaveName alone would re-apply the saved
+        // frame AFTER any size we set here.
+        let restoredSavedFrame = window.setFrameUsingName("MoltenDocumentWindow")
         window.setFrameAutosaveName("MoltenDocumentWindow")
+        if !restoredSavedFrame {
+            window.setContentSize(Self.defaultContentSize)
+            window.center()
+        }
 
         addWindowController(NSWindowController(window: window))
     }
@@ -161,11 +172,50 @@ final class MoltenDocument: NSDocument {
         guard markdown != text else { return }
         text = markdown
         updateChangeCount(markdown == savedText ? .changeCleared : .changeDone)
+        workspaceViewController?.noteContentChanged(markdown)
     }
 
     /// The editor surface finished booting (or reloaded after a web-content
     /// process crash) — push the authoritative document content into it.
     func editorDidBecomeReady() {
         editorViewController?.loadDocumentText(text)
+        workspaceViewController?.noteContentChanged(text)
+    }
+
+    // MARK: - External changes on disk
+
+    /// Another process rewrote the file (git checkout, sync, another editor).
+    /// For a CLEAN document, adopt the new content automatically; a dirty
+    /// document keeps NSDocument's own conflict handling.
+    override func presentedItemDidChange() {
+        super.presentedItemDidChange()
+        DispatchQueue.main.async { [weak self] in
+            self?.reloadIfCleanAndChangedOnDisk()
+        }
+    }
+
+    func reloadIfCleanAndChangedOnDisk() {
+        guard let url = fileURL, !isDocumentEdited else { return }
+        let values = try? url.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
+        guard let onDisk = values?.contentModificationDate else { return }
+        if let recorded = fileModificationDate, onDisk <= recorded { return }
+        // Same size ceiling as the open path — an external swap to a huge file
+        // must not trigger an unbounded read.
+        if let size = values?.fileSize, size > Self.maximumFileSize { return }
+        guard let data = try? Data(contentsOf: url),
+              data.count <= Self.maximumFileSize,
+              let reloaded = try? Self.decodeText(from: data) else {
+            return
+        }
+        fileModificationDate = onDisk
+        guard reloaded != text else { return }
+        text = reloaded
+        savedText = reloaded
+        updateChangeCount(.changeCleared)
+        // Rebuilding the editor from the new content also resets ProseMirror's
+        // history — stale undo entries can't replay onto the reloaded text.
+        editorViewController?.loadDocumentText(reloaded)
+        workspaceViewController?.noteContentChanged(reloaded)
+        MoltenLog.document.info("Reloaded document after external change on disk")
     }
 }

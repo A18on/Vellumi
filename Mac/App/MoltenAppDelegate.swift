@@ -16,6 +16,7 @@ enum MoltenMainMenuBuilder {
         mainMenu.addItem(submenu: appMenu(), title: "Molten")
         mainMenu.addItem(submenu: fileMenu(), title: "File")
         mainMenu.addItem(submenu: editMenu(), title: "Edit")
+        mainMenu.addItem(submenu: viewMenu(), title: "View")
         mainMenu.addItem(submenu: windowMenu(), title: "Window")
 
         return mainMenu
@@ -59,6 +60,23 @@ enum MoltenMainMenuBuilder {
         menu.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
         menu.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
         menu.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        menu.addItem(.separator())
+        menu.addItem(
+            withTitle: "Find…",
+            action: #selector(MoltenWorkspaceViewController.showFind(_:)),
+            keyEquivalent: "f"
+        )
+        return menu
+    }
+
+    private static func viewMenu() -> NSMenu {
+        let menu = NSMenu(title: "View")
+        let outline = menu.addItem(
+            withTitle: "Toggle Outline",
+            action: #selector(MoltenWorkspaceViewController.toggleOutline(_:)),
+            keyEquivalent: "1"
+        )
+        outline.keyEquivalentModifierMask = [.command, .option]
         return menu
     }
 
