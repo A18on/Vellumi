@@ -31,6 +31,7 @@ final class MoltenWorkspaceViewController: NSViewController {
     private let wordCountLabel = NSTextField(labelWithString: "")
     private var showsOutline = UserDefaults.standard.bool(forKey: "Molten.showsOutline")
     private var pendingStatsWorkItem: DispatchWorkItem?
+    private var imageCardExportWindowController: NSWindowController?
     private let statsQueue = DispatchQueue(label: "com.aaron.molten.stats", qos: .utility)
     private var statsGeneration = 0
 
@@ -56,6 +57,46 @@ final class MoltenWorkspaceViewController: NSViewController {
 
     @objc func printDocument(_ sender: Any?) {
         MoltenExporter.print(from: self)
+    }
+
+    @objc func exportImageCards(_ sender: Any?) {
+        guard let document, let window = view.window else { return }
+        editorViewController.fetchContentHTML { [weak self] bodyHTML in
+            guard let self, let bodyHTML else {
+                NSSound.beep()
+                return
+            }
+            // Card renderer lives inside the bundle: relative image srcs must
+            // go through the molten-asset scheme to reach the document folder.
+            let request = MarkdownImageCardExportRequest(
+                bodyHTML: MoltenAssetSchemeHandler.rewritingImageSources(in: bodyHTML),
+                documentURL: document.fileURL,
+                defaultBaseName: document.exportBaseName
+            )
+
+            let panel = NSPanel(
+                contentRect: NSRect(x: 0, y: 0, width: 920, height: 640),
+                styleMask: [.titled, .closable, .resizable],
+                backing: .buffered,
+                defer: false
+            )
+            panel.title = L10n.string("export.image.title")
+            panel.isReleasedWhenClosed = false
+            panel.contentMinSize = NSSize(width: 820, height: 560)
+            panel.contentViewController = NSHostingController(
+                rootView: ImageCardExportView(request: request) { [weak self, weak panel] in
+                    guard let panel else { return }
+                    panel.sheetParent?.endSheet(panel)
+                    panel.close()
+                    self?.imageCardExportWindowController = nil
+                }
+            )
+
+            self.imageCardExportWindowController = NSWindowController(window: panel)
+            window.beginSheet(panel) { [weak self] _ in
+                self?.imageCardExportWindowController = nil
+            }
+        }
     }
 
     @available(*, unavailable)

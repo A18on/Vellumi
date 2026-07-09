@@ -56,6 +56,46 @@ final class MoltenAssetSchemeHandler: NSObject, WKURLSchemeHandler {
         return candidate
     }
 
+    /// Rewrites document-relative <img src> values in exported/preview HTML to
+    /// the molten-asset scheme so a card/preview web view (whose page URL is
+    /// inside the app bundle) can load them through this handler.
+    static func rewritingImageSources(in html: String) -> String {
+        guard let regex = try? NSRegularExpression(
+            pattern: "(<img\\b[^>]*?\\bsrc=\")([^\"]+)(\")",
+            options: [.caseInsensitive]
+        ) else {
+            return html
+        }
+
+        let ns = html as NSString
+        let matches = regex.matches(in: html, range: NSRange(location: 0, length: ns.length))
+        guard !matches.isEmpty else { return html }
+
+        var result = ""
+        var lastEnd = 0
+        for match in matches {
+            let whole = match.range
+            result += ns.substring(with: NSRange(location: lastEnd, length: whole.location - lastEnd))
+            let prefix = ns.substring(with: match.range(at: 1))
+            let src = ns.substring(with: match.range(at: 2))
+            let suffix = ns.substring(with: match.range(at: 3))
+            result += prefix + rewrittenSource(src) + suffix
+            lastEnd = whole.location + whole.length
+        }
+        result += ns.substring(from: lastEnd)
+        return result
+    }
+
+    private static func rewrittenSource(_ src: String) -> String {
+        let lower = src.lowercased()
+        if lower.hasPrefix("http://") || lower.hasPrefix("https://") || lower.hasPrefix("data:")
+            || lower.hasPrefix("file:") || lower.hasPrefix("\(scheme):") || src.hasPrefix("/") {
+            return src
+        }
+        let encoded = src.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? src
+        return "\(scheme)://\(host)/\(encoded)"
+    }
+
     private static let failure = NSError(domain: NSURLErrorDomain, code: NSURLErrorFileDoesNotExist)
 
     private static func mimeType(forPathExtension ext: String) -> String {

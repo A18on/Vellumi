@@ -57,6 +57,11 @@ enum MoltenMainMenuBuilder {
             action: #selector(MoltenWorkspaceViewController.exportPDF(_:)),
             keyEquivalent: ""
         )
+        menu.addItem(
+            withTitle: L10n.string("menu.exportImageCards"),
+            action: #selector(MoltenWorkspaceViewController.exportImageCards(_:)),
+            keyEquivalent: ""
+        )
         menu.addItem(.separator())
         menu.addItem(
             withTitle: L10n.string("menu.print"),

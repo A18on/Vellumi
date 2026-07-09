@@ -30,6 +30,12 @@ targets:
       - path: Resources/zh-Hans.lproj
         buildPhase: resources
         type: folder
+      - path: Resources/imagecard
+        buildPhase: resources
+        type: folder
+      - path: Resources/vendor
+        buildPhase: resources
+        type: folder
     dependencies:
       - sdk: WebKit.framework
     settings:

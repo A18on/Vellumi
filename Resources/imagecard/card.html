@@ -1,0 +1,1478 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Molten Image Card Renderer</title>
+  <link rel="stylesheet" href="../vendor/highlight/github.min.css">
+  <link rel="stylesheet" href="../vendor/katex/katex.min.css">
+  <script src="../vendor/highlight/highlight.min.js"></script>
+  <script src="../vendor/katex/katex.min.js"></script>
+  <script src="html2canvas.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --card-width: 1080px;
+      --card-height: 1920px;
+      --preview-scale: 0.34;
+      --paragraph-indent: 2em;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: transparent;
+      font-family: "Sora", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    }
+
+    body {
+      display: flex;
+      min-width: 0;
+      min-height: 0;
+      color: CanvasText;
+    }
+
+    #previewViewport {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background:
+        linear-gradient(45deg, rgba(127, 127, 127, 0.08) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(127, 127, 127, 0.08) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(127, 127, 127, 0.08) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(127, 127, 127, 0.08) 75%);
+      background-size: 22px 22px;
+      background-position: 0 0, 0 11px, 11px -11px, -11px 0;
+    }
+
+    #previewSizer {
+      width: calc(var(--card-width) * var(--preview-scale));
+      height: calc(var(--card-height) * var(--preview-scale));
+      display: block;
+    }
+
+    #cardWrapper {
+      width: var(--card-width);
+      height: var(--card-height);
+      min-height: var(--card-height);
+      transform: scale(var(--preview-scale));
+      transform-origin: top left;
+      box-shadow: 0 26px 70px rgba(0, 0, 0, 0.28);
+    }
+
+    .card-wrapper {
+      width: var(--card-width);
+      height: var(--card-height);
+      min-height: var(--card-height);
+      overflow: hidden;
+      background: #101a22;
+    }
+
+    .card-inner {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+      height: 100%;
+      padding: 72px 72px 76px;
+      background: var(--card-bg);
+      color: var(--card-text);
+      overflow: hidden;
+    }
+
+    .card-inner::before,
+    .card-inner::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(4px);
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    .card-inner::before {
+      top: -10%;
+      right: -18%;
+      width: 240px;
+      height: 240px;
+      background: radial-gradient(circle, var(--card-accent-soft) 0%, transparent 70%);
+    }
+
+    .card-inner::after {
+      bottom: -14%;
+      left: -16%;
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(69, 128, 214, 0.18) 0%, transparent 72%);
+    }
+
+    .card-body {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .card-content {
+      height: 100%;
+      overflow: hidden;
+      color: inherit;
+      line-break: strict;
+      word-break: normal;
+    }
+
+    .watermark-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      overflow: hidden;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .watermark-overlay[hidden] {
+      display: none;
+    }
+
+    .watermark-item {
+      position: absolute;
+      white-space: nowrap;
+      text-transform: none;
+      transform-origin: center;
+      text-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.16),
+        0 0 18px rgba(255, 255, 255, 0.04);
+    }
+
+    .watermark-item--main {
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--watermark-ribbon-line);
+      background: linear-gradient(90deg, transparent, var(--watermark-ribbon-bg), transparent);
+      color: var(--watermark-main);
+      font-weight: 800;
+      letter-spacing: 0.18em;
+    }
+
+    .watermark-item--micro {
+      color: var(--watermark-soft);
+      font-family: "SF Mono", "JetBrains Mono", monospace;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      opacity: 0.92;
+    }
+
+    .watermark-item--ribbon {
+      left: -12%;
+      width: 124%;
+      padding: 8px 0;
+      border-top: 1px dashed var(--watermark-ribbon-line);
+      border-bottom: 1px dashed var(--watermark-ribbon-line);
+      background: linear-gradient(90deg, transparent, var(--watermark-ribbon-bg) 12%, var(--watermark-ribbon-bg) 88%, transparent);
+      color: var(--watermark-ribbon-text);
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-align: center;
+    }
+
+    .card-content > *:last-child {
+      margin-bottom: 0;
+    }
+
+    .card-content h1,
+    .card-content h2,
+    .card-content h3,
+    .card-content h4 {
+      color: inherit;
+      letter-spacing: 0;
+    }
+
+    .card-content h1 {
+      margin: 0 0 30px;
+      font-size: 54px;
+      line-height: 1.18;
+      font-weight: 800;
+    }
+
+    .card-content h2 {
+      margin: 42px 0 24px;
+      padding-bottom: 18px;
+      font-size: 42px;
+      line-height: 1.28;
+      font-weight: 700;
+      border-bottom: 1px solid var(--card-line);
+    }
+
+    .card-content h3 {
+      margin: 36px 0 18px;
+      font-size: 38px;
+      line-height: 1.34;
+      font-weight: 700;
+    }
+
+    .card-content h4,
+    .card-content h5,
+    .card-content h6 {
+      margin: 30px 0 16px;
+      font-size: 34px;
+      line-height: 1.4;
+      font-weight: 700;
+    }
+
+    .card-content p,
+    .card-content li,
+    .card-content blockquote,
+    .card-content td,
+    .card-content th {
+      color: var(--card-muted);
+      font-size: 36px;
+      line-height: 1.72;
+    }
+
+    .card-content > p {
+      text-indent: var(--paragraph-indent);
+    }
+
+    .card-content > p[data-md2card-continuation="true"],
+    .card-content > blockquote[data-md2card-continuation="true"] > p {
+      text-indent: 0;
+    }
+
+    .card-content p,
+    .card-content ul,
+    .card-content ol,
+    .card-content blockquote,
+    .card-content pre,
+    .card-content table,
+    .card-content hr {
+      margin: 0 0 26px;
+    }
+
+    .card-content ul,
+    .card-content ol {
+      padding-left: 52px;
+    }
+
+    .card-content li + li {
+      margin-top: 14px;
+    }
+
+    .card-content a {
+      color: var(--card-accent);
+    }
+
+    .card-content strong {
+      color: var(--card-text);
+      font-weight: 700;
+    }
+
+    .card-content em {
+      font-style: italic;
+      opacity: 0.88;
+    }
+
+    .card-content mark {
+      padding: 0 8px;
+      border-radius: 8px;
+      color: inherit;
+      background: rgba(255, 211, 84, 0.38);
+    }
+
+    .card-content mark.mm-hl-green { background: rgba(82, 196, 125, 0.34); }
+    .card-content mark.mm-hl-red { background: rgba(255, 107, 107, 0.34); }
+    .card-content mark.mm-hl-blue { background: rgba(102, 169, 255, 0.32); }
+    .card-content mark.mm-hl-yellow { background: rgba(255, 211, 84, 0.4); }
+    .card-content mark.mm-hl-purple { background: rgba(186, 146, 255, 0.34); }
+
+    .card-content .mm-callout {
+      --mm-callout-accent: var(--card-accent);
+      --mm-callout-bg: var(--card-quote);
+      margin: 0 0 26px;
+      padding: 24px 30px;
+      border-left: 7px solid var(--mm-callout-accent);
+      border-radius: 22px;
+      color: var(--card-muted);
+      background: var(--mm-callout-bg);
+    }
+
+    .card-content .mm-callout-title {
+      margin: 0 0 14px;
+      color: var(--mm-callout-accent);
+      font-size: 34px;
+      line-height: 1.35;
+      font-weight: 800;
+      text-indent: 0;
+    }
+
+    .card-content .mm-callout > :last-child {
+      margin-bottom: 0;
+    }
+
+    .card-content .mm-callout-note { --mm-callout-accent: #66a9ff; --mm-callout-bg: rgba(102, 169, 255, 0.11); }
+    .card-content .mm-callout-tip { --mm-callout-accent: #52c47d; --mm-callout-bg: rgba(82, 196, 125, 0.12); }
+    .card-content .mm-callout-important { --mm-callout-accent: #ba92ff; --mm-callout-bg: rgba(186, 146, 255, 0.12); }
+    .card-content .mm-callout-warning { --mm-callout-accent: #ffd354; --mm-callout-bg: rgba(255, 211, 84, 0.13); }
+    .card-content .mm-callout-caution { --mm-callout-accent: #ff7b72; --mm-callout-bg: rgba(255, 123, 114, 0.12); }
+
+    .card-content blockquote {
+      padding: 24px 30px;
+      border-left: 6px solid var(--card-accent);
+      border-radius: 0 22px 22px 0;
+      background: var(--card-quote);
+    }
+
+    .card-content hr {
+      height: 1px;
+      border: 0;
+      background: linear-gradient(90deg, transparent, var(--card-line), transparent);
+    }
+
+    .card-content code {
+      padding: 4px 12px;
+      border-radius: 10px;
+      background: var(--card-code);
+      font-family: "SF Mono", "JetBrains Mono", monospace;
+      font-size: 32px;
+    }
+
+    .card-content pre {
+      padding: 26px 28px;
+      overflow: auto;
+      border-radius: 22px;
+      background: var(--card-pre);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .card-content pre code {
+      display: block;
+      padding: 0;
+      background: transparent;
+      font-size: 30px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .card-content table {
+      width: 100%;
+      border-collapse: collapse;
+      border-spacing: 0;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid var(--card-line);
+    }
+
+    .card-content th,
+    .card-content td {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--card-line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .card-content tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .card-content img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      border-radius: 22px;
+      margin: 24px 0;
+    }
+
+    .card-watermark {
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--card-watermark);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .theme-aurora {
+      --card-bg:
+        radial-gradient(circle at top right, rgba(136, 224, 184, 0.18), transparent 34%),
+        radial-gradient(circle at bottom left, rgba(69, 128, 214, 0.18), transparent 36%),
+        linear-gradient(180deg, #101a22 0%, #0b1418 100%);
+      --card-text: #f1f5f7;
+      --card-muted: rgba(241, 245, 247, 0.82);
+      --card-line: rgba(241, 245, 247, 0.1);
+      --card-accent: #88e0b8;
+      --card-accent-soft: rgba(136, 224, 184, 0.22);
+      --card-quote: rgba(255, 255, 255, 0.05);
+      --card-code: rgba(255, 255, 255, 0.07);
+      --card-pre: rgba(7, 13, 17, 0.44);
+      --card-watermark: rgba(241, 245, 247, 0.46);
+      --watermark-main: rgba(241, 245, 247, 0.18);
+      --watermark-soft: rgba(136, 224, 184, 0.14);
+      --watermark-ribbon-bg: rgba(241, 245, 247, 0.04);
+      --watermark-ribbon-line: rgba(241, 245, 247, 0.09);
+      --watermark-ribbon-text: rgba(241, 245, 247, 0.16);
+    }
+
+    .theme-sunset {
+      --card-bg:
+        radial-gradient(circle at top left, rgba(255, 196, 118, 0.18), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(255, 106, 76, 0.17), transparent 36%),
+        linear-gradient(180deg, #2a1714 0%, #171515 100%);
+      --card-text: #fff4ea;
+      --card-muted: rgba(255, 244, 234, 0.82);
+      --card-line: rgba(255, 244, 234, 0.11);
+      --card-accent: #ffb278;
+      --card-accent-soft: rgba(255, 178, 120, 0.22);
+      --card-quote: rgba(255, 255, 255, 0.06);
+      --card-code: rgba(255, 255, 255, 0.08);
+      --card-pre: rgba(33, 17, 13, 0.44);
+      --card-watermark: rgba(255, 244, 234, 0.5);
+      --watermark-main: rgba(255, 244, 234, 0.2);
+      --watermark-soft: rgba(255, 178, 120, 0.16);
+      --watermark-ribbon-bg: rgba(255, 244, 234, 0.05);
+      --watermark-ribbon-line: rgba(255, 244, 234, 0.1);
+      --watermark-ribbon-text: rgba(255, 244, 234, 0.16);
+    }
+
+    .theme-forest {
+      --card-bg:
+        radial-gradient(circle at top right, rgba(95, 180, 139, 0.18), transparent 34%),
+        radial-gradient(circle at bottom left, rgba(110, 156, 84, 0.16), transparent 32%),
+        linear-gradient(180deg, #111912 0%, #0c120d 100%);
+      --card-text: #f0f8f0;
+      --card-muted: rgba(240, 248, 240, 0.82);
+      --card-line: rgba(240, 248, 240, 0.11);
+      --card-accent: #8dd7a9;
+      --card-accent-soft: rgba(141, 215, 169, 0.22);
+      --card-quote: rgba(255, 255, 255, 0.05);
+      --card-code: rgba(255, 255, 255, 0.07);
+      --card-pre: rgba(10, 17, 12, 0.46);
+      --card-watermark: rgba(240, 248, 240, 0.48);
+      --watermark-main: rgba(240, 248, 240, 0.18);
+      --watermark-soft: rgba(141, 215, 169, 0.14);
+      --watermark-ribbon-bg: rgba(240, 248, 240, 0.04);
+      --watermark-ribbon-line: rgba(240, 248, 240, 0.09);
+      --watermark-ribbon-text: rgba(240, 248, 240, 0.16);
+    }
+
+    .theme-minimal {
+      --card-bg:
+        radial-gradient(circle at top right, rgba(174, 187, 215, 0.18), transparent 28%),
+        linear-gradient(180deg, #fffdfa 0%, #f3eee6 100%);
+      --card-text: #17212b;
+      --card-muted: rgba(23, 33, 43, 0.84);
+      --card-line: rgba(23, 33, 43, 0.12);
+      --card-accent: #295c7d;
+      --card-accent-soft: rgba(41, 92, 125, 0.18);
+      --card-quote: rgba(41, 92, 125, 0.08);
+      --card-code: rgba(23, 33, 43, 0.06);
+      --card-pre: rgba(23, 33, 43, 0.06);
+      --card-watermark: rgba(23, 33, 43, 0.48);
+      --watermark-main: rgba(23, 33, 43, 0.16);
+      --watermark-soft: rgba(41, 92, 125, 0.13);
+      --watermark-ribbon-bg: rgba(23, 33, 43, 0.035);
+      --watermark-ribbon-line: rgba(23, 33, 43, 0.09);
+      --watermark-ribbon-text: rgba(23, 33, 43, 0.16);
+    }
+
+    .theme-cream {
+      --card-bg:
+        radial-gradient(circle at top left, rgba(232, 179, 110, 0.18), transparent 34%),
+        linear-gradient(180deg, #f8efd9 0%, #efe0c4 100%);
+      --card-text: #3b2a1d;
+      --card-muted: rgba(59, 42, 29, 0.84);
+      --card-line: rgba(59, 42, 29, 0.12);
+      --card-accent: #af6d2a;
+      --card-accent-soft: rgba(175, 109, 42, 0.18);
+      --card-quote: rgba(175, 109, 42, 0.08);
+      --card-code: rgba(59, 42, 29, 0.07);
+      --card-pre: rgba(59, 42, 29, 0.06);
+      --card-watermark: rgba(59, 42, 29, 0.46);
+      --watermark-main: rgba(59, 42, 29, 0.15);
+      --watermark-soft: rgba(175, 109, 42, 0.12);
+      --watermark-ribbon-bg: rgba(59, 42, 29, 0.035);
+      --watermark-ribbon-line: rgba(59, 42, 29, 0.09);
+      --watermark-ribbon-text: rgba(59, 42, 29, 0.15);
+    }
+
+    .theme-dark {
+      --card-bg:
+        radial-gradient(circle at top right, rgba(79, 125, 172, 0.2), transparent 32%),
+        radial-gradient(circle at bottom left, rgba(84, 212, 183, 0.1), transparent 36%),
+        linear-gradient(180deg, #101216 0%, #090b0e 100%);
+      --card-text: #eef4fb;
+      --card-muted: rgba(238, 244, 251, 0.82);
+      --card-line: rgba(238, 244, 251, 0.1);
+      --card-accent: #8db9ff;
+      --card-accent-soft: rgba(141, 185, 255, 0.2);
+      --card-quote: rgba(255, 255, 255, 0.05);
+      --card-code: rgba(255, 255, 255, 0.08);
+      --card-pre: rgba(0, 0, 0, 0.34);
+      --card-watermark: rgba(238, 244, 251, 0.46);
+      --watermark-main: rgba(238, 244, 251, 0.18);
+      --watermark-soft: rgba(141, 185, 255, 0.15);
+      --watermark-ribbon-bg: rgba(238, 244, 251, 0.04);
+      --watermark-ribbon-line: rgba(238, 244, 251, 0.09);
+      --watermark-ribbon-text: rgba(238, 244, 251, 0.16);
+    }
+
+    .export-stage {
+      position: fixed;
+      left: -20000px;
+      top: 0;
+      width: 1px;
+      height: 1px;
+      overflow: visible;
+      opacity: 0.01;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="previewViewport">
+    <div id="previewSizer">
+      <div class="card-wrapper theme-aurora" id="cardWrapper">
+        <div class="card-inner">
+          <div class="card-body">
+            <div class="card-content" id="cardContent"></div>
+          </div>
+          <div class="watermark-overlay" id="watermarkOverlay" aria-hidden="true"></div>
+          <div class="card-watermark">
+            <span>Molten</span>
+            <span id="pageMeta"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="export-stage" id="measureStage" aria-hidden="true"></div>
+  <div class="export-stage" id="exportStage" aria-hidden="true"></div>
+
+  <script>
+    const cardWrapper = document.getElementById("cardWrapper");
+    const cardContent = document.getElementById("cardContent");
+    const pageMeta = document.getElementById("pageMeta");
+    const watermarkOverlay = document.getElementById("watermarkOverlay");
+    const previewViewport = document.getElementById("previewViewport");
+    const measureStage = document.getElementById("measureStage");
+    const exportStage = document.getElementById("exportStage");
+    const CONTINUATION_ATTR = "data-md2card-continuation";
+    const LINE_START_FORBIDDEN_CHARS = new Set(Array.from("，。！？；：、,.!?;:)]}）】》〉」』”’％%…"));
+    const PAGINATION_YIELD_INTERVAL = 6;
+    const JPEG_EXPORT_QUALITY = 0.96;
+
+    const state = {
+      bodyHTML: "",
+      pages: [""],
+      currentPage: 0,
+      options: {
+        theme: "aurora",
+        size: { width: 1080, height: 1920 },
+        watermark: "",
+        format: "png",
+        paragraphIndent: "2em"
+      },
+      renderGeneration: 0
+    };
+
+    function post(message) {
+      try {
+        window.webkit?.messageHandlers?.markmacCard?.postMessage(message);
+      } catch (error) {
+        // Native bridge is optional during direct browser smoke tests.
+      }
+    }
+
+    function postError(requestID, error) {
+      post({
+        type: "error",
+        requestID: requestID || null,
+        message: error && error.message ? error.message : String(error)
+      });
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function getPageNumberWidth(totalPages) {
+      return Math.max(2, String(Math.max(totalPages, 1)).length);
+    }
+
+    function formatDate() {
+      return new Intl.DateTimeFormat("zh-CN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).format(new Date());
+    }
+
+    function formatPageLabel(index, total) {
+      const width = getPageNumberWidth(total);
+      return `${String(index + 1).padStart(width, "0")}/${String(total).padStart(width, "0")}`;
+    }
+
+    function applyDimensions() {
+      const { width, height } = state.options.size;
+      document.documentElement.style.setProperty("--card-width", `${width}px`);
+      document.documentElement.style.setProperty("--card-height", `${height}px`);
+      document.documentElement.style.setProperty("--paragraph-indent", state.options.paragraphIndent || "0em");
+      updatePreviewScale();
+    }
+
+    function updatePreviewScale() {
+      const { width, height } = state.options.size;
+      const availableWidth = Math.max(previewViewport.clientWidth - 36, 1);
+      const availableHeight = Math.max(previewViewport.clientHeight - 36, 1);
+      const scale = Math.min(availableWidth / width, availableHeight / height, 1);
+      document.documentElement.style.setProperty("--preview-scale", String(scale));
+    }
+
+    window.addEventListener("resize", updatePreviewScale);
+    if (typeof ResizeObserver !== "undefined") {
+      new ResizeObserver(updatePreviewScale).observe(previewViewport);
+    }
+
+    function getWatermarkVariants(text) {
+      const compact = text.replace(/\s+/g, " ").trim();
+      const spaced = Array.from(compact).join(" ");
+      return {
+        primary: compact,
+        secondary: `${compact} · ${spaced}`,
+        micro: `${spaced} / ${compact}`,
+        ribbon: Array.from({ length: 4 }, () => compact).join("  //  ")
+      };
+    }
+
+    function getWatermarkStrengthConfig() {
+      return {
+        mainRows: 4,
+        mainCols: 3,
+        microRows: 4,
+        microCols: 3,
+        ribbonCount: 3,
+        mainOpacity: 0.65,
+        microOpacity: 0.52,
+        ribbonOpacity: 0.5
+      };
+    }
+
+    function createWatermarkItem(type, text, style) {
+      const element = document.createElement("span");
+      element.className = `watermark-item watermark-item--${type}`;
+      element.textContent = text;
+      Object.assign(element.style, style);
+      return element;
+    }
+
+    function populateWatermarkOverlay(overlay, width, height) {
+      if (!overlay) {
+        return;
+      }
+
+      const text = (state.options.watermark || "").trim();
+      if (!text) {
+        overlay.hidden = true;
+        overlay.replaceChildren();
+        return;
+      }
+
+      overlay.hidden = false;
+      const config = getWatermarkStrengthConfig();
+      const variants = getWatermarkVariants(text);
+      const items = [];
+
+      for (let index = 0; index < config.ribbonCount; index += 1) {
+        const top = height * (0.16 + index * (0.64 / Math.max(config.ribbonCount - 1, 1)));
+        items.push(
+          createWatermarkItem("ribbon", variants.ribbon, {
+            top: `${top}px`,
+            transform: `rotate(${index % 2 === 0 ? -12 : 9}deg)`,
+            fontSize: `${Math.round(width * 0.028)}px`,
+            opacity: String(config.ribbonOpacity)
+          })
+        );
+      }
+
+      const mainStepX = width / Math.max(config.mainCols - 0.15, 1);
+      const mainStepY = height / Math.max(config.mainRows + 0.2, 1);
+
+      for (let row = 0; row < config.mainRows; row += 1) {
+        for (let col = 0; col < config.mainCols; col += 1) {
+          const leftOffset = row % 2 === 0 ? -width * 0.14 : width * 0.02;
+          const left = leftOffset + col * mainStepX;
+          const top = height * 0.08 + row * mainStepY;
+          items.push(
+            createWatermarkItem("main", row % 2 === 0 ? variants.secondary : variants.primary, {
+              left: `${left}px`,
+              top: `${top}px`,
+              transform: `rotate(${row % 2 === 0 ? -24 : -18}deg)`,
+              fontSize: `${Math.round(width * 0.048)}px`,
+              opacity: String(config.mainOpacity)
+            })
+          );
+        }
+      }
+
+      const microStepX = width / Math.max(config.microCols, 1);
+      const microStepY = height / Math.max(config.microRows + 0.3, 1);
+
+      for (let row = 0; row < config.microRows; row += 1) {
+        for (let col = 0; col < config.microCols; col += 1) {
+          const left = -width * 0.04 + col * microStepX + (row % 2) * width * 0.08;
+          const top = height * 0.04 + row * microStepY;
+          items.push(
+            createWatermarkItem("micro", variants.micro, {
+              left: `${left}px`,
+              top: `${top}px`,
+              transform: `rotate(${row % 2 === 0 ? 17 : 11}deg)`,
+              fontSize: `${Math.max(10, Math.round(width * 0.027))}px`,
+              opacity: String(config.microOpacity)
+            })
+          );
+        }
+      }
+
+      overlay.replaceChildren(...items);
+    }
+
+    function createCardShell({ pageIndex = 0, pageCount = 1, includeWatermark = true } = {}) {
+      const { width, height } = state.options.size;
+      const wrapper = document.createElement("div");
+      wrapper.className = `card-wrapper theme-${state.options.theme}`;
+      wrapper.style.width = `${width}px`;
+      wrapper.style.height = `${height}px`;
+      wrapper.style.minHeight = `${height}px`;
+
+      const inner = document.createElement("div");
+      inner.className = "card-inner";
+
+      const body = document.createElement("div");
+      body.className = "card-body";
+
+      const content = document.createElement("div");
+      content.className = "card-content";
+
+      const overlay = document.createElement("div");
+      overlay.className = "watermark-overlay";
+      overlay.setAttribute("aria-hidden", "true");
+      if (includeWatermark) {
+        populateWatermarkOverlay(overlay, width, height);
+      } else {
+        overlay.hidden = true;
+      }
+
+      const footer = document.createElement("div");
+      footer.className = "card-watermark";
+      const brand = document.createElement("span");
+      brand.textContent = "Molten";
+      const meta = document.createElement("span");
+      meta.textContent = `${formatDate()} · ${formatPageLabel(pageIndex, pageCount)}`;
+      footer.append(brand, meta);
+
+      body.appendChild(content);
+      inner.append(body, overlay, footer);
+      wrapper.appendChild(inner);
+
+      return { wrapper, body, content, overlay };
+    }
+
+    function applyRuntimeRendering(root) {
+      root.querySelectorAll("pre code").forEach((block) => {
+        if (!window.hljs) {
+          return;
+        }
+        block.removeAttribute("data-highlighted");
+        window.hljs.highlightElement(block);
+      });
+
+      root.querySelectorAll(".math").forEach((element) => {
+        if (!window.katex) {
+          return;
+        }
+        const expression = element.textContent || "";
+        const displayMode = element.getAttribute("data-display") === "true";
+        try {
+          window.katex.render(expression, element, {
+            displayMode,
+            throwOnError: false,
+            strict: "ignore"
+          });
+        } catch (error) {
+          element.classList.add("math-error");
+          element.textContent = expression;
+        }
+      });
+    }
+
+    function serializeNode(node) {
+      return node.outerHTML || "";
+    }
+
+    // A single-newline-separated document (the default line-breaks render option) arrives as one
+    // giant <p> full of <br>. The oversized-block splitter flattens children via textContent, so
+    // page breaks inside such a block drop both the <br> structure and inline formatting —
+    // producing an unparagraphed wall of text. Split paragraph blocks on <br> boundaries up front:
+    // pagination gets natural break points and every segment keeps its inline markup and
+    // per-paragraph styling (first-line indent, spacing).
+    function splitParagraphOnLineBreaks(element) {
+      if (element.tagName !== "P" || !element.querySelector("br")) {
+        return [element.cloneNode(true)];
+      }
+      const segments = [];
+      let current = [];
+      const flush = () => {
+        const hasContent = current.some(
+          (child) => child.nodeType !== Node.TEXT_NODE || child.textContent.trim()
+        );
+        if (hasContent) {
+          const paragraph = element.cloneNode(false);
+          current.forEach((child) => paragraph.appendChild(child.cloneNode(true)));
+          segments.push(paragraph);
+        }
+        current = [];
+      };
+      Array.from(element.childNodes).forEach((child) => {
+        if (child.nodeType === Node.ELEMENT_NODE && child.tagName === "BR") {
+          flush();
+        } else {
+          current.push(child);
+        }
+      });
+      flush();
+      return segments.length ? segments : [element.cloneNode(true)];
+    }
+
+    function normalizeSourceBlocks(html) {
+      const root = document.createElement("div");
+      root.innerHTML = html;
+      return Array.from(root.childNodes).flatMap((node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent.trim();
+          if (!text) {
+            return [];
+          }
+          const paragraph = document.createElement("p");
+          paragraph.textContent = text;
+          return [paragraph];
+        }
+
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          return splitParagraphOnLineBreaks(node);
+        }
+
+        return [];
+      });
+    }
+
+    function tokenizeText(text) {
+      return text.match(/[\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff\uff65-\uff9f\uac00-\ud7a3]|[A-Za-z0-9_]+|[^\sA-Za-z0-9_\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff\uff65-\uff9f\uac00-\ud7a3]|\s+/g) || [];
+    }
+
+    function createTextLikeNode(template, text, continuation = false) {
+      const value = text.replace(/\s+/g, " ").trim();
+      if (!value) {
+        return null;
+      }
+
+      if (template.tagName === "BLOCKQUOTE") {
+        const quote = template.cloneNode(false);
+        const paragraph = document.createElement("p");
+        paragraph.textContent = value;
+        quote.appendChild(paragraph);
+        if (continuation) {
+          quote.setAttribute(CONTINUATION_ATTR, "true");
+          paragraph.setAttribute(CONTINUATION_ATTR, "true");
+        }
+        return quote;
+      }
+
+      const clone = template.cloneNode(false);
+      clone.textContent = value;
+      if (continuation) {
+        clone.setAttribute(CONTINUATION_ATTR, "true");
+      }
+      return clone;
+    }
+
+    function getFirstVisibleChar(items) {
+      const text = Array.isArray(items) ? items.join("") : String(items || "");
+      return Array.from(text.trimStart())[0] || "";
+    }
+
+    function startsWithForbiddenLineStart(items) {
+      const firstChar = getFirstVisibleChar(items);
+      return Boolean(firstChar && LINE_START_FORBIDDEN_CHARS.has(firstChar));
+    }
+
+    function createsForbiddenNextStart(items, count) {
+      return count > 0 && count < items.length && startsWithForbiddenLineStart(items.slice(count));
+    }
+
+    function renderNodesToMeasure(nodes, measure, prefixNodes = []) {
+      measure.content.replaceChildren(
+        ...prefixNodes.map((node) => node.cloneNode(true)),
+        ...nodes.map((node) => node.cloneNode(true))
+      );
+      applyRuntimeRendering(measure.content);
+      return measure.content.scrollHeight <= measure.body.clientHeight + 1;
+    }
+
+    function findMaxFittingCount(items, buildFragment, measure, prefixNodes = []) {
+      let low = 0;
+      let high = items.length;
+
+      while (low < high) {
+        const middle = Math.ceil((low + high) / 2);
+        const fragment = buildFragment(items.slice(0, middle));
+        if (fragment && renderNodesToMeasure([fragment], measure, prefixNodes)) {
+          low = middle;
+        } else {
+          high = middle - 1;
+        }
+      }
+
+      return low;
+    }
+
+    function findTypographicFittingCount(items, buildFragment, measure, prefixNodes = []) {
+      const count = findMaxFittingCount(items, buildFragment, measure, prefixNodes);
+      if (!createsForbiddenNextStart(items, count)) {
+        return count;
+      }
+
+      let expandedCount = count;
+      while (expandedCount < items.length && startsWithForbiddenLineStart(items.slice(expandedCount))) {
+        const candidateCount = expandedCount + 1;
+        const fragment = buildFragment(items.slice(0, candidateCount));
+        if (!fragment || !renderNodesToMeasure([fragment], measure, prefixNodes)) {
+          break;
+        }
+        expandedCount = candidateCount;
+        if (!createsForbiddenNextStart(items, expandedCount)) {
+          return expandedCount;
+        }
+      }
+
+      let reducedCount = count - 1;
+      while (reducedCount > 0 && startsWithForbiddenLineStart(items.slice(reducedCount))) {
+        reducedCount -= 1;
+      }
+      return Math.max(reducedCount, 0);
+    }
+
+    function splitTextElement(node, measure, prefixNodes = []) {
+      if (renderNodesToMeasure([node], measure, prefixNodes)) {
+        return [node.cloneNode(true)];
+      }
+
+      const parts = [];
+      let remainingTokens = tokenizeText(node.textContent || "");
+      let activePrefix = prefixNodes;
+      let continuation = false;
+      const buildTextFragment = (items) => createTextLikeNode(node, items.join(""), continuation);
+
+      while (remainingTokens.length) {
+        const count = findTypographicFittingCount(remainingTokens, buildTextFragment, measure, activePrefix);
+        if (count) {
+          const fragment = buildTextFragment(remainingTokens.slice(0, count));
+          if (fragment) {
+            parts.push(fragment);
+          }
+          remainingTokens = remainingTokens.slice(count);
+          activePrefix = [];
+          continuation = true;
+          continue;
+        }
+
+        if (activePrefix.length) {
+          activePrefix = [];
+          continue;
+        }
+
+        const [firstToken, ...restTokens] = remainingTokens;
+        const chars = Array.from(firstToken || "");
+        if (chars.length > 1) {
+          const charCount = findTypographicFittingCount(chars, buildTextFragment, measure);
+          if (charCount > 0) {
+            const fragment = buildTextFragment(chars.slice(0, charCount));
+            if (fragment) {
+              parts.push(fragment);
+            }
+            const remainder = chars.slice(charCount).join("");
+            remainingTokens = remainder ? [remainder, ...restTokens] : restTokens;
+            continuation = true;
+            continue;
+          }
+        }
+
+        const fallback = buildTextFragment([firstToken]);
+        if (fallback) {
+          parts.push(fallback);
+        }
+        remainingTokens = restTokens;
+        continuation = true;
+      }
+
+      return parts.length ? parts : [node.cloneNode(true)];
+    }
+
+    function createListFragment(template, items, startIndex) {
+      const fragment = template.cloneNode(false);
+      if (fragment.tagName === "OL") {
+        if (startIndex > 1) {
+          fragment.setAttribute("start", String(startIndex));
+        } else {
+          fragment.removeAttribute("start");
+        }
+      }
+      items.forEach((item) => fragment.appendChild(item.cloneNode(true)));
+      return fragment;
+    }
+
+    function splitListElement(list, measure) {
+      if (renderNodesToMeasure([list], measure)) {
+        return [list.cloneNode(true)];
+      }
+
+      const items = Array.from(list.children);
+      if (!items.length) {
+        return [list.cloneNode(true)];
+      }
+
+      const fragments = [];
+      let currentItems = [];
+      let listStart = Number(list.getAttribute("start") || 1);
+      const pushCurrent = () => {
+        if (!currentItems.length) {
+          return;
+        }
+        fragments.push(createListFragment(list, currentItems, listStart));
+        listStart += currentItems.length;
+        currentItems = [];
+      };
+
+      for (const item of items) {
+        const itemParts = renderNodesToMeasure([createListFragment(list, [item], listStart + currentItems.length)], measure)
+          ? [item.cloneNode(true)]
+          : splitTextElement(item, measure);
+        for (const itemPart of itemParts) {
+          const candidate = createListFragment(list, [...currentItems, itemPart], listStart);
+          if (renderNodesToMeasure([candidate], measure)) {
+            currentItems.push(itemPart.cloneNode(true));
+            continue;
+          }
+          if (!currentItems.length) {
+            currentItems.push(itemPart.cloneNode(true));
+            pushCurrent();
+            continue;
+          }
+          pushCurrent();
+          currentItems.push(itemPart.cloneNode(true));
+        }
+      }
+
+      pushCurrent();
+      return fragments.length ? fragments : [list.cloneNode(true)];
+    }
+
+    function createPreFragment(template, text) {
+      const pre = template.cloneNode(false);
+      const codeSource = template.querySelector("code");
+      if (codeSource) {
+        const code = codeSource.cloneNode(false);
+        code.textContent = text;
+        pre.appendChild(code);
+      } else {
+        pre.textContent = text;
+      }
+      return pre;
+    }
+
+    function splitPreElement(pre, measure) {
+      if (renderNodesToMeasure([pre], measure)) {
+        return [pre.cloneNode(true)];
+      }
+
+      const text = pre.querySelector("code")?.textContent || pre.textContent || "";
+      const lines = text.split("\n");
+      const fragments = [];
+      let currentLines = [];
+      const pushCurrent = () => {
+        if (currentLines.length) {
+          fragments.push(createPreFragment(pre, currentLines.join("\n")));
+          currentLines = [];
+        }
+      };
+
+      for (const line of lines) {
+        const candidate = createPreFragment(pre, [...currentLines, line].join("\n"));
+        if (renderNodesToMeasure([candidate], measure)) {
+          currentLines.push(line);
+          continue;
+        }
+        if (!currentLines.length) {
+          currentLines.push(line);
+          pushCurrent();
+          continue;
+        }
+        pushCurrent();
+        currentLines.push(line);
+      }
+
+      pushCurrent();
+      return fragments.length ? fragments : [pre.cloneNode(true)];
+    }
+
+    function createTableFragment(template, rows) {
+      const fragment = template.cloneNode(false);
+      const sourceThead = Array.from(template.children).find((child) => child.tagName === "THEAD");
+      const sourceTbody = Array.from(template.children).find((child) => child.tagName === "TBODY");
+      if (sourceThead) {
+        fragment.appendChild(sourceThead.cloneNode(true));
+      }
+      const tbody = sourceTbody ? sourceTbody.cloneNode(false) : document.createElement("tbody");
+      rows.forEach((row) => tbody.appendChild(row.cloneNode(true)));
+      fragment.appendChild(tbody);
+      return fragment;
+    }
+
+    function splitTableElement(table, measure) {
+      if (renderNodesToMeasure([table], measure)) {
+        return [table.cloneNode(true)];
+      }
+
+      const rows = Array.from(table.querySelectorAll("tbody tr"));
+      if (!rows.length) {
+        return [table.cloneNode(true)];
+      }
+
+      const fragments = [];
+      let currentRows = [];
+      const pushCurrent = () => {
+        if (currentRows.length) {
+          fragments.push(createTableFragment(table, currentRows));
+          currentRows = [];
+        }
+      };
+
+      for (const row of rows) {
+        const candidate = createTableFragment(table, [...currentRows, row]);
+        if (renderNodesToMeasure([candidate], measure)) {
+          currentRows.push(row.cloneNode(true));
+          continue;
+        }
+        if (!currentRows.length) {
+          currentRows.push(row.cloneNode(true));
+          pushCurrent();
+          continue;
+        }
+        pushCurrent();
+        currentRows.push(row);
+      }
+
+      pushCurrent();
+      return fragments.length ? fragments : [table.cloneNode(true)];
+    }
+
+    function splitBlockToFit(block, measure, prefixNodes = []) {
+      const node = block.cloneNode(true);
+      if (renderNodesToMeasure([node], measure, prefixNodes)) {
+        return [node];
+      }
+
+      if (node.querySelector?.("img") || node.tagName === "IMG" || node.tagName === "HR" || /^H[1-6]$/.test(node.tagName)) {
+        return [node];
+      }
+      if (node.tagName === "UL" || node.tagName === "OL") {
+        return splitListElement(node, measure);
+      }
+      if (node.tagName === "TABLE") {
+        return splitTableElement(node, measure);
+      }
+      if (node.tagName === "PRE") {
+        return splitPreElement(node, measure);
+      }
+      return splitTextElement(node, measure, prefixNodes);
+    }
+
+    function shouldForceHeadingPageBreak(block, previousBlock, hasPageContent) {
+      if (!hasPageContent || !block?.tagName) {
+        return false;
+      }
+      if (block.tagName === "H1") {
+        return true;
+      }
+      if (block.tagName === "H2") {
+        return previousBlock?.tagName !== "H1";
+      }
+      return false;
+    }
+
+    function canFillRemainingSpace(block) {
+      return block?.tagName === "P" || block?.tagName === "BLOCKQUOTE";
+    }
+
+    async function yieldToBrowser() {
+      await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+    }
+
+    async function paginateRenderedHtml(renderedHtml) {
+      const measure = createCardShell({ pageIndex: 0, pageCount: 1, includeWatermark: false });
+      measureStage.replaceChildren(measure.wrapper);
+
+      try {
+        const blocks = normalizeSourceBlocks(renderedHtml);
+        if (!blocks.length) {
+          return [""];
+        }
+
+        const pages = [];
+        let currentNodes = [];
+        let previousBlock = null;
+        let workCount = 0;
+        const pushCurrentPage = () => {
+          if (!currentNodes.length) {
+            return;
+          }
+          pages.push(currentNodes.map(serializeNode).join(""));
+          currentNodes = [];
+        };
+
+        for (const block of blocks) {
+          if (workCount && workCount % PAGINATION_YIELD_INTERVAL === 0) {
+            await yieldToBrowser();
+          }
+          workCount += 1;
+
+          if (shouldForceHeadingPageBreak(block, previousBlock, currentNodes.length > 0)) {
+            pushCurrentPage();
+          }
+
+          const fragmentsQueue = [block.cloneNode(true)];
+          while (fragmentsQueue.length) {
+            if (workCount && workCount % PAGINATION_YIELD_INTERVAL === 0) {
+              await yieldToBrowser();
+            }
+            workCount += 1;
+
+            const fragment = fragmentsQueue.shift();
+            if (!fragment) {
+              continue;
+            }
+
+            if (renderNodesToMeasure([...currentNodes, fragment], measure)) {
+              currentNodes.push(fragment.cloneNode(true));
+              continue;
+            }
+
+            if (currentNodes.length && canFillRemainingSpace(fragment)) {
+              const contextualFragments = splitBlockToFit(fragment, measure, currentNodes);
+              const firstContextual = contextualFragments[0];
+              if (
+                contextualFragments.length > 1 &&
+                firstContextual &&
+                renderNodesToMeasure([firstContextual], measure, currentNodes)
+              ) {
+                currentNodes.push(firstContextual.cloneNode(true));
+                pushCurrentPage();
+                fragmentsQueue.unshift(...contextualFragments.slice(1).map((node) => node.cloneNode(true)));
+                continue;
+              }
+            }
+
+            if (currentNodes.length) {
+              pushCurrentPage();
+              fragmentsQueue.unshift(fragment.cloneNode(true));
+              continue;
+            }
+
+            const pageFragments = splitBlockToFit(fragment, measure);
+            if (pageFragments.length > 1) {
+              const [first, ...rest] = pageFragments;
+              if (first) {
+                currentNodes.push(first.cloneNode(true));
+                pushCurrentPage();
+              }
+              if (rest.length) {
+                fragmentsQueue.unshift(...rest.map((node) => node.cloneNode(true)));
+              }
+              continue;
+            }
+
+            currentNodes.push(fragment.cloneNode(true));
+            pushCurrentPage();
+          }
+
+          previousBlock = block.cloneNode(true);
+        }
+
+        if (currentNodes.length) {
+          pushCurrentPage();
+        }
+        return pages.length ? pages : [""];
+      } finally {
+        measureStage.replaceChildren();
+      }
+    }
+
+    function renderCurrentPage() {
+      const totalPages = Math.max(state.pages.length, 1);
+      state.currentPage = clamp(state.currentPage, 0, totalPages - 1);
+      cardWrapper.className = `card-wrapper theme-${state.options.theme}`;
+      cardContent.innerHTML = state.pages[state.currentPage] || "";
+      applyRuntimeRendering(cardContent);
+      pageMeta.textContent = `${formatDate()} · ${formatPageLabel(state.currentPage, totalPages)}`;
+      populateWatermarkOverlay(watermarkOverlay, state.options.size.width, state.options.size.height);
+      post({
+        type: "pageShown",
+        currentPage: state.currentPage,
+        pageCount: totalPages
+      });
+    }
+
+    async function render({ preservePage = true } = {}) {
+      const generation = ++state.renderGeneration;
+      const previousPage = state.currentPage;
+      applyDimensions();
+      cardWrapper.className = `card-wrapper theme-${state.options.theme}`;
+
+      const pages = await paginateRenderedHtml(state.bodyHTML);
+      if (generation !== state.renderGeneration) {
+        return;
+      }
+
+      state.pages = pages;
+      state.currentPage = preservePage ? clamp(previousPage, 0, state.pages.length - 1) : 0;
+      renderCurrentPage();
+      post({
+        type: "rendered",
+        pageCount: Math.max(state.pages.length, 1),
+        currentPage: state.currentPage
+      });
+    }
+
+    async function waitForLayout() {
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      if (document.fonts?.ready) {
+        try {
+          await document.fonts.ready;
+        } catch (error) {
+          // Font readiness is a quality hint; capture should still proceed.
+        }
+      }
+    }
+
+    async function capturePageDataURL(pageIndex) {
+      const totalPages = Math.max(state.pages.length, 1);
+      const format = state.options.format === "jpeg" ? "jpeg" : "png";
+      const formatConfig = format === "jpeg"
+        ? { mimeType: "image/jpeg", quality: JPEG_EXPORT_QUALITY, backgroundColor: "#000000" }
+        : { mimeType: "image/png", quality: undefined, backgroundColor: null };
+      const exportCard = createCardShell({
+        pageIndex,
+        pageCount: totalPages,
+        includeWatermark: true
+      });
+      exportCard.content.innerHTML = state.pages[pageIndex] || "";
+      applyRuntimeRendering(exportCard.content);
+      exportStage.replaceChildren(exportCard.wrapper);
+
+      try {
+        await waitForLayout();
+        const canvas = await html2canvas(exportCard.wrapper, {
+          backgroundColor: formatConfig.backgroundColor,
+          width: state.options.size.width,
+          height: state.options.size.height,
+          scale: 1,
+          useCORS: true,
+          allowTaint: false,
+          logging: false
+        });
+        return canvas.toDataURL(formatConfig.mimeType, formatConfig.quality);
+      } finally {
+        exportStage.replaceChildren();
+      }
+    }
+
+    window.markmacCard = {
+      setContent(bodyHTML) {
+        state.bodyHTML = typeof bodyHTML === "string" ? bodyHTML : "";
+        void render({ preservePage: false }).catch((error) => postError(null, error));
+      },
+
+      setOptions(options = {}) {
+        const size = options.size || {};
+        state.options = {
+          theme: options.theme || "aurora",
+          size: {
+            width: Number(size.width || 1080),
+            height: Number(size.height || 1920)
+          },
+          watermark: options.watermark || "",
+          format: options.format === "jpeg" ? "jpeg" : "png",
+          paragraphIndent: options.paragraphIndent === "2em" ? "2em" : "0em"
+        };
+        void render({ preservePage: options.preservePage !== false }).catch((error) => postError(null, error));
+      },
+
+      showPage(index) {
+        state.currentPage = clamp(Number(index || 0), 0, Math.max(state.pages.length - 1, 0));
+        renderCurrentPage();
+      },
+
+      capturePage(index, requestID) {
+        void capturePageDataURL(Number(index || 0))
+          .then((dataURL) => {
+            post({
+              type: "page",
+              requestID: requestID || null,
+              index: Number(index || 0),
+              dataURL
+            });
+          })
+          .catch((error) => postError(requestID, error));
+      },
+
+      captureAll(requestID) {
+        void (async () => {
+          const pages = [];
+          for (let index = 0; index < Math.max(state.pages.length, 1); index += 1) {
+            pages.push({
+              index,
+              dataURL: await capturePageDataURL(index)
+            });
+          }
+          post({
+            type: "captureAll",
+            requestID: requestID || null,
+            pageCount: Math.max(state.pages.length, 1),
+            pages
+          });
+        })().catch((error) => postError(requestID, error));
+      }
+    };
+
+    applyDimensions();
+    post({ type: "ready" });
+  </script>
+</body>
+</html>
