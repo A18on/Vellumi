@@ -17,6 +17,9 @@ final class MoltenDocument: NSDocument {
     static let defaultContentSize = NSSize(width: 900, height: 720)
 
     private(set) var text: String = ""
+    /// Leading YAML front matter, held OUT of the editor and spliced back on
+    /// every write (see MoltenFrontMatter — the editor would mangle it).
+    private(set) var frontMatter: String = ""
     /// Serialization at the last successful read/save. Lets an in-editor undo
     /// back to the saved state clear the dirty flag instead of leaving the
     /// document permanently "Edited".
@@ -69,9 +72,11 @@ final class MoltenDocument: NSDocument {
             ])
         }
         let decoded = try Self.decodeText(from: data)
-        text = decoded
-        savedText = decoded
-        editorViewController?.loadDocumentText(decoded)
+        let parts = MoltenFrontMatter.split(decoded)
+        frontMatter = parts.frontMatter
+        text = parts.body
+        savedText = parts.body
+        editorViewController?.loadDocumentText(parts.body)
     }
 
     /// UTF-8, plus deterministic BOM-identified UTF-16 (TextEdit's "Unicode"
@@ -97,7 +102,7 @@ final class MoltenDocument: NSDocument {
     }
 
     override func data(ofType typeName: String) throws -> Data {
-        Data(text.utf8)
+        Data(MoltenFrontMatter.join(frontMatter: frontMatter, body: text).utf8)
     }
 
     // MARK: - Save chokepoint
@@ -251,14 +256,16 @@ final class MoltenDocument: NSDocument {
             return
         }
         fileModificationDate = onDisk
-        guard reloaded != text else { return }
-        text = reloaded
-        savedText = reloaded
+        let parts = MoltenFrontMatter.split(reloaded)
+        guard parts.body != text || parts.frontMatter != frontMatter else { return }
+        frontMatter = parts.frontMatter
+        text = parts.body
+        savedText = parts.body
         updateChangeCount(.changeCleared)
         // Rebuilding the editor from the new content also resets ProseMirror's
         // history — stale undo entries can't replay onto the reloaded text.
-        editorViewController?.loadDocumentText(reloaded)
-        workspaceViewController?.noteContentChanged(reloaded)
+        editorViewController?.loadDocumentText(parts.body)
+        workspaceViewController?.noteContentChanged(parts.body)
         MoltenLog.document.info("Reloaded document after external change on disk")
     }
 }

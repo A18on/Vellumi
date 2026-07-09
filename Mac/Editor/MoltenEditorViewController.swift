@@ -205,6 +205,46 @@ final class MoltenEditorViewController: NSViewController {
         }
     }
 
+    // MARK: - Format menu → ProseMirror commands
+
+    /// Menu item tags carry the heading level (0 = body text).
+    @objc func applyHeading(_ sender: Any?) {
+        let level = (sender as? NSMenuItem)?.tag ?? 0
+        webView.evaluateJavaScript("window.moltenAPI.setHeading(\(level));")
+    }
+
+    @objc func toggleBold(_ sender: Any?) {
+        webView.evaluateJavaScript("window.moltenAPI.toggleBold();")
+    }
+
+    @objc func toggleItalic(_ sender: Any?) {
+        webView.evaluateJavaScript("window.moltenAPI.toggleItalic();")
+    }
+
+    @objc func toggleInlineCode(_ sender: Any?) {
+        webView.evaluateJavaScript("window.moltenAPI.toggleInlineCode();")
+    }
+
+    @objc func toggleStrikethrough(_ sender: Any?) {
+        webView.evaluateJavaScript("window.moltenAPI.toggleStrikethrough();")
+    }
+
+    @objc func toggleBlockquote(_ sender: Any?) {
+        webView.evaluateJavaScript("window.moltenAPI.toggleBlockquote();")
+    }
+
+    @objc func toggleBulletList(_ sender: Any?) {
+        webView.evaluateJavaScript("window.moltenAPI.toggleBulletList();")
+    }
+
+    @objc func toggleOrderedList(_ sender: Any?) {
+        webView.evaluateJavaScript("window.moltenAPI.toggleOrderedList();")
+    }
+
+    @objc func insertHorizontalRule(_ sender: Any?) {
+        webView.evaluateJavaScript("window.moltenAPI.insertHorizontalRule();")
+    }
+
     // MARK: - Native menu actions → ProseMirror history
 
     // WKWebView does not respond to undo:/redo:, so menu clicks land here via

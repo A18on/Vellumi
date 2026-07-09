@@ -31,6 +31,18 @@
 import { Crepe } from "@milkdown/crepe";
 import { editorViewCtx } from "@milkdown/core";
 import { undoCommand, redoCommand } from "@milkdown/plugin-history";
+import {
+  insertHrCommand,
+  toggleEmphasisCommand,
+  toggleInlineCodeCommand,
+  toggleStrongCommand,
+  turnIntoTextCommand,
+  wrapInBlockquoteCommand,
+  wrapInBulletListCommand,
+  wrapInHeadingCommand,
+  wrapInOrderedListCommand,
+} from "@milkdown/preset-commonmark";
+import { toggleStrikethroughCommand } from "@milkdown/preset-gfm";
 import { TextSelection } from "@milkdown/prose/state";
 import { callCommand } from "@milkdown/utils";
 import "@milkdown/crepe/theme/common/style.css";
@@ -223,6 +235,51 @@ window.moltenAPI = {
   },
   redo() {
     crepe?.editor.action(callCommand(redoCommand.key));
+  },
+  // Format menu commands (⌘1–6, ⌘0, ⌘B/I/E, ⌘⇧X, ⌘⇧U/O, ⌘⇧Q, ⌥⌘-).
+  // Focus first: menu clicks move AppKit focus off the contenteditable, and a
+  // ProseMirror command without a live selection silently no-ops.
+  setHeading(level) {
+    if (!crepe) return;
+    focusEditor();
+    const clamped = Math.max(0, Math.min(6, Number(level) || 0));
+    if (clamped === 0) {
+      crepe.editor.action(callCommand(turnIntoTextCommand.key));
+    } else {
+      crepe.editor.action(callCommand(wrapInHeadingCommand.key, clamped));
+    }
+  },
+  toggleBold() {
+    focusEditor();
+    crepe?.editor.action(callCommand(toggleStrongCommand.key));
+  },
+  toggleItalic() {
+    focusEditor();
+    crepe?.editor.action(callCommand(toggleEmphasisCommand.key));
+  },
+  toggleInlineCode() {
+    focusEditor();
+    crepe?.editor.action(callCommand(toggleInlineCodeCommand.key));
+  },
+  toggleStrikethrough() {
+    focusEditor();
+    crepe?.editor.action(callCommand(toggleStrikethroughCommand.key));
+  },
+  toggleBlockquote() {
+    focusEditor();
+    crepe?.editor.action(callCommand(wrapInBlockquoteCommand.key));
+  },
+  toggleBulletList() {
+    focusEditor();
+    crepe?.editor.action(callCommand(wrapInBulletListCommand.key));
+  },
+  toggleOrderedList() {
+    focusEditor();
+    crepe?.editor.action(callCommand(wrapInOrderedListCommand.key));
+  },
+  insertHorizontalRule() {
+    focusEditor();
+    crepe?.editor.action(callCommand(insertHrCommand.key));
   },
   // Headings for the native outline sidebar. Walking the ProseMirror tree is
   // cheap relative to serialization; positions are document offsets usable

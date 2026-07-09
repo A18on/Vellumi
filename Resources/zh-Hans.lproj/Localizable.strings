@@ -111,3 +111,16 @@
 "projects.context.remove" = "移除项目";
 "projects.context.open" = "打开";
 "projects.context.reveal" = "在访达中显示";
+
+/* 格式菜单 */
+"menu.format" = "格式";
+"format.bodyText" = "正文";
+"format.heading" = "标题 %d";
+"format.bold" = "粗体";
+"format.italic" = "斜体";
+"format.inlineCode" = "行内代码";
+"format.strikethrough" = "删除线";
+"format.bulletList" = "无序列表";
+"format.orderedList" = "有序列表";
+"format.blockquote" = "引用";
+"format.horizontalRule" = "分隔线";

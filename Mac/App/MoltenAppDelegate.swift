@@ -21,6 +21,7 @@ enum MoltenMainMenuBuilder {
         mainMenu.addItem(submenu: appMenu(), title: "Molten")
         mainMenu.addItem(submenu: fileMenu(), title: L10n.string("menu.file"))
         mainMenu.addItem(submenu: editMenu(), title: L10n.string("menu.edit"))
+        mainMenu.addItem(submenu: formatMenu(), title: L10n.string("menu.format"))
         mainMenu.addItem(submenu: viewMenu(), title: L10n.string("menu.view"))
         mainMenu.addItem(submenu: windowMenu(), title: L10n.string("menu.window"))
 
@@ -94,6 +95,45 @@ enum MoltenMainMenuBuilder {
             action: #selector(MoltenWorkspaceViewController.showFind(_:)),
             keyEquivalent: "f"
         )
+        return menu
+    }
+
+    private static func formatMenu() -> NSMenu {
+        let menu = NSMenu(title: L10n.string("menu.format"))
+
+        // ⌘0 body text, ⌘1–⌘6 headings — the item tag carries the level.
+        let body = menu.addItem(
+            withTitle: L10n.string("format.bodyText"),
+            action: #selector(MoltenEditorViewController.applyHeading(_:)),
+            keyEquivalent: "0"
+        )
+        body.tag = 0
+        for level in 1...6 {
+            let item = menu.addItem(
+                withTitle: String(format: L10n.string("format.heading"), level),
+                action: #selector(MoltenEditorViewController.applyHeading(_:)),
+                keyEquivalent: "\(level)"
+            )
+            item.tag = level
+        }
+
+        menu.addItem(.separator())
+        menu.addItem(withTitle: L10n.string("format.bold"), action: #selector(MoltenEditorViewController.toggleBold(_:)), keyEquivalent: "b")
+        menu.addItem(withTitle: L10n.string("format.italic"), action: #selector(MoltenEditorViewController.toggleItalic(_:)), keyEquivalent: "i")
+        menu.addItem(withTitle: L10n.string("format.inlineCode"), action: #selector(MoltenEditorViewController.toggleInlineCode(_:)), keyEquivalent: "e")
+        let strike = menu.addItem(withTitle: L10n.string("format.strikethrough"), action: #selector(MoltenEditorViewController.toggleStrikethrough(_:)), keyEquivalent: "x")
+        strike.keyEquivalentModifierMask = [.command, .shift]
+
+        menu.addItem(.separator())
+        let bullet = menu.addItem(withTitle: L10n.string("format.bulletList"), action: #selector(MoltenEditorViewController.toggleBulletList(_:)), keyEquivalent: "u")
+        bullet.keyEquivalentModifierMask = [.command, .shift]
+        let ordered = menu.addItem(withTitle: L10n.string("format.orderedList"), action: #selector(MoltenEditorViewController.toggleOrderedList(_:)), keyEquivalent: "o")
+        ordered.keyEquivalentModifierMask = [.command, .shift]
+        let quote = menu.addItem(withTitle: L10n.string("format.blockquote"), action: #selector(MoltenEditorViewController.toggleBlockquote(_:)), keyEquivalent: "q")
+        quote.keyEquivalentModifierMask = [.command, .shift]
+        let rule = menu.addItem(withTitle: L10n.string("format.horizontalRule"), action: #selector(MoltenEditorViewController.insertHorizontalRule(_:)), keyEquivalent: "-")
+        rule.keyEquivalentModifierMask = [.command, .option]
+
         return menu
     }
 

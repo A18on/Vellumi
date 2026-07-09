@@ -111,3 +111,16 @@
 "projects.context.remove" = "Remove Project";
 "projects.context.open" = "Open";
 "projects.context.reveal" = "Reveal in Finder";
+
+/* Format menu */
+"menu.format" = "Format";
+"format.bodyText" = "Body Text";
+"format.heading" = "Heading %d";
+"format.bold" = "Bold";
+"format.italic" = "Italic";
+"format.inlineCode" = "Inline Code";
+"format.strikethrough" = "Strikethrough";
+"format.bulletList" = "Bullet List";
+"format.orderedList" = "Numbered List";
+"format.blockquote" = "Blockquote";
+"format.horizontalRule" = "Horizontal Rule";

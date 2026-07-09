@@ -97,6 +97,30 @@ final class MoltenEditorBridgeTests: XCTestCase {
         _ = try evaluate("window.moltenAPI.undo(); window.moltenAPI.redo(); 'ok'")
     }
 
+    func testFormatCommandsRewriteMarkdown() throws {
+        try loadEditorPage()
+        try setMarkdown("hello world")
+
+        // Block-level commands act on the caret's block (selection defaults to
+        // document start) — no DOM focus needed headless.
+        _ = try evaluate("window.moltenAPI.setHeading(2); 'ok'")
+        var markdown = ""
+        for _ in 0..<60 {
+            markdown = (try evaluate("window.moltenAPI.getMarkdown()") as? String) ?? ""
+            if markdown.contains("## hello world") { break }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        }
+        XCTAssertTrue(markdown.contains("## hello world"), "⌘2 must produce an H2, got: \(markdown)")
+
+        _ = try evaluate("window.moltenAPI.setHeading(0); 'ok'")
+        for _ in 0..<60 {
+            markdown = (try evaluate("window.moltenAPI.getMarkdown()") as? String) ?? ""
+            if !markdown.contains("##") { break }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        }
+        XCTAssertFalse(markdown.contains("##"), "⌘0 must return to body text, got: \(markdown)")
+    }
+
     func testContentHTMLIsCleanForExport() throws {
         try loadEditorPage()
         try setMarkdown("# 标题\n\n段落 **粗** 文。\n\n![pic](assets/p.png)")
