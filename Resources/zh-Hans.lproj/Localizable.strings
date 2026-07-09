@@ -94,3 +94,20 @@
 "export.image.error.invalidBridgePayload" = "图片卡片渲染器返回了无效数据。";
 "common.cancel" = "取消";
 "menu.exportImageCards" = "导出为图片卡片…";
+
+/* 项目 */
+"menu.projects" = "项目";
+"projects.title" = "项目";
+"projects.add.button" = "添加项目";
+"projects.add.prompt" = "添加";
+"projects.add.message" = "选择一个文件夹作为项目跟踪。";
+"projects.section.projects" = "项目";
+"projects.section.recents" = "最近";
+"projects.empty" = "还没有项目——添加一个文件夹开始。";
+"projects.recents.empty" = "暂无最近文档";
+"projects.unavailable" = "文件夹不可用(已移动或未挂载)";
+"projects.newNote.baseName" = "未命名";
+"projects.context.newNote" = "在此新建笔记";
+"projects.context.remove" = "移除项目";
+"projects.context.open" = "打开";
+"projects.context.reveal" = "在访达中显示";

@@ -94,3 +94,20 @@
 "export.image.error.invalidBridgePayload" = "The image card renderer returned invalid data.";
 "common.cancel" = "Cancel";
 "menu.exportImageCards" = "Export as Image Cards…";
+
+/* Projects */
+"menu.projects" = "Projects";
+"projects.title" = "Projects";
+"projects.add.button" = "Add Project";
+"projects.add.prompt" = "Add";
+"projects.add.message" = "Choose a folder to track as a project.";
+"projects.section.projects" = "Projects";
+"projects.section.recents" = "Recents";
+"projects.empty" = "No projects yet — add a folder to get started.";
+"projects.recents.empty" = "No recent documents";
+"projects.unavailable" = "Folder unavailable (moved or unmounted)";
+"projects.newNote.baseName" = "Untitled";
+"projects.context.newNote" = "New Note Here";
+"projects.context.remove" = "Remove Project";
+"projects.context.open" = "Open";
+"projects.context.reveal" = "Reveal in Finder";

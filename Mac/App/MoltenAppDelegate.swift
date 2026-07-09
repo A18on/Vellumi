@@ -1,8 +1,13 @@
 import AppKit
 
+@MainActor
 final class MoltenAppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MoltenMainMenuBuilder.build()
+    }
+
+    @objc func showProjects(_ sender: Any?) {
+        MoltenProjectsWindowController.shared.show()
     }
 }
 
@@ -94,6 +99,12 @@ enum MoltenMainMenuBuilder {
 
     private static func viewMenu() -> NSMenu {
         let menu = NSMenu(title: L10n.string("menu.view"))
+        let projects = menu.addItem(
+            withTitle: L10n.string("menu.projects"),
+            action: #selector(MoltenAppDelegate.showProjects(_:)),
+            keyEquivalent: "0"
+        )
+        projects.keyEquivalentModifierMask = [.command, .shift]
         let outline = menu.addItem(
             withTitle: L10n.string("menu.toggleOutline"),
             action: #selector(MoltenWorkspaceViewController.toggleOutline(_:)),
