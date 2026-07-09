@@ -273,6 +273,36 @@ window.moltenAPI = {
     clone
       .querySelectorAll(".ProseMirror-widget, .milkdown-block-handle, .crepe-placeholder, [data-crepe-placeholder]")
       .forEach((el) => el.remove());
+    // Crepe wraps every list item in Vue scaffolding (icon svg, label wrapper,
+    // children containers) that chokes downstream consumers — the card
+    // paginator dies on it and exported HTML drags editor chrome along.
+    // Restore standard <li> structure.
+    clone.querySelectorAll("li.list-item").forEach((item) => {
+      const content = item.querySelector(".children .content-dom, .content-dom");
+      const plain = document.createElement("li");
+      // A single wrapping <p> is markdown-normal inside <li>; keep innerHTML.
+      plain.innerHTML = content ? content.innerHTML : item.textContent;
+      const wrapper = item.closest("div.milkdown-list-item-block") ?? item;
+      wrapper.replaceWith(plain);
+    });
+    // Image blocks are Vue components too — collapse each to a plain <img>
+    // BEFORE the scaffolding sweep below would drop them.
+    clone.querySelectorAll("[data-v-app]").forEach((component) => {
+      const img = component.querySelector("img");
+      if (img) {
+        const plain = document.createElement("img");
+        plain.setAttribute("src", img.getAttribute("src") ?? "");
+        const alt = img.getAttribute("alt");
+        if (alt) plain.setAttribute("alt", alt);
+        component.replaceWith(plain);
+      }
+    });
+    // Any remaining editor-only iconography/scaffolding without real content.
+    clone.querySelectorAll(".label-wrapper, .milkdown-icon, [data-v-app]").forEach((el) => {
+      if (el.querySelector("li, img, table, pre, blockquote")) return;
+      el.remove();
+    });
+    clone.querySelectorAll("br.ProseMirror-trailingBreak").forEach((el) => el.remove());
     clone.querySelectorAll("img[src^='molten-asset://asset/']").forEach((img) => {
       const raw = img.getAttribute("src").slice("molten-asset://asset/".length);
       img.setAttribute("src", decodeURI(raw));

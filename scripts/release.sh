@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+#
+# Reproducible release build for Molten.
+#
+#   script/release.sh            # build Release Universal .app → DMG + .app.zip in dist/
+#   script/release.sh 0.3.0      # same, overriding the version label on the artifacts
+#
+# Produces an ad-hoc-signed, UN-NOTARIZED build (no paid Apple Developer account yet). First-run
+# users must right-click → Open, or run:  xattr -dr com.apple.quarantine /Applications/Molten.app
+#
+# Notarization is intentionally left as a gated, commented step at the bottom: once a Developer ID
+# certificate + notarytool credentials exist, uncomment it — no other change is needed (the app
+# already builds with hardened runtime + sandbox entitlements).
+set -euo pipefail
+
+APP_NAME="Molten"
+SCHEME="Molten"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT_FILE="$ROOT_DIR/Molten.xcodeproj"
+DERIVED="$ROOT_DIR/.build/release"
+DIST="$ROOT_DIR/dist"
+APP="$DERIVED/Build/Products/Release/$APP_NAME.app"
+
+# Version: argument wins, else read MARKETING_VERSION from project.yml.
+VERSION="${1:-$(grep -m1 'MARKETING_VERSION:' "$ROOT_DIR/project.yml" | sed 's/.*MARKETING_VERSION: *//')}"
+echo "==> Releasing $APP_NAME $VERSION"
+
+cd "$ROOT_DIR"
+xcodegen generate >/dev/null
+
+echo "==> Building Release (Universal: arm64 + x86_64)"
+rm -rf "$DERIVED"
+xcodebuild \
+  -project "$PROJECT_FILE" \
+  -scheme "$SCHEME" \
+  -configuration Release \
+  -destination 'generic/platform=macOS' \
+  -derivedDataPath "$DERIVED" \
+  ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
+  build
+
+echo "==> Verifying artifact"
+test -d "$APP" || { echo "build product missing: $APP" >&2; exit 1; }
+lipo -archs "$APP/Contents/MacOS/$APP_NAME"
+codesign --verify --deep --strict "$APP" && echo "code signature OK (ad-hoc)"
+
+mkdir -p "$DIST"
+DMG="$DIST/$APP_NAME-$VERSION.dmg"
+ZIP="$DIST/$APP_NAME-$VERSION.app.zip"
+
+echo "==> Building DMG"
+STAGE="$DERIVED/dmg-stage"
+rm -rf "$STAGE"; mkdir -p "$STAGE"
+cp -R "$APP" "$STAGE/"
+ln -s /Applications "$STAGE/Applications"
+rm -f "$DMG"
+hdiutil create -volname "$APP_NAME $VERSION" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+
+echo "==> Building .app.zip"
+rm -f "$ZIP"
+ditto -c -k --keepParent "$APP" "$ZIP"
+
+# --- Notarization (gated: requires a Developer ID + notarytool credentials) -------------------
+# Once available, store credentials once with:
+#   xcrun notarytool store-credentials molten-notary --apple-id <id> --team-id <team> --password <app-specific-pw>
+# then uncomment:
+# echo "==> Notarizing"
+# xcrun notarytool submit "$DMG" --keychain-profile molten-notary --wait
+# xcrun stapler staple "$DMG"
+# xcrun stapler staple "$APP"
+# ----------------------------------------------------------------------------------------------
+
+echo "==> Done:"
+ls -lh "$DMG" "$ZIP" | awk '{print "    "$5"  "$9}'
+echo "    (un-notarized: first run via right-click → Open, or xattr -dr com.apple.quarantine)"

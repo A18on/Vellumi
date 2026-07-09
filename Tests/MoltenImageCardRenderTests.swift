@@ -8,19 +8,19 @@ import XCTest
 /// so it can't deadlock against other WKWebView tests' expectations.
 @MainActor
 final class MoltenImageCardRenderTests: XCTestCase {
+    /// XCTest-expectation based (same as the bridge tests): a hand-rolled
+    /// RunLoop.run loop does NOT drain the main queue in this context, so the
+    /// evaluateJavaScript completion never lands and every call times out.
     private func evaluate(_ webView: WKWebView, _ script: String) throws -> Any? {
         var output: Any?
         var failure: Error?
-        var finished = false
+        let done = expectation(description: "js")
         webView.evaluateJavaScript(script) { result, error in
             output = result
             failure = error
-            finished = true
+            done.fulfill()
         }
-        let deadline = Date().addingTimeInterval(10)
-        while !finished && Date() < deadline {
-            RunLoop.main.run(until: Date().addingTimeInterval(0.02))
-        }
+        wait(for: [done], timeout: 10)
         if let failure { throw failure }
         return output
     }
@@ -35,14 +35,6 @@ final class MoltenImageCardRenderTests: XCTestCase {
     }
 
     func testRealEditorContentRendersVisibleTextInCards() throws {
-        // Passes standalone in seconds, but in the FULL suite the accumulated
-        // WKWebViews from earlier tests starve this one's callbacks (10-minute
-        // stall). Run explicitly:
-        //   MOLTEN_E2E=1 xcodebuild … -only-testing:MoltenTests/MoltenImageCardRenderTests test
-        try XCTSkipUnless(
-            ProcessInfo.processInfo.environment["MOLTEN_E2E"] == "1",
-            "resource-heavy E2E; run standalone with MOLTEN_E2E=1"
-        )
         let bundle = Bundle(for: MoltenDocument.self)
 
         // 1. Real Crepe content HTML.
@@ -64,9 +56,26 @@ final class MoltenImageCardRenderTests: XCTestCase {
         //    message handler needed: card.html posts through optional chains.
         let cardURL = try XCTUnwrap(bundle.url(forResource: "card", withExtension: "html", subdirectory: "imagecard"))
         let cardView = WKWebView(frame: NSRect(x: 0, y: 0, width: 900, height: 700))
+        // The paginator yields via requestAnimationFrame, which never fires in
+        // a window-less web view — park it in a real (offscreen) window.
+        let window = NSWindow(
+            contentRect: NSRect(x: -2000, y: -2000, width: 900, height: 700),
+            styleMask: [.titled],
+            backing: .buffered,
+            defer: false
+        )
+        window.contentView = cardView
+        window.orderFrontRegardless()
+        defer { window.orderOut(nil) }
         cardView.loadFileURL(cardURL, allowingReadAccessTo: try XCTUnwrap(bundle.resourceURL))
         try poll(cardView, until: "typeof window.markmacCard?.setContent === 'function'", timeout: 20, what: "card boot")
 
+        _ = try evaluate(cardView, """
+        window.__err = null;
+        window.addEventListener('error', e => { window.__err = String(e.error && e.error.stack || e.message); });
+        window.addEventListener('unhandledrejection', e => { window.__err = 'rejection: ' + String(e.reason && e.reason.stack || e.reason); });
+        true
+        """)
         _ = try evaluate(cardView, "window.markmacCard.setContent(\(bodyHTML.javaScriptStringLiteral)); true")
         _ = try evaluate(
             cardView,
@@ -74,11 +83,17 @@ final class MoltenImageCardRenderTests: XCTestCase {
         )
 
         // 3. The visible card must come to contain the document text.
-        try poll(
+        let deadline = Date().addingTimeInterval(30)
+        while Date() < deadline {
+            if (try? evaluate(cardView, "document.body.innerText.includes('甲标题') && document.body.innerText.includes('段落文字内容')")) as? Bool == true {
+                return
+            }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+        }
+        let dump = (try? evaluate(
             cardView,
-            until: "document.body.innerText.includes('甲标题') && document.body.innerText.includes('段落文字内容')",
-            timeout: 30,
-            what: "card page text (blank-card regression)"
-        )
+            "JSON.stringify({err: window.__err, measure: (document.querySelector('#measureStage')?.innerText || '').slice(0,80), content: (document.querySelector('#cardContent')?.innerHTML || '').slice(0,200), bodyIn: \(bodyHTML.javaScriptStringLiteral).slice(0,200)})"
+        )) as? String ?? "dump failed"
+        XCTFail("card never showed document text — \(dump)")
     }
 }

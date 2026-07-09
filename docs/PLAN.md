@@ -18,8 +18,8 @@ Typora 式单栏所见即所得 markdown 编辑器。存盘为规范化 markdown
 - [x] 外部改动检测(NSFilePresenter,干净文档自动重载,尺寸门槛+mtime 判重)
 
 ## M2 — 特色
-- [ ] 图片卡片长图导出(直接移植 MarkMac card.html 流水线)
-- [ ] 导出 HTML/PDF、打印
+- [x] 图片卡片长图导出(card.html 流水线整体移植:主题/尺寸/水印/分页/PNG/ZIP;实机 4×1080×1920 PNG 验证)
+- [x] 导出 HTML(自包含,⇧⌘E)/PDF(createPDF)、打印(⌘P)
 - [ ] 项目管理启动器(移植 MarkProjects)
 - [ ] slash 命令菜单定制、front matter 编辑
 
