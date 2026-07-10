@@ -124,3 +124,16 @@
 "format.orderedList" = "有序列表";
 "format.blockquote" = "引用";
 "format.horizontalRule" = "分隔线";
+
+/* 外观 */
+"menu.appearance" = "外观";
+"appearance.system" = "跟随系统";
+"appearance.light" = "浅色";
+"appearance.dark" = "深色";
+
+/* 侧栏与搜索 */
+"menu.toggleFileTree" = "开关文件树";
+"filetree.empty" = "保存文档后可浏览所在文件夹";
+"projects.search.placeholder" = "在所有项目中搜索…";
+"projects.search.resultsTitle" = "搜索结果";
+"projects.search.noMatch" = "无匹配";

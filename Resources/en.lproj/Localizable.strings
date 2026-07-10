@@ -124,3 +124,16 @@
 "format.orderedList" = "Numbered List";
 "format.blockquote" = "Blockquote";
 "format.horizontalRule" = "Horizontal Rule";
+
+/* Appearance */
+"menu.appearance" = "Appearance";
+"appearance.system" = "Follow System";
+"appearance.light" = "Light";
+"appearance.dark" = "Dark";
+
+/* Sidebars & search */
+"menu.toggleFileTree" = "Toggle File Tree";
+"filetree.empty" = "Save the document to browse its folder";
+"projects.search.placeholder" = "Search in all projects…";
+"projects.search.resultsTitle" = "Search Results";
+"projects.search.noMatch" = "No matches";

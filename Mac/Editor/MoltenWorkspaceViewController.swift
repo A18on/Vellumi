@@ -22,14 +22,18 @@ final class MoltenWorkspaceViewController: NSViewController {
     let editorViewController: MoltenEditorViewController
 
     private let outlineModel = MoltenOutlineModel()
+    private let fileTreeModel = MoltenFileTreeModel()
     private let splitViewController = NSSplitViewController()
     private var outlineItem: NSSplitViewItem!
+    private var fileTreeItem: NSSplitViewItem!
+    private var fileTreeGeneration = 0
     private let findBar = NSVisualEffectView()
     private let findField = NSSearchField()
     private let replaceField = NSTextField()
     private let statusBar = NSVisualEffectView()
     private let wordCountLabel = NSTextField(labelWithString: "")
     private var showsOutline = UserDefaults.standard.bool(forKey: "Molten.showsOutline")
+    private var showsFileTree = UserDefaults.standard.bool(forKey: "Molten.showsFileTree")
     private var pendingStatsWorkItem: DispatchWorkItem?
     private var imageCardExportWindowController: NSWindowController?
     private let statsQueue = DispatchQueue(label: "com.aaron.molten.stats", qos: .utility)
@@ -165,6 +169,7 @@ final class MoltenWorkspaceViewController: NSViewController {
         if showsOutline {
             refreshOutline()
         }
+        refreshFileTree()
     }
 
     private func refreshOutline() {
@@ -186,17 +191,33 @@ final class MoltenWorkspaceViewController: NSViewController {
     }
 
     private func configureSplitViewController() {
-        let sidebarController = NSViewController()
-        sidebarController.view = NSHostingView(rootView: MoltenOutlineSidebar(
+        let outlineController = NSViewController()
+        outlineController.view = NSHostingView(rootView: MoltenOutlineSidebar(
             model: outlineModel,
             onSelect: { [weak self] heading in
                 self?.editorViewController.scrollToHeading(pos: heading.pos)
             }
         ))
 
+        let fileTreeController = NSViewController()
+        fileTreeController.view = NSHostingView(rootView: MoltenFileTreeSidebar(
+            model: fileTreeModel,
+            onOpen: { url in
+                NSDocumentController.shared.openDocument(withContentsOf: url, display: true) { _, _, error in
+                    if let error { NSApp.presentError(error) }
+                }
+            }
+        ))
+
         // NSSplitViewItem handles collapse/divider/animation correctly for
         // hidden panes — a bare NSSplitView leaves a stray divider behind.
-        outlineItem = NSSplitViewItem(sidebarWithViewController: sidebarController)
+        fileTreeItem = NSSplitViewItem(sidebarWithViewController: fileTreeController)
+        fileTreeItem.minimumThickness = 160
+        fileTreeItem.maximumThickness = 320
+        fileTreeItem.canCollapse = true
+        fileTreeItem.isCollapsed = !showsFileTree
+
+        outlineItem = NSSplitViewItem(sidebarWithViewController: outlineController)
         outlineItem.minimumThickness = 160
         outlineItem.maximumThickness = 320
         outlineItem.canCollapse = true
@@ -205,9 +226,44 @@ final class MoltenWorkspaceViewController: NSViewController {
         let editorItem = NSSplitViewItem(viewController: editorViewController)
         editorItem.minimumThickness = 320
 
+        splitViewController.addSplitViewItem(fileTreeItem)
         splitViewController.addSplitViewItem(outlineItem)
         splitViewController.addSplitViewItem(editorItem)
         addChild(splitViewController)
+    }
+
+    // MARK: - File tree sidebar
+
+    @objc func toggleFileTree(_ sender: Any?) {
+        showsFileTree.toggle()
+        UserDefaults.standard.set(showsFileTree, forKey: "Molten.showsFileTree")
+        fileTreeItem.animator().isCollapsed = !showsFileTree
+        if showsFileTree {
+            refreshFileTree()
+        }
+    }
+
+    /// Rebuilds the tree OFF the main thread, only while visible; a generation
+    /// counter drops results superseded by a newer document (MarkMac lessons).
+    func refreshFileTree() {
+        guard showsFileTree else { return }
+        fileTreeGeneration += 1
+        let generation = fileTreeGeneration
+        guard let folder = document?.fileURL?.deletingLastPathComponent() else {
+            fileTreeModel.nodes = []
+            fileTreeModel.currentFilePath = nil
+            return
+        }
+        MoltenFolderAccess.shared.ensureAccess(to: folder, interactive: false)
+        let currentPath = document?.fileURL.map { MoltenProjectStore.canonicalPath($0) }
+        Task { [weak self] in
+            let nodes = await Task.detached(priority: .userInitiated) {
+                MoltenFileTree.build(at: folder)
+            }.value
+            guard let self, self.fileTreeGeneration == generation else { return }
+            self.fileTreeModel.nodes = nodes
+            self.fileTreeModel.currentFilePath = currentPath
+        }
     }
 
     // MARK: - Find bar

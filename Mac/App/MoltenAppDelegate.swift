@@ -9,6 +9,40 @@ final class MoltenAppDelegate: NSObject, NSApplicationDelegate {
     @objc func showProjects(_ sender: Any?) {
         MoltenProjectsWindowController.shared.show()
     }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        MoltenAppearance.applyStored()
+    }
+
+    @objc func setAppearanceMode(_ sender: NSMenuItem) {
+        MoltenAppearance.apply(mode: MoltenAppearance.Mode(rawValue: sender.tag) ?? .system)
+    }
+}
+
+/// App-wide light/dark override. The editor's theme stylesheets key off
+/// prefers-color-scheme, which WKWebView derives from the effective
+/// appearance — so flipping NSApp.appearance restyles everything at once.
+@MainActor
+enum MoltenAppearance {
+    enum Mode: Int { case system = 0, light = 1, dark = 2 }
+    private static let key = "Molten.appearanceMode"
+
+    static func applyStored() {
+        apply(mode: Mode(rawValue: UserDefaults.standard.integer(forKey: key)) ?? .system)
+    }
+
+    static func apply(mode: Mode) {
+        UserDefaults.standard.set(mode.rawValue, forKey: key)
+        switch mode {
+        case .system: NSApp.appearance = nil
+        case .light: NSApp.appearance = NSAppearance(named: .aqua)
+        case .dark: NSApp.appearance = NSAppearance(named: .darkAqua)
+        }
+    }
+
+    static var current: Mode {
+        Mode(rawValue: UserDefaults.standard.integer(forKey: key)) ?? .system
+    }
 }
 
 /// Programmatic main menu — no storyboard/nib. Standard selectors route
@@ -151,6 +185,26 @@ enum MoltenMainMenuBuilder {
             keyEquivalent: "1"
         )
         outline.keyEquivalentModifierMask = [.command, .option]
+        let fileTree = menu.addItem(
+            withTitle: L10n.string("menu.toggleFileTree"),
+            action: #selector(MoltenWorkspaceViewController.toggleFileTree(_:)),
+            keyEquivalent: "2"
+        )
+        fileTree.keyEquivalentModifierMask = [.command, .option]
+
+        menu.addItem(.separator())
+        let appearance = NSMenu(title: L10n.string("menu.appearance"))
+        for (title, mode) in [("appearance.system", 0), ("appearance.light", 1), ("appearance.dark", 2)] {
+            let item = appearance.addItem(
+                withTitle: L10n.string(title),
+                action: #selector(MoltenAppDelegate.setAppearanceMode(_:)),
+                keyEquivalent: ""
+            )
+            item.tag = mode
+        }
+        let appearanceItem = NSMenuItem(title: L10n.string("menu.appearance"), action: nil, keyEquivalent: "")
+        appearanceItem.submenu = appearance
+        menu.addItem(appearanceItem)
         return menu
     }
 

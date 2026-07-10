@@ -53,6 +53,59 @@ import "@milkdown/crepe/theme/common/style.css";
 // Trailing debounce for change messages, with a max-latency bound: a fluent
 // typist never pausing 150ms must still flush at least once per second, or
 // Swift's copy (autosave, crash recovery) goes unboundedly stale.
+// ---- Editor-surface localization -----------------------------------------
+// Crepe's built-in strings (slash menu, placeholders, image upload buttons)
+// are English; mirror the app's zh-Hans localization when the SYSTEM language
+// is Chinese (navigator.language follows the host system in WKWebView).
+const isChinese = /^zh\b/i.test(navigator.language || "");
+
+const zhBlockEdit = {
+  textGroup: {
+    label: "文本",
+    text: { label: "正文" },
+    h1: { label: "标题 1" },
+    h2: { label: "标题 2" },
+    h3: { label: "标题 3" },
+    h4: { label: "标题 4" },
+    h5: { label: "标题 5" },
+    h6: { label: "标题 6" },
+    quote: { label: "引用" },
+    divider: { label: "分隔线" },
+  },
+  listGroup: {
+    label: "列表",
+    bulletList: { label: "无序列表" },
+    orderedList: { label: "有序列表" },
+    taskList: { label: "待办列表" },
+  },
+  advancedGroup: {
+    label: "高级",
+    image: { label: "图片" },
+    codeBlock: { label: "代码块" },
+    table: { label: "表格" },
+    math: { label: "数学公式" },
+  },
+};
+
+const zhImageBlock = {
+  inlineUploadButton: "上传",
+  inlineUploadPlaceholderText: "或粘贴图片链接…",
+  inlineConfirmButton: "确认",
+  blockUploadButton: "上传图片",
+  blockUploadPlaceholderText: "或粘贴图片链接…",
+  blockConfirmButton: "确认",
+  blockCaptionPlaceholderText: "图片说明",
+};
+
+function localizedFeatureConfigs() {
+  if (!isChinese) return {};
+  return {
+    [Crepe.Feature.BlockEdit]: zhBlockEdit,
+    [Crepe.Feature.Placeholder]: { text: "输入正文,或按 / 唤起命令…" },
+  };
+}
+// ---------------------------------------------------------------------------
+
 const CHANGE_DEBOUNCE_MS = 150;
 const CHANGE_MAX_LATENCY_MS = 1000;
 
@@ -166,11 +219,13 @@ async function createEditor(markdown) {
     root,
     defaultValue: markdown,
     featureConfigs: {
+      ...localizedFeatureConfigs(),
       [Crepe.Feature.ImageBlock]: {
         onUpload: uploadImage,
         inlineOnUpload: uploadImage,
         blockOnUpload: uploadImage,
         proxyDomURL: rewriteAssetURL,
+        ...(isChinese ? zhImageBlock : {}),
       },
     },
   });

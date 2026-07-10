@@ -38,6 +38,12 @@ final class MoltenProjectsModel: ObservableObject {
     @Published private(set) var unavailable: Set<UUID> = []
     @Published var expanded: Set<UUID> = []
     @Published private(set) var recents: [URL] = []
+    @Published var searchText: String = ""
+    @Published private(set) var contentResults: [MoltenProjectSearchResult] = []
+    @Published private(set) var contentSearchActive = false
+    /// The query the current results were produced for.
+    private(set) var contentQuery = ""
+    private var searchGeneration = 0
 
     private let store = MoltenProjectStore()
     private var observers: [NSObjectProtocol] = []
@@ -179,6 +185,70 @@ final class MoltenProjectsModel: ObservableObject {
             }
         }
     }
+
+    // MARK: - Find in files
+
+    /// Full-text search across every project (search field's Return action).
+    /// The corpus is enumerated FRESH from the store inside the task, and a
+    /// generation counter keeps stale results from clobbering newer ones —
+    /// both lessons from MarkMac's review.
+    func runContentSearch() {
+        let query = searchText.trimmingCharacters(in: .whitespaces)
+        guard !query.isEmpty else {
+            clearContentSearch()
+            return
+        }
+        for project in projects {
+            if let url = store.resolveFolderURL(for: project) {
+                MoltenFolderAccess.shared.ensureAccess(to: url, interactive: false)
+            }
+        }
+        searchGeneration += 1
+        let generation = searchGeneration
+        let store = self.store
+        let snapshot = projects
+        contentSearchActive = true
+        contentResults = []
+        Task { [weak self] in
+            let results = await Task.detached(priority: .userInitiated) {
+                let corpus = snapshot.flatMap { store.markdownFiles(in: $0) ?? [] }
+                return MoltenProjectContentSearch.search(query: query, files: corpus, caseSensitive: false)
+            }.value
+            guard let self, self.searchGeneration == generation else { return }
+            self.contentQuery = query
+            self.contentResults = results
+        }
+    }
+
+    func clearContentSearch() {
+        searchGeneration += 1
+        contentSearchActive = false
+        contentResults = []
+    }
+
+    /// Opens a search hit and drives the editor's find to the query, which
+    /// both highlights and scrolls to the first occurrence.
+    func openSearchResult(_ file: MoltenProjectFile) {
+        let query = contentQuery
+        NSDocumentController.shared.openDocument(withContentsOf: file.url, display: true) { document, _, error in
+            if let error {
+                NSApp.presentError(error)
+                return
+            }
+            guard let document = document as? MoltenDocument, !query.isEmpty else { return }
+            // The editor may still be booting; retry briefly until find lands.
+            func attempt(_ remaining: Int) {
+                document.editorViewController?.find(query, backwards: false) { found in
+                    if !found, remaining > 0 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            attempt(remaining - 1)
+                        }
+                    }
+                }
+            }
+            attempt(10)
+        }
+    }
 }
 
 // MARK: - View
@@ -188,6 +258,7 @@ enum MoltenProjectsRowID: Hashable {
     case file(String)
     case unavailable(UUID)
     case recent(URL)
+    case searchHit(String)
 }
 
 struct MoltenProjectsView: View {
@@ -207,9 +278,30 @@ struct MoltenProjectsView: View {
             }
             .padding(10)
 
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                TextField(L10n.string("projects.search.placeholder"), text: $model.searchText)
+                    .textFieldStyle(.plain)
+                    .onSubmit { model.runContentSearch() }
+                if model.contentSearchActive {
+                    Button {
+                        model.searchText = ""
+                        model.clearContentSearch()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.bottom, 8)
+
             Divider()
 
             List(selection: $selection) {
+                if model.contentSearchActive {
+                    searchSection
+                }
                 projectsSection
                 recentsSection
             }
@@ -227,6 +319,32 @@ struct MoltenProjectsView: View {
             }
         }
         .frame(minWidth: 320, minHeight: 400)
+    }
+
+    @ViewBuilder
+    private var searchSection: some View {
+        Section(L10n.string("projects.search.resultsTitle")) {
+            if model.contentResults.isEmpty {
+                Text(L10n.string("projects.search.noMatch"))
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(model.contentResults) { result in
+                    Label {
+                        HStack {
+                            Text(result.file.name)
+                            Spacer()
+                            Text("\(result.matchCount)")
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                        }
+                    } icon: {
+                        Image(systemName: "text.magnifyingglass")
+                    }
+                    .tag(MoltenProjectsRowID.searchHit(result.file.path))
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -296,6 +414,10 @@ struct MoltenProjectsView: View {
             }
         case .recent(let url):
             model.openRecent(url)
+        case .searchHit(let path):
+            if let result = model.contentResults.first(where: { $0.file.path == path }) {
+                model.openSearchResult(result.file)
+            }
         case .unavailable:
             break
         }
@@ -327,6 +449,12 @@ struct MoltenProjectsView: View {
         case .recent(let url):
             Button(L10n.string("projects.context.reveal")) {
                 NSWorkspace.shared.activateFileViewerSelecting([url])
+            }
+        case .searchHit(let path):
+            if let result = model.contentResults.first(where: { $0.file.path == path }) {
+                Button(L10n.string("projects.context.reveal")) {
+                    NSWorkspace.shared.activateFileViewerSelecting([result.file.url])
+                }
             }
         case .unavailable:
             EmptyView()

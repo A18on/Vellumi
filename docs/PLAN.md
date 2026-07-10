@@ -21,7 +21,7 @@ Typora 式单栏所见即所得 markdown 编辑器。存盘为规范化 markdown
 - [x] 图片卡片长图导出(card.html 流水线整体移植:主题/尺寸/水印/分页/PNG/ZIP;实机 4×1080×1920 PNG 验证)
 - [x] 导出 HTML(自包含,⇧⌘E)/PDF(createPDF)、打印(⌘P)
 - [x] 项目管理启动器 Phase 1(⇧⌘0:项目文件夹 bookmark/展开文件/打开/最近/在此新建笔记;全文搜索与文件树属 Phase 2/3 后续)
-- [ ] slash 命令菜单定制、front matter 编辑
+- [x] slash/加号菜单跟随系统语言全中文(BlockEdit/占位/图片上传文案);front matter 字节级保护(编辑内显示编辑延后)
 
 ## M3 — iOS
 - [ ] iOS target(WKWebView 编辑面天然复用)
