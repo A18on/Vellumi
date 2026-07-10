@@ -12,15 +12,15 @@ Typora 式单栏所见即所得 markdown 编辑器。存盘为规范化 markdown
 
 ## M1 — 可日用
 - [x] 中英文本地化(en/zh-Hans 双目录,L10n 包装,菜单/状态栏/查找/大纲/错误全覆盖)
-- [ ] 深浅色打磨 + 主题(映射 MarkMac 三主题)
+- [x] 深浅色跟随系统 + 显示▸外观(自动/浅/深)——多套主题(nord/crepe 系)与 MarkMac 三主题映射仍待做
 - [x] 图片粘贴/拖入 → 沙盒安全落盘:Crepe onUpload → base64 桥 → assets/ 唯一名写入(文件夹 bookmark 一次授权,NSOpenPanel 锁定目录);molten-asset:// scheme handler 供沙盒内显示(防目录穿越);模型保留相对路径不泄漏 scheme
-- [x] 查找(⌘F 原生查找栏 + window.find)、字数统计状态栏(CJK+拉丁混排)、大纲侧栏(⌥⌘1,桥回传 headings,点击/方向键跳转)——查找的「替换」延后
+- [x] 查找替换(⌘F 栏含替换行,事务级 replaceAll 单步撤销)、字数统计状态栏(CJK+拉丁混排)、大纲侧栏(⌥⌘1)、文件树侧栏(⌥⌘2)、格式快捷键(⌘0-6/⌘B/I/E/⌘⇧X/U/O/Q/⌥⌘-)
 - [x] 外部改动检测(NSFilePresenter,干净文档自动重载,尺寸门槛+mtime 判重)
 
 ## M2 — 特色
 - [x] 图片卡片长图导出(card.html 流水线整体移植:主题/尺寸/水印/分页/PNG/ZIP;实机 4×1080×1920 PNG 验证)
 - [x] 导出 HTML(自包含,⇧⌘E)/PDF(createPDF)、打印(⌘P)
-- [x] 项目管理启动器 Phase 1(⇧⌘0:项目文件夹 bookmark/展开文件/打开/最近/在此新建笔记;全文搜索与文件树属 Phase 2/3 后续)
+- [x] 项目管理启动器(⇧⌘0:项目/展开文件/打开/最近/在此新建笔记/全文搜索——回车检索所有项目,打开即跳首个匹配)
 - [x] slash/加号菜单跟随系统语言全中文(BlockEdit/占位/图片上传文案);front matter 字节级保护(编辑内显示编辑延后)
 
 ## M3 — iOS
