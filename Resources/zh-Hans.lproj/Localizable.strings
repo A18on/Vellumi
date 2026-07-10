@@ -137,3 +137,25 @@
 "projects.search.placeholder" = "在所有项目中搜索…";
 "projects.search.resultsTitle" = "搜索结果";
 "projects.search.noMatch" = "无匹配";
+
+/* 主题 */
+"menu.theme" = "主题";
+"theme.frame" = "画框";
+"theme.nord" = "北欧";
+"theme.classic" = "经典";
+
+/* 重命名 */
+"projects.context.rename" = "重命名…";
+"projects.rename.title" = "重命名项目";
+"projects.renameFile.title" = "重命名文件";
+"common.ok" = "好";
+"common.cancel" = "取消";
+
+/* 草稿 */
+"menu.draftsFolder" = "草稿文件夹…";
+"drafts.config.title" = "草稿文件夹";
+"drafts.config.messageSet" = "「文件 ▸ 新建」的文档会自动保存到这里。可更换文件夹,或关闭此功能。";
+"drafts.config.messageUnset" = "选择一个文件夹后,「文件 ▸ 新建」会在其中创建真实的 .md 文件,从第一个字起自动保存。";
+"drafts.config.choose" = "选择文件夹…";
+"drafts.config.disable" = "关闭";
+"drafts.config.choosePrompt" = "用作草稿夹";

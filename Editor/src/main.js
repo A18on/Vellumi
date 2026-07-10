@@ -283,6 +283,14 @@ window.moltenAPI = {
   focus() {
     focusEditor();
   },
+  // Theme selection: swap the light/dark stylesheet pair; prefers-color-scheme
+  // still decides which of the two applies.
+  setTheme(name) {
+    const valid = ["frame", "nord", "classic"];
+    const theme = valid.includes(name) ? name : "frame";
+    document.getElementById("theme-light")?.setAttribute("href", `themes/${theme}-light.css`);
+    document.getElementById("theme-dark")?.setAttribute("href", `themes/${theme}-dark.css`);
+  },
   // Native Edit ▸ Undo/Redo menu items forward here — WKWebView exposes no
   // responder-chain undo, and ProseMirror's history is the real stack.
   undo() {

@@ -17,6 +17,14 @@ final class MoltenAppDelegate: NSObject, NSApplicationDelegate {
     @objc func setAppearanceMode(_ sender: NSMenuItem) {
         MoltenAppearance.apply(mode: MoltenAppearance.Mode(rawValue: sender.tag) ?? .system)
     }
+
+    @objc func setEditorTheme(_ sender: NSMenuItem) {
+        guard let theme = sender.representedObject as? String else { return }
+        UserDefaults.standard.set(theme, forKey: "Molten.editorTheme")
+        for case let document as MoltenDocument in NSDocumentController.shared.documents {
+            document.editorViewController?.applyStoredTheme()
+        }
+    }
 }
 
 /// App-wide light/dark override. The editor's theme stylesheets key off
@@ -85,6 +93,12 @@ enum MoltenMainMenuBuilder {
         let saveAs = menu.addItem(withTitle: L10n.string("menu.saveAs"), action: #selector(NSDocument.saveAs(_:)), keyEquivalent: "s")
         saveAs.keyEquivalentModifierMask = [.command, .shift]
         menu.addItem(withTitle: L10n.string("menu.revert"), action: #selector(NSDocument.revertToSaved(_:)), keyEquivalent: "")
+        menu.addItem(.separator())
+        menu.addItem(
+            withTitle: L10n.string("menu.draftsFolder"),
+            action: #selector(MoltenDocumentController.configureDraftsFolder(_:)),
+            keyEquivalent: ""
+        )
         menu.addItem(.separator())
         let exportHTML = menu.addItem(
             withTitle: L10n.string("menu.exportHTML"),
@@ -205,6 +219,19 @@ enum MoltenMainMenuBuilder {
         let appearanceItem = NSMenuItem(title: L10n.string("menu.appearance"), action: nil, keyEquivalent: "")
         appearanceItem.submenu = appearance
         menu.addItem(appearanceItem)
+
+        let themes = NSMenu(title: L10n.string("menu.theme"))
+        for (labelKey, value) in [("theme.frame", "frame"), ("theme.nord", "nord"), ("theme.classic", "classic")] {
+            let item = themes.addItem(
+                withTitle: L10n.string(labelKey),
+                action: #selector(MoltenAppDelegate.setEditorTheme(_:)),
+                keyEquivalent: ""
+            )
+            item.representedObject = value
+        }
+        let themeItem = NSMenuItem(title: L10n.string("menu.theme"), action: nil, keyEquivalent: "")
+        themeItem.submenu = themes
+        menu.addItem(themeItem)
         return menu
     }
 

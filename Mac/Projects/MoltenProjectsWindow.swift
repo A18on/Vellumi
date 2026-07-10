@@ -186,6 +186,59 @@ final class MoltenProjectsModel: ObservableObject {
         }
     }
 
+    // MARK: - Rename
+
+    func promptRenameProject(_ id: UUID) {
+        guard let project = projects.first(where: { $0.id == id }) else { return }
+        guard let name = Self.promptForName(
+            title: L10n.string("projects.rename.title"),
+            current: project.name
+        ), !name.isEmpty else { return }
+        store.renameProject(id: id, to: name)
+        reload()
+    }
+
+    /// Renames the file on disk (extension preserved via the store helper),
+    /// then refreshes the listing. Needs the folder's write scope.
+    func promptRenameFile(_ file: MoltenProjectFile, in projectID: UUID) {
+        guard let project = projects.first(where: { $0.id == projectID }),
+              let folderURL = store.resolveFolderURL(for: project) else {
+            NSSound.beep()
+            return
+        }
+        guard let input = Self.promptForName(
+            title: L10n.string("projects.renameFile.title"),
+            current: file.name
+        ), let newName = MoltenProjectStore.renamedFileName(currentName: file.name, input: input) else {
+            return
+        }
+        guard MoltenFolderAccess.shared.ensureAccess(to: folderURL, interactive: true) else { return }
+        let target = file.url.deletingLastPathComponent().appendingPathComponent(newName)
+        guard !FileManager.default.fileExists(atPath: target.path) else {
+            NSSound.beep()
+            return
+        }
+        do {
+            try FileManager.default.moveItem(at: file.url, to: target)
+            refreshFiles(projectID)
+        } catch {
+            NSApp.presentError(error)
+        }
+    }
+
+    private static func promptForName(title: String, current: String) -> String? {
+        let alert = NSAlert()
+        alert.messageText = title
+        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
+        field.stringValue = current
+        alert.accessoryView = field
+        alert.addButton(withTitle: L10n.string("common.ok"))
+        alert.addButton(withTitle: L10n.string("common.cancel"))
+        alert.window.initialFirstResponder = field
+        guard alert.runModal() == .alertFirstButtonReturn else { return nil }
+        return field.stringValue.trimmingCharacters(in: .whitespaces)
+    }
+
     // MARK: - Find in files
 
     /// Full-text search across every project (search field's Return action).
@@ -437,11 +490,13 @@ struct MoltenProjectsView: View {
         switch id {
         case .project(let projectID):
             Button(L10n.string("projects.context.newNote")) { model.newNote(in: projectID) }
+            Button(L10n.string("projects.context.rename")) { model.promptRenameProject(projectID) }
             Divider()
             Button(L10n.string("projects.context.remove")) { model.remove(projectID) }
         case .file(let path):
             if let (file, projectID) = fileRow(for: path) {
                 Button(L10n.string("projects.context.open")) { model.open(file, in: projectID) }
+                Button(L10n.string("projects.context.rename")) { model.promptRenameFile(file, in: projectID) }
                 Button(L10n.string("projects.context.reveal")) {
                     NSWorkspace.shared.activateFileViewerSelecting([file.url])
                 }

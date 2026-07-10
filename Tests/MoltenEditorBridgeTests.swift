@@ -97,6 +97,25 @@ final class MoltenEditorBridgeTests: XCTestCase {
         _ = try evaluate("window.moltenAPI.undo(); window.moltenAPI.redo(); 'ok'")
     }
 
+    func testSetThemeSwapsStylesheetPair() throws {
+        try loadEditorPage()
+        _ = try evaluate("window.moltenAPI.setTheme('nord'); 'ok'")
+        XCTAssertEqual(
+            try evaluate("document.getElementById('theme-light').getAttribute('href')") as? String,
+            "themes/nord-light.css"
+        )
+        XCTAssertEqual(
+            try evaluate("document.getElementById('theme-dark').getAttribute('href')") as? String,
+            "themes/nord-dark.css"
+        )
+        // Unknown names fall back to frame instead of 404ing the stylesheet.
+        _ = try evaluate("window.moltenAPI.setTheme('bogus'); 'ok'")
+        XCTAssertEqual(
+            try evaluate("document.getElementById('theme-light').getAttribute('href')") as? String,
+            "themes/frame-light.css"
+        )
+    }
+
     func testFormatCommandsRewriteMarkdown() throws {
         try loadEditorPage()
         try setMarkdown("hello world")

@@ -30,12 +30,14 @@
 		7FC51F5C553ACF5E6F7F1274 /* MoltenProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67531834651DC84CC9D64B6A /* MoltenProject.swift */; };
 		829C988486926969746F8C07 /* MoltenExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CF350894101084313C945E3 /* MoltenExporter.swift */; };
 		8CF9CF8432D3596565D471C2 /* vendor in Resources */ = {isa = PBXBuildFile; fileRef = 77DF7B07F0E6B9C3CA4C3B8D /* vendor */; };
+		99D7087CE7931BE3F61F8981 /* MoltenDocumentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9280DD85DB8006255FB27FE /* MoltenDocumentController.swift */; };
 		A38A3A9477D1F2E1272DD92D /* MoltenProjectContentSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E54705283B29EB1A2949270 /* MoltenProjectContentSearch.swift */; };
 		A4131B567265C427608C7DD4 /* MoltenWordCountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D82EA379B0128A30CE49CC7 /* MoltenWordCountTests.swift */; };
 		A4B73C28D73389AF0631F99D /* MoltenProjectStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5799DC301D046AF70D35FE46 /* MoltenProjectStoreTests.swift */; };
 		A67E238727EE7930752DEEC9 /* MoltenWordCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E4425EA69A153621A4DE98 /* MoltenWordCount.swift */; };
 		ABE4566A09CC1B06742BF5EF /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6BDBC09D8CB002C8F8CBB5A2 /* WebKit.framework */; };
 		B7DEA19F47FDEB4C04E8B447 /* MoltenDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACCAF3BCEB4738AE0C62C29 /* MoltenDocumentTests.swift */; };
+		B98A6349F6A347A407B5F23F /* MoltenDraftsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E45CA5C0AFA9E5C7FA10ABA /* MoltenDraftsStore.swift */; };
 		BBFB02FC84DC34D2AA2057CF /* MoltenImageAttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8512B471BC06414A58CC903 /* MoltenImageAttachmentTests.swift */; };
 		BEBF22D1591DF492F00F7952 /* MoltenProjectStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FB726D31B5778A7BE09F5F2 /* MoltenProjectStore.swift */; };
 		D6F3CE95E133E1F60AF493F5 /* MoltenExternalReloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E758BBBFCA1CD1894CAF1D9 /* MoltenExternalReloadTests.swift */; };
@@ -70,6 +72,7 @@
 		3E758BBBFCA1CD1894CAF1D9 /* MoltenExternalReloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenExternalReloadTests.swift; sourceTree = "<group>"; };
 		3F1D4B912BBB78EA62A79810 /* MoltenImageCardExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenImageCardExportView.swift; sourceTree = "<group>"; };
 		4CF350894101084313C945E3 /* MoltenExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenExporter.swift; sourceTree = "<group>"; };
+		4E45CA5C0AFA9E5C7FA10ABA /* MoltenDraftsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDraftsStore.swift; sourceTree = "<group>"; };
 		4F7C929C3E4EE8CA13CE4DC2 /* MoltenFrontMatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenFrontMatterTests.swift; sourceTree = "<group>"; };
 		5799DC301D046AF70D35FE46 /* MoltenProjectStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenProjectStoreTests.swift; sourceTree = "<group>"; };
 		65A34CEF3F71C4A7D8F56296 /* zh-Hans.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "zh-Hans.lproj"; path = "Resources/zh-Hans.lproj"; sourceTree = SOURCE_ROOT; };
@@ -95,6 +98,7 @@
 		B8512B471BC06414A58CC903 /* MoltenImageAttachmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenImageAttachmentTests.swift; sourceTree = "<group>"; };
 		B9B9B890670FCE5A4A517E87 /* MoltenEditorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenEditorViewController.swift; sourceTree = "<group>"; };
 		C089F2045DF7F5AECE92D4FC /* MoltenDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDocument.swift; sourceTree = "<group>"; };
+		C9280DD85DB8006255FB27FE /* MoltenDocumentController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDocumentController.swift; sourceTree = "<group>"; };
 		CA525551E7A60DF5D24E2470 /* MoltenAssetSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenAssetSchemeHandler.swift; sourceTree = "<group>"; };
 		DCFDE872D5FA41BF846D8872 /* JavaScriptStringLiteral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JavaScriptStringLiteral.swift; sourceTree = "<group>"; };
 		E62A43DF8DB92F64B9893EE1 /* BookmarkResolution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkResolution.swift; sourceTree = "<group>"; };
@@ -126,6 +130,7 @@
 			isa = PBXGroup;
 			children = (
 				C089F2045DF7F5AECE92D4FC /* MoltenDocument.swift */,
+				4E45CA5C0AFA9E5C7FA10ABA /* MoltenDraftsStore.swift */,
 				7CB667D2447B58BD5C36F775 /* MoltenFrontMatter.swift */,
 			);
 			path = Document;
@@ -203,6 +208,14 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		836684E8E87BADF0E3DCD86C /* Document */ = {
+			isa = PBXGroup;
+			children = (
+				C9280DD85DB8006255FB27FE /* MoltenDocumentController.swift */,
+			);
+			path = Document;
+			sourceTree = "<group>";
+		};
 		A1F6D693FEB444936272668B /* Support */ = {
 			isa = PBXGroup;
 			children = (
@@ -220,6 +233,7 @@
 			isa = PBXGroup;
 			children = (
 				4E3DE2444AE20E7E6D334ABA /* App */,
+				836684E8E87BADF0E3DCD86C /* Document */,
 				62CD1E33A8262114CD4FEB5D /* Editor */,
 				BCF0050135C3BE9A0DFA823C /* Export */,
 				5685C952090A929F496F2DB4 /* Projects */,
@@ -377,6 +391,8 @@
 				4BF1666B909FE3A793977811 /* MoltenAppDelegate.swift in Sources */,
 				744E8B972E2F12D641D38DFC /* MoltenAssetSchemeHandler.swift in Sources */,
 				747299B76B610BAA7532E785 /* MoltenDocument.swift in Sources */,
+				99D7087CE7931BE3F61F8981 /* MoltenDocumentController.swift in Sources */,
+				B98A6349F6A347A407B5F23F /* MoltenDraftsStore.swift in Sources */,
 				205063E9639C387B0DB1F9ED /* MoltenEditorViewController.swift in Sources */,
 				829C988486926969746F8C07 /* MoltenExporter.swift in Sources */,
 				0C48DDC49A34AB89D58FA7F9 /* MoltenFileTree.swift in Sources */,

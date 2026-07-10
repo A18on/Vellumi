@@ -80,6 +80,7 @@ final class MoltenEditorViewController: NSViewController {
         // Keep the asset scheme pointed at the (possibly new) document folder.
         assetSchemeHandler.documentDirectory = document?.fileURL?.deletingLastPathComponent()
         guard isEditorReady else { return }
+        applyStoredTheme()
         // callAsyncJavaScript marshals the string as an argument — no O(N)
         // escaping pass, no parsing a megabytes-long script literal.
         webView.callAsyncJavaScript(
@@ -203,6 +204,12 @@ final class MoltenEditorViewController: NSViewController {
         ) { result in
             completion((try? result.get()) as? Int ?? 0)
         }
+    }
+
+    /// Pushes the persisted editor theme into the surface.
+    func applyStoredTheme() {
+        let theme = UserDefaults.standard.string(forKey: "Molten.editorTheme") ?? "frame"
+        webView.evaluateJavaScript("window.moltenAPI.setTheme('\(theme)');")
     }
 
     // MARK: - Format menu → ProseMirror commands

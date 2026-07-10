@@ -12,7 +12,7 @@ Typora 式单栏所见即所得 markdown 编辑器。存盘为规范化 markdown
 
 ## M1 — 可日用
 - [x] 中英文本地化(en/zh-Hans 双目录,L10n 包装,菜单/状态栏/查找/大纲/错误全覆盖)
-- [x] 深浅色跟随系统 + 显示▸外观(自动/浅/深)——多套主题(nord/crepe 系)与 MarkMac 三主题映射仍待做
+- [x] 深浅色跟随系统 + 显示▸外观(自动/浅/深)+ 显示▸主题(画框/北欧/经典,浅深各自动,HTML 导出随主题)
 - [x] 图片粘贴/拖入 → 沙盒安全落盘:Crepe onUpload → base64 桥 → assets/ 唯一名写入(文件夹 bookmark 一次授权,NSOpenPanel 锁定目录);molten-asset:// scheme handler 供沙盒内显示(防目录穿越);模型保留相对路径不泄漏 scheme
 - [x] 查找替换(⌘F 栏含替换行,事务级 replaceAll 单步撤销)、字数统计状态栏(CJK+拉丁混排)、大纲侧栏(⌥⌘1)、文件树侧栏(⌥⌘2)、格式快捷键(⌘0-6/⌘B/I/E/⌘⇧X/U/O/Q/⌥⌘-)
 - [x] 外部改动检测(NSFilePresenter,干净文档自动重载,尺寸门槛+mtime 判重)
@@ -29,3 +29,8 @@ Typora 式单栏所见即所得 markdown 编辑器。存盘为规范化 markdown
 ## 已知取舍
 - 存盘会规范化 markdown(符号统一/空行重排)——ProseMirror 文档模型的固有行为,与 Typora 一致。「尽量保留原文」模式排期到 M2 后再评估。
 - 编辑面为 JS(Crepe);这是新 app 的架构决定,不受 MarkMac AGENTS.md「禁止 JS 解析」约束。
+
+## 优化轮补记(2026-07-11)
+- 项目/文件重命名(面板右键)
+- 草稿文件夹(文件▸草稿文件夹…,File▸New 落盘;自动 untitled 不落盘)
+- 卡片导出代码块/表格内容 E2E 锁定

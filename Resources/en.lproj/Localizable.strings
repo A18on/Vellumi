@@ -137,3 +137,25 @@
 "projects.search.placeholder" = "Search in all projects…";
 "projects.search.resultsTitle" = "Search Results";
 "projects.search.noMatch" = "No matches";
+
+/* Themes */
+"menu.theme" = "Theme";
+"theme.frame" = "Frame";
+"theme.nord" = "Nord";
+"theme.classic" = "Classic";
+
+/* Rename */
+"projects.context.rename" = "Rename…";
+"projects.rename.title" = "Rename Project";
+"projects.renameFile.title" = "Rename File";
+"common.ok" = "OK";
+"common.cancel" = "Cancel";
+
+/* Drafts */
+"menu.draftsFolder" = "Drafts Folder…";
+"drafts.config.title" = "Drafts Folder";
+"drafts.config.messageSet" = "New documents from File ▸ New are saved here automatically. Choose a different folder, or turn this off.";
+"drafts.config.messageUnset" = "Choose a folder and File ▸ New will create real .md files there, autosaved from the first keystroke.";
+"drafts.config.choose" = "Choose Folder…";
+"drafts.config.disable" = "Turn Off";
+"drafts.config.choosePrompt" = "Use as Drafts";

@@ -38,10 +38,10 @@ const options = {
 /** Theme variables build as standalone stylesheets, switched in index.html
  *  via prefers-color-scheme (the variables collide if bundled together). */
 const themeOptions = {
-  entryPoints: [
-    join(here, "src", "themes", "light.css"),
-    join(here, "src", "themes", "dark.css"),
-  ],
+  entryPoints: ["frame", "nord", "classic"].flatMap((name) => [
+    join(here, "src", "themes", `${name}-light.css`),
+    join(here, "src", "themes", `${name}-dark.css`),
+  ]),
   bundle: true,
   outdir: join(outDir, "themes"),
   minify: true,
