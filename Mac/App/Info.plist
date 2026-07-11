@@ -11,7 +11,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Molten</string>
+	<string>Vellumi</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -38,7 +38,7 @@
 				<string>net.daringfireball.markdown</string>
 			</array>
 			<key>NSDocumentClass</key>
-			<string>Molten.MoltenDocument</string>
+			<string>Vellumi.MoltenDocument</string>
 		</dict>
 	</array>
 	<key>UTImportedTypeDeclarations</key>

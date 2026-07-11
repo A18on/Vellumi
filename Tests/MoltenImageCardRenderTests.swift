@@ -1,6 +1,6 @@
 import WebKit
 import XCTest
-@testable import Molten
+@testable import Vellumi
 
 /// End-to-end card renderer test: real Crepe content HTML → real card.html →
 /// assert the paginated card actually CONTAINS the text (guards against the

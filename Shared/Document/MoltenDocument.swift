@@ -44,7 +44,19 @@ final class MoltenDocument: NSDocument {
         )
         window.minSize = NSSize(width: 480, height: 320)
         window.titlebarAppearsTransparent = true
+        // Editor surface color extends into the titlebar (Bear/Craft-style
+        // seamless chrome).
+        window.backgroundColor = .textBackgroundColor
         window.contentViewController = workspace
+
+        // Unified toolbar: sidebar toggles on the left, export on the right —
+        // one-click access to what were previously menu-only features.
+        let toolbar = NSToolbar(identifier: "VellumiDocumentToolbar")
+        toolbar.delegate = workspace
+        toolbar.displayMode = .iconOnly
+        toolbar.allowsUserCustomization = false
+        window.toolbar = toolbar
+        window.toolbarStyle = .unified
         // Assigning contentViewController resizes the window to the view's
         // fitting size (tiny — the web view has no intrinsic size). Restore a
         // saved frame if one exists; otherwise apply the default and center.

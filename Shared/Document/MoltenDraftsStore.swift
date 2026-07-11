@@ -6,7 +6,7 @@ import Foundation
 /// nothing is written anywhere until the user configures this). A security-scoped folder bookmark.
 struct MoltenDraftsStore {
     private enum Key {
-        static let bookmark = "Molten.drafts.folderBookmark"
+        static let bookmark = "Vellumi.drafts.folderBookmark"
     }
 
     private let defaults: UserDefaults

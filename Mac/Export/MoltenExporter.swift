@@ -33,7 +33,7 @@ enum MoltenExporter {
     /// the exported file renders standalone (images stay document-relative —
     /// export next to the .md and assets/ keeps working).
     static func selfContainedHTML(bodyHTML: String, title: String) -> String {
-        let css = [("editor", "dist"), (UserDefaults.standard.string(forKey: "Molten.editorTheme").map { "\($0)-light" } ?? "frame-light", "dist/themes")]
+        let css = [("editor", "dist"), (UserDefaults.standard.string(forKey: "Vellumi.editorTheme").map { "\($0)-light" } ?? "frame-light", "dist/themes")]
             .compactMap { name, subdirectory -> String? in
                 guard let url = Bundle.main.url(forResource: name, withExtension: "css", subdirectory: subdirectory),
                       let contents = try? String(contentsOf: url, encoding: .utf8) else {

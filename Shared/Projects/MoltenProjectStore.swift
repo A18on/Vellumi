@@ -9,7 +9,7 @@ struct MoltenProjectStore {
     static let supportedExtensions: Set<String> = ["md", "markdown", "txt"]
 
     private enum Key {
-        static let list = "Molten.projects.list"
+        static let list = "Vellumi.projects.list"
     }
 
     private let defaults: UserDefaults

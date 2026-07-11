@@ -1,6 +1,6 @@
-# Molten
+# Vellumi
 
-Typora-style **single-pane WYSIWYG Markdown editor** for macOS — markdown syntax melts into rendered typography as you type. Sibling project of [MarkMac](https://github.com/A18on/MarkMac) (two-pane source editor); Molten is the melt-as-you-type counterpart.
+Typora-style **single-pane WYSIWYG Markdown editor** for macOS — markdown syntax melts into rendered typography as you type. Sibling project of [MarkMac](https://github.com/A18on/MarkMac) (two-pane source editor); Vellumi is the melt-as-you-type counterpart.
 
 ## Architecture
 
@@ -15,7 +15,7 @@ Files on disk are always plain `.md` (UTF-8, normalized markdown — Typora-styl
 ```bash
 ./scripts/build-editor.sh   # bundle the JS editing surface (needs node ≥ 20)
 xcodegen generate
-xcodebuild -project Molten.xcodeproj -scheme Molten -configuration Debug -destination 'platform=macOS' build
+xcodebuild -project Vellumi.xcodeproj -scheme Vellumi -configuration Debug -destination 'platform=macOS' build
 ```
 
 Tests: same command with `test`. The resource-heavy card-renderer E2E test is

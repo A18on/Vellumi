@@ -208,7 +208,7 @@ final class MoltenEditorViewController: NSViewController {
 
     /// Pushes the persisted editor theme into the surface.
     func applyStoredTheme() {
-        let theme = UserDefaults.standard.string(forKey: "Molten.editorTheme") ?? "frame"
+        let theme = UserDefaults.standard.string(forKey: "Vellumi.editorTheme") ?? "frame"
         webView.evaluateJavaScript("window.moltenAPI.setTheme('\(theme)');")
     }
 

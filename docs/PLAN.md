@@ -1,4 +1,4 @@
-# Molten 路线图
+# Vellumi 路线图(原名 Molten,2026-07-11 更名)
 
 ## 定位
 Typora 式单栏所见即所得 markdown 编辑器。存盘为规范化 markdown(Typora 同款取舍);macOS 先行,Shared/ 分层为 iOS 预留。

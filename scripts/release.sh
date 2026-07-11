@@ -13,10 +13,10 @@
 # already builds with hardened runtime + sandbox entitlements).
 set -euo pipefail
 
-APP_NAME="Molten"
-SCHEME="Molten"
+APP_NAME="Vellumi"
+SCHEME="Vellumi"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT_FILE="$ROOT_DIR/Molten.xcodeproj"
+PROJECT_FILE="$ROOT_DIR/Vellumi.xcodeproj"
 DERIVED="$ROOT_DIR/.build/release"
 DIST="$ROOT_DIR/dist"
 APP="$DERIVED/Build/Products/Release/$APP_NAME.app"

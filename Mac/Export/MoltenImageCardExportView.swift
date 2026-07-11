@@ -583,7 +583,7 @@ private struct MarkdownImageCardWebView: NSViewRepresentable {
 private extension NSError {
     static func markdownImageCard(_ message: String) -> NSError {
         NSError(
-            domain: "com.aaron.molten.imagecard",
+            domain: "com.aaron.vellumi.imagecard",
             code: 1,
             userInfo: [NSLocalizedDescriptionKey: message]
         )

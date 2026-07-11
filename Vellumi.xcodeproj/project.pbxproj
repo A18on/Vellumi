@@ -1,0 +1,681 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		02C820269D3D88E59A68831F /* MoltenProjectStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EE2A547CDF9F74C34C4FE9 /* MoltenProjectStoreTests.swift */; };
+		0A2431E699CC54E0A0611312 /* MoltenWorkspaceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E272723A7BEE00A1FFA111 /* MoltenWorkspaceViewController.swift */; };
+		0C13A8C90287B94F65F09FD5 /* MoltenImageCardRenderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88EAEA544D30D806EDA82D5E /* MoltenImageCardRenderTests.swift */; };
+		0D753A470EDC54DD4E2A1C79 /* MoltenAssetSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB99A9B3CE92D12058EFC017 /* MoltenAssetSchemeHandler.swift */; };
+		0E2D47981AF460DE209AA1FB /* MoltenWordCount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58847CD306933F00787B2BBA /* MoltenWordCount.swift */; };
+		2F4046AECCC4D2098B50BE4D /* BookmarkResolution.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EA0FA67F49F85D62235580C /* BookmarkResolution.swift */; };
+		30E0B397027CA3943D3CBEAD /* MoltenDraftsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0B9D438F6098DD2C424298 /* MoltenDraftsStore.swift */; };
+		313AF69AA9D0ECEE9036D8AA /* MoltenDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42C2EC4126DFBD70DC15593F /* MoltenDocument.swift */; };
+		3A2271850BC3513A3997BDA5 /* MoltenEditorBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97979F7EAA6492AE6AA60D9D /* MoltenEditorBridgeTests.swift */; };
+		4E834EA492079579AEBFEF94 /* MoltenLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9E2DE1B1C002F873F4AC261 /* MoltenLog.swift */; };
+		519AB418C5A510994FDF06B3 /* MoltenFolderAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4E1952DBF9A73129076921 /* MoltenFolderAccess.swift */; };
+		52D4554978D590EF64EC9AD9 /* vendor in Resources */ = {isa = PBXBuildFile; fileRef = 6E4133636E3FFCB03F9E29BA /* vendor */; };
+		56E9E6FB533E507A9D07A6BC /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46240FB9F7C36B28B2E77338 /* main.swift */; };
+		63E45352AA48265EA04424B6 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3333513E0089A998A51FA7D9 /* WebKit.framework */; };
+		698E7969011CB7F2342C6970 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968B7AD0388F5FBEEDEDF530 /* L10n.swift */; };
+		6C2E3B272B638525330D4427 /* MoltenExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B81F5A879C69DE7ACDBD1DC9 /* MoltenExporterTests.swift */; };
+		76AFCD6B8E5D6FF5DBD5E1BE /* dist in Resources */ = {isa = PBXBuildFile; fileRef = 28A7D8F8164C6736A7BA9D01 /* dist */; };
+		77DB56A2A0BDA1E289AB91C2 /* en.lproj in Resources */ = {isa = PBXBuildFile; fileRef = 9F8D15D10793A38FA7D64F2B /* en.lproj */; };
+		780B64F8CDD2E8F6F487D73A /* MoltenFrontMatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44C7352C2748A42FFFAA9FAB /* MoltenFrontMatterTests.swift */; };
+		8236D09CB8B817144D0DFC33 /* MoltenDocumentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B093CA7E82A02E55F7A2D6 /* MoltenDocumentController.swift */; };
+		8B775137BC58C02239C7EA06 /* zh-Hans.lproj in Resources */ = {isa = PBXBuildFile; fileRef = 2D892CF3108BECEEACE1696A /* zh-Hans.lproj */; };
+		90C37C2E55CBC9186A24B489 /* MoltenFileTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFFF99FB27369C74C79026F3 /* MoltenFileTree.swift */; };
+		946E29A52333B60B2A9A98D0 /* MoltenProjectContentSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED19B35538F8DF68C30E339F /* MoltenProjectContentSearch.swift */; };
+		9C765A126DC37D72B4F8E2C1 /* MoltenExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55DAB73C16AE053DD5DFFAD9 /* MoltenExporter.swift */; };
+		A0AF649D8C06A268DCFC16B7 /* MoltenImageAttachmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C1520E49EA2D57F9BA45560 /* MoltenImageAttachmentTests.swift */; };
+		AA0635C931A8FFA4A52510CF /* MoltenAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9ACB3B066C1602D0AB5CCF4 /* MoltenAppDelegate.swift */; };
+		BD6E614EB025E3249DE6FB58 /* MoltenWordCountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22028EC2E58741A6BAA7D6A5 /* MoltenWordCountTests.swift */; };
+		C3F2D64E7084A662CE8BD844 /* MoltenDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61783E8C1BF23761ABB6E547 /* MoltenDocumentTests.swift */; };
+		CBC780547F375FFAB5E8A274 /* MoltenImageCardExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 179D786A72764ACD459F9177 /* MoltenImageCardExportView.swift */; };
+		DFA7BD94BB42E0257131AB3C /* JavaScriptStringLiteral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E2919E31FEE53724A98AC67 /* JavaScriptStringLiteral.swift */; };
+		E7C3A99A2AEEC62A8A0E969C /* MoltenProjectsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3145DB25A6A1E247C7F473C8 /* MoltenProjectsWindow.swift */; };
+		EA77A379DA9ED36E506BA1AB /* MoltenProjectStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44BFF9D5D223D37587EC5AD3 /* MoltenProjectStore.swift */; };
+		EB9292B3A86F085BF368AA4C /* imagecard in Resources */ = {isa = PBXBuildFile; fileRef = E5D5910108CDA8A0B7A22B64 /* imagecard */; };
+		EC82EB4B2261E5254CCA3F1F /* MoltenEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCBEEEC6C9B4041BD6FA01C4 /* MoltenEditorViewController.swift */; };
+		EE68F0FD75B73E747755F7C4 /* MoltenFrontMatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED37BB38C5A16DE3602F26F /* MoltenFrontMatter.swift */; };
+		EE6C1FE9F0524D1882843FF4 /* MoltenExternalReloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA6389950A0048A366928932 /* MoltenExternalReloadTests.swift */; };
+		F02BB3015CDF54A7C0F5D98C /* MoltenProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0773CD8E65875A093E0144FD /* MoltenProject.swift */; };
+		F3DA0D5AC5032DEBA6CB61D6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AC77DF857715471E424DEEEF /* Assets.xcassets */; };
+		F62AF9E8729F7692239DADF2 /* MoltenFileTreeSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E5C34F36358EE8A31DDAD8A /* MoltenFileTreeSidebar.swift */; };
+		FBDC9A19ED0182D0C3E77BCE /* MoltenImageCardTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CB1A6AFE6D4DDB39ED0E22 /* MoltenImageCardTypes.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		24D633EAB7FEA17377333C08 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9EC72EE740EE54D7A6462959 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BB4A78FDBC484FFDFF9059A2;
+			remoteInfo = Vellumi;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0773CD8E65875A093E0144FD /* MoltenProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenProject.swift; sourceTree = "<group>"; };
+		0A4E1952DBF9A73129076921 /* MoltenFolderAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenFolderAccess.swift; sourceTree = "<group>"; };
+		0B0B9D438F6098DD2C424298 /* MoltenDraftsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDraftsStore.swift; sourceTree = "<group>"; };
+		179D786A72764ACD459F9177 /* MoltenImageCardExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenImageCardExportView.swift; sourceTree = "<group>"; };
+		22028EC2E58741A6BAA7D6A5 /* MoltenWordCountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenWordCountTests.swift; sourceTree = "<group>"; };
+		28A7D8F8164C6736A7BA9D01 /* dist */ = {isa = PBXFileReference; lastKnownFileType = folder; name = dist; path = Resources/dist; sourceTree = SOURCE_ROOT; };
+		2D892CF3108BECEEACE1696A /* zh-Hans.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "zh-Hans.lproj"; path = "Resources/zh-Hans.lproj"; sourceTree = SOURCE_ROOT; };
+		3145DB25A6A1E247C7F473C8 /* MoltenProjectsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenProjectsWindow.swift; sourceTree = "<group>"; };
+		3333513E0089A998A51FA7D9 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		3E2919E31FEE53724A98AC67 /* JavaScriptStringLiteral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JavaScriptStringLiteral.swift; sourceTree = "<group>"; };
+		3EA0FA67F49F85D62235580C /* BookmarkResolution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkResolution.swift; sourceTree = "<group>"; };
+		42C2EC4126DFBD70DC15593F /* MoltenDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDocument.swift; sourceTree = "<group>"; };
+		44BFF9D5D223D37587EC5AD3 /* MoltenProjectStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenProjectStore.swift; sourceTree = "<group>"; };
+		44C7352C2748A42FFFAA9FAB /* MoltenFrontMatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenFrontMatterTests.swift; sourceTree = "<group>"; };
+		46240FB9F7C36B28B2E77338 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		4E5C34F36358EE8A31DDAD8A /* MoltenFileTreeSidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenFileTreeSidebar.swift; sourceTree = "<group>"; };
+		52ED984267E1F82D0DB38FF3 /* VellumiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VellumiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		55DAB73C16AE053DD5DFFAD9 /* MoltenExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenExporter.swift; sourceTree = "<group>"; };
+		58847CD306933F00787B2BBA /* MoltenWordCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenWordCount.swift; sourceTree = "<group>"; };
+		5C40CDE069F25AAC50BD454C /* Vellumi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vellumi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		600AB744D0C2ADD9B5161C2F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		61783E8C1BF23761ABB6E547 /* MoltenDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDocumentTests.swift; sourceTree = "<group>"; };
+		62EE2A547CDF9F74C34C4FE9 /* MoltenProjectStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenProjectStoreTests.swift; sourceTree = "<group>"; };
+		6E4133636E3FFCB03F9E29BA /* vendor */ = {isa = PBXFileReference; lastKnownFileType = folder; name = vendor; path = Resources/vendor; sourceTree = SOURCE_ROOT; };
+		88EAEA544D30D806EDA82D5E /* MoltenImageCardRenderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenImageCardRenderTests.swift; sourceTree = "<group>"; };
+		8C1520E49EA2D57F9BA45560 /* MoltenImageAttachmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenImageAttachmentTests.swift; sourceTree = "<group>"; };
+		95CB1A6AFE6D4DDB39ED0E22 /* MoltenImageCardTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenImageCardTypes.swift; sourceTree = "<group>"; };
+		968B7AD0388F5FBEEDEDF530 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+		97979F7EAA6492AE6AA60D9D /* MoltenEditorBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenEditorBridgeTests.swift; sourceTree = "<group>"; };
+		9F8D15D10793A38FA7D64F2B /* en.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder; name = en.lproj; path = Resources/en.lproj; sourceTree = SOURCE_ROOT; };
+		AC77DF857715471E424DEEEF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AFFF99FB27369C74C79026F3 /* MoltenFileTree.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenFileTree.swift; sourceTree = "<group>"; };
+		B7B093CA7E82A02E55F7A2D6 /* MoltenDocumentController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDocumentController.swift; sourceTree = "<group>"; };
+		B81F5A879C69DE7ACDBD1DC9 /* MoltenExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenExporterTests.swift; sourceTree = "<group>"; };
+		B9E2DE1B1C002F873F4AC261 /* MoltenLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenLog.swift; sourceTree = "<group>"; };
+		BA6389950A0048A366928932 /* MoltenExternalReloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenExternalReloadTests.swift; sourceTree = "<group>"; };
+		BED37BB38C5A16DE3602F26F /* MoltenFrontMatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenFrontMatter.swift; sourceTree = "<group>"; };
+		C9ACB3B066C1602D0AB5CCF4 /* MoltenAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenAppDelegate.swift; sourceTree = "<group>"; };
+		DB99A9B3CE92D12058EFC017 /* MoltenAssetSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenAssetSchemeHandler.swift; sourceTree = "<group>"; };
+		E5D5910108CDA8A0B7A22B64 /* imagecard */ = {isa = PBXFileReference; lastKnownFileType = folder; name = imagecard; path = Resources/imagecard; sourceTree = SOURCE_ROOT; };
+		ED19B35538F8DF68C30E339F /* MoltenProjectContentSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenProjectContentSearch.swift; sourceTree = "<group>"; };
+		F4E272723A7BEE00A1FFA111 /* MoltenWorkspaceViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenWorkspaceViewController.swift; sourceTree = "<group>"; };
+		FCBEEEC6C9B4041BD6FA01C4 /* MoltenEditorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenEditorViewController.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B2D43C3D7B62053319E160BC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				63E45352AA48265EA04424B6 /* WebKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1D84B66BCBF4797DEF2F9A2E /* Export */ = {
+			isa = PBXGroup;
+			children = (
+				55DAB73C16AE053DD5DFFAD9 /* MoltenExporter.swift */,
+				179D786A72764ACD459F9177 /* MoltenImageCardExportView.swift */,
+			);
+			path = Export;
+			sourceTree = "<group>";
+		};
+		2173F7A100770C360E03E6F7 /* Document */ = {
+			isa = PBXGroup;
+			children = (
+				42C2EC4126DFBD70DC15593F /* MoltenDocument.swift */,
+				0B0B9D438F6098DD2C424298 /* MoltenDraftsStore.swift */,
+				BED37BB38C5A16DE3602F26F /* MoltenFrontMatter.swift */,
+			);
+			path = Document;
+			sourceTree = "<group>";
+		};
+		37F855F475FE134E8DDE5549 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				3EA0FA67F49F85D62235580C /* BookmarkResolution.swift */,
+				3E2919E31FEE53724A98AC67 /* JavaScriptStringLiteral.swift */,
+				968B7AD0388F5FBEEDEDF530 /* L10n.swift */,
+				0A4E1952DBF9A73129076921 /* MoltenFolderAccess.swift */,
+				B9E2DE1B1C002F873F4AC261 /* MoltenLog.swift */,
+				58847CD306933F00787B2BBA /* MoltenWordCount.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		3E7C02163DB778CD16EEE871 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AC77DF857715471E424DEEEF /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		468A5B39808A11F8BB93F6F5 /* Editor */ = {
+			isa = PBXGroup;
+			children = (
+				DB99A9B3CE92D12058EFC017 /* MoltenAssetSchemeHandler.swift */,
+				FCBEEEC6C9B4041BD6FA01C4 /* MoltenEditorViewController.swift */,
+				4E5C34F36358EE8A31DDAD8A /* MoltenFileTreeSidebar.swift */,
+				F4E272723A7BEE00A1FFA111 /* MoltenWorkspaceViewController.swift */,
+			);
+			path = Editor;
+			sourceTree = "<group>";
+		};
+		4CB0ABACCBA16FB518D4D01E /* Document */ = {
+			isa = PBXGroup;
+			children = (
+				B7B093CA7E82A02E55F7A2D6 /* MoltenDocumentController.swift */,
+			);
+			path = Document;
+			sourceTree = "<group>";
+		};
+		4F2831776CA764B6FAC2FA09 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				600AB744D0C2ADD9B5161C2F /* Info.plist */,
+				46240FB9F7C36B28B2E77338 /* main.swift */,
+				C9ACB3B066C1602D0AB5CCF4 /* MoltenAppDelegate.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		5910B5EB47F006745BCE8DF3 /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				3145DB25A6A1E247C7F473C8 /* MoltenProjectsWindow.swift */,
+			);
+			path = Projects;
+			sourceTree = "<group>";
+		};
+		6688E845F88F8E002B7970DF /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				61783E8C1BF23761ABB6E547 /* MoltenDocumentTests.swift */,
+				97979F7EAA6492AE6AA60D9D /* MoltenEditorBridgeTests.swift */,
+				B81F5A879C69DE7ACDBD1DC9 /* MoltenExporterTests.swift */,
+				BA6389950A0048A366928932 /* MoltenExternalReloadTests.swift */,
+				44C7352C2748A42FFFAA9FAB /* MoltenFrontMatterTests.swift */,
+				8C1520E49EA2D57F9BA45560 /* MoltenImageAttachmentTests.swift */,
+				88EAEA544D30D806EDA82D5E /* MoltenImageCardRenderTests.swift */,
+				62EE2A547CDF9F74C34C4FE9 /* MoltenProjectStoreTests.swift */,
+				22028EC2E58741A6BAA7D6A5 /* MoltenWordCountTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		B8D5192C171D0B081B502AB2 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3333513E0089A998A51FA7D9 /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		BBE2000CBE2A18173E06CB8A /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				AFFF99FB27369C74C79026F3 /* MoltenFileTree.swift */,
+				0773CD8E65875A093E0144FD /* MoltenProject.swift */,
+				ED19B35538F8DF68C30E339F /* MoltenProjectContentSearch.swift */,
+				44BFF9D5D223D37587EC5AD3 /* MoltenProjectStore.swift */,
+			);
+			path = Projects;
+			sourceTree = "<group>";
+		};
+		C4C42A0985B6D72773F6DFD1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5C40CDE069F25AAC50BD454C /* Vellumi.app */,
+				52ED984267E1F82D0DB38FF3 /* VellumiTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DC90CAF5DE623884DAAD0152 /* Export */ = {
+			isa = PBXGroup;
+			children = (
+				95CB1A6AFE6D4DDB39ED0E22 /* MoltenImageCardTypes.swift */,
+			);
+			path = Export;
+			sourceTree = "<group>";
+		};
+		DE7FB9B3FB5B1E5F70562CB6 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				2173F7A100770C360E03E6F7 /* Document */,
+				DC90CAF5DE623884DAAD0152 /* Export */,
+				BBE2000CBE2A18173E06CB8A /* Projects */,
+				37F855F475FE134E8DDE5549 /* Support */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		F48B891C6C2285F5AF90866C /* Mac */ = {
+			isa = PBXGroup;
+			children = (
+				4F2831776CA764B6FAC2FA09 /* App */,
+				4CB0ABACCBA16FB518D4D01E /* Document */,
+				468A5B39808A11F8BB93F6F5 /* Editor */,
+				1D84B66BCBF4797DEF2F9A2E /* Export */,
+				5910B5EB47F006745BCE8DF3 /* Projects */,
+			);
+			path = Mac;
+			sourceTree = "<group>";
+		};
+		FB98C2995E1FA0BFD195663A = {
+			isa = PBXGroup;
+			children = (
+				28A7D8F8164C6736A7BA9D01 /* dist */,
+				9F8D15D10793A38FA7D64F2B /* en.lproj */,
+				E5D5910108CDA8A0B7A22B64 /* imagecard */,
+				6E4133636E3FFCB03F9E29BA /* vendor */,
+				2D892CF3108BECEEACE1696A /* zh-Hans.lproj */,
+				F48B891C6C2285F5AF90866C /* Mac */,
+				3E7C02163DB778CD16EEE871 /* Resources */,
+				DE7FB9B3FB5B1E5F70562CB6 /* Shared */,
+				6688E845F88F8E002B7970DF /* Tests */,
+				B8D5192C171D0B081B502AB2 /* Frameworks */,
+				C4C42A0985B6D72773F6DFD1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		60A02A359A3E657BA1FAF240 /* VellumiTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6CB851392D11F9F385E217AF /* Build configuration list for PBXNativeTarget "VellumiTests" */;
+			buildPhases = (
+				AC4A61B06CA587B68A7F2879 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AF0129BF809F68D858229373 /* PBXTargetDependency */,
+			);
+			name = VellumiTests;
+			packageProductDependencies = (
+			);
+			productName = VellumiTests;
+			productReference = 52ED984267E1F82D0DB38FF3 /* VellumiTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		BB4A78FDBC484FFDFF9059A2 /* Vellumi */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C9643556D4D9DAFFF94CA1AF /* Build configuration list for PBXNativeTarget "Vellumi" */;
+			buildPhases = (
+				20689C5B1C35395B67D3A6B9 /* Sources */,
+				1EE52B2B2740FD2127C42F1A /* Resources */,
+				B2D43C3D7B62053319E160BC /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Vellumi;
+			packageProductDependencies = (
+			);
+			productName = Vellumi;
+			productReference = 5C40CDE069F25AAC50BD454C /* Vellumi.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9EC72EE740EE54D7A6462959 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					60A02A359A3E657BA1FAF240 = {
+						ProvisioningStyle = Manual;
+					};
+					BB4A78FDBC484FFDFF9059A2 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = 94A57E5B3C41294326888023 /* Build configuration list for PBXProject "Vellumi" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = FB98C2995E1FA0BFD195663A;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BB4A78FDBC484FFDFF9059A2 /* Vellumi */,
+				60A02A359A3E657BA1FAF240 /* VellumiTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1EE52B2B2740FD2127C42F1A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F3DA0D5AC5032DEBA6CB61D6 /* Assets.xcassets in Resources */,
+				76AFCD6B8E5D6FF5DBD5E1BE /* dist in Resources */,
+				77DB56A2A0BDA1E289AB91C2 /* en.lproj in Resources */,
+				EB9292B3A86F085BF368AA4C /* imagecard in Resources */,
+				52D4554978D590EF64EC9AD9 /* vendor in Resources */,
+				8B775137BC58C02239C7EA06 /* zh-Hans.lproj in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		20689C5B1C35395B67D3A6B9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2F4046AECCC4D2098B50BE4D /* BookmarkResolution.swift in Sources */,
+				DFA7BD94BB42E0257131AB3C /* JavaScriptStringLiteral.swift in Sources */,
+				698E7969011CB7F2342C6970 /* L10n.swift in Sources */,
+				AA0635C931A8FFA4A52510CF /* MoltenAppDelegate.swift in Sources */,
+				0D753A470EDC54DD4E2A1C79 /* MoltenAssetSchemeHandler.swift in Sources */,
+				313AF69AA9D0ECEE9036D8AA /* MoltenDocument.swift in Sources */,
+				8236D09CB8B817144D0DFC33 /* MoltenDocumentController.swift in Sources */,
+				30E0B397027CA3943D3CBEAD /* MoltenDraftsStore.swift in Sources */,
+				EC82EB4B2261E5254CCA3F1F /* MoltenEditorViewController.swift in Sources */,
+				9C765A126DC37D72B4F8E2C1 /* MoltenExporter.swift in Sources */,
+				90C37C2E55CBC9186A24B489 /* MoltenFileTree.swift in Sources */,
+				F62AF9E8729F7692239DADF2 /* MoltenFileTreeSidebar.swift in Sources */,
+				519AB418C5A510994FDF06B3 /* MoltenFolderAccess.swift in Sources */,
+				EE68F0FD75B73E747755F7C4 /* MoltenFrontMatter.swift in Sources */,
+				CBC780547F375FFAB5E8A274 /* MoltenImageCardExportView.swift in Sources */,
+				FBDC9A19ED0182D0C3E77BCE /* MoltenImageCardTypes.swift in Sources */,
+				4E834EA492079579AEBFEF94 /* MoltenLog.swift in Sources */,
+				F02BB3015CDF54A7C0F5D98C /* MoltenProject.swift in Sources */,
+				946E29A52333B60B2A9A98D0 /* MoltenProjectContentSearch.swift in Sources */,
+				EA77A379DA9ED36E506BA1AB /* MoltenProjectStore.swift in Sources */,
+				E7C3A99A2AEEC62A8A0E969C /* MoltenProjectsWindow.swift in Sources */,
+				0E2D47981AF460DE209AA1FB /* MoltenWordCount.swift in Sources */,
+				0A2431E699CC54E0A0611312 /* MoltenWorkspaceViewController.swift in Sources */,
+				56E9E6FB533E507A9D07A6BC /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AC4A61B06CA587B68A7F2879 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C3F2D64E7084A662CE8BD844 /* MoltenDocumentTests.swift in Sources */,
+				3A2271850BC3513A3997BDA5 /* MoltenEditorBridgeTests.swift in Sources */,
+				6C2E3B272B638525330D4427 /* MoltenExporterTests.swift in Sources */,
+				EE6C1FE9F0524D1882843FF4 /* MoltenExternalReloadTests.swift in Sources */,
+				780B64F8CDD2E8F6F487D73A /* MoltenFrontMatterTests.swift in Sources */,
+				A0AF649D8C06A268DCFC16B7 /* MoltenImageAttachmentTests.swift in Sources */,
+				0C13A8C90287B94F65F09FD5 /* MoltenImageCardRenderTests.swift in Sources */,
+				02C820269D3D88E59A68831F /* MoltenProjectStoreTests.swift in Sources */,
+				BD6E614EB025E3249DE6FB58 /* MoltenWordCountTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AF0129BF809F68D858229373 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BB4A78FDBC484FFDFF9059A2 /* Vellumi */;
+			targetProxy = 24D633EAB7FEA17377333C08 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		21A438B9AA15C120F6EACC34 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.vellumi.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vellumi.app/Contents/MacOS/Vellumi";
+			};
+			name = Debug;
+		};
+		3E77C1DEA1F90A163A8CFDC1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		7375ECFF90BF109BA126A093 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Vellumi.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Mac/App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.vellumi;
+				PRODUCT_NAME = Vellumi;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		78F48815271D81FE13E6A2BF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		8AE86DF44059803F44DAC7FC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.vellumi.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vellumi.app/Contents/MacOS/Vellumi";
+			};
+			name = Release;
+		};
+		D3EC81F09680908DD445102F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Vellumi.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Mac/App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.vellumi;
+				PRODUCT_NAME = Vellumi;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6CB851392D11F9F385E217AF /* Build configuration list for PBXNativeTarget "VellumiTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				21A438B9AA15C120F6EACC34 /* Debug */,
+				8AE86DF44059803F44DAC7FC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		94A57E5B3C41294326888023 /* Build configuration list for PBXProject "Vellumi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3E77C1DEA1F90A163A8CFDC1 /* Debug */,
+				78F48815271D81FE13E6A2BF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C9643556D4D9DAFFF94CA1AF /* Build configuration list for PBXNativeTarget "Vellumi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D3EC81F09680908DD445102F /* Debug */,
+				7375ECFF90BF109BA126A093 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9EC72EE740EE54D7A6462959 /* Project object */;
+}

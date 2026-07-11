@@ -1,6 +1,6 @@
 import WebKit
 import XCTest
-@testable import Molten
+@testable import Vellumi
 
 /// End-to-end bridge tests: load the REAL bundled editor (Crepe + ProseMirror)
 /// into a WKWebView, drive it through the same moltenAPI the app uses, and pull

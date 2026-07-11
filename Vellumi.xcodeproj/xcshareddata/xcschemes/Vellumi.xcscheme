@@ -15,10 +15,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "E6CCD85BEE81D8FF2ED073CA"
-               BuildableName = "Molten.app"
-               BlueprintName = "Molten"
-               ReferencedContainer = "container:Molten.xcodeproj">
+               BlueprintIdentifier = "BB4A78FDBC484FFDFF9059A2"
+               BuildableName = "Vellumi.app"
+               BlueprintName = "Vellumi"
+               ReferencedContainer = "container:Vellumi.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -29,10 +29,10 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "60A8688906865AFAED51C458"
-               BuildableName = "MoltenTests.xctest"
-               BlueprintName = "MoltenTests"
-               ReferencedContainer = "container:Molten.xcodeproj">
+               BlueprintIdentifier = "60A02A359A3E657BA1FAF240"
+               BuildableName = "VellumiTests.xctest"
+               BlueprintName = "VellumiTests"
+               ReferencedContainer = "container:Vellumi.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,10 +46,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E6CCD85BEE81D8FF2ED073CA"
-            BuildableName = "Molten.app"
-            BlueprintName = "Molten"
-            ReferencedContainer = "container:Molten.xcodeproj">
+            BlueprintIdentifier = "BB4A78FDBC484FFDFF9059A2"
+            BuildableName = "Vellumi.app"
+            BlueprintName = "Vellumi"
+            ReferencedContainer = "container:Vellumi.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -58,10 +58,10 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "60A8688906865AFAED51C458"
-               BuildableName = "MoltenTests.xctest"
-               BlueprintName = "MoltenTests"
-               ReferencedContainer = "container:Molten.xcodeproj">
+               BlueprintIdentifier = "60A02A359A3E657BA1FAF240"
+               BuildableName = "VellumiTests.xctest"
+               BlueprintName = "VellumiTests"
+               ReferencedContainer = "container:Vellumi.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -82,10 +82,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E6CCD85BEE81D8FF2ED073CA"
-            BuildableName = "Molten.app"
-            BlueprintName = "Molten"
-            ReferencedContainer = "container:Molten.xcodeproj">
+            BlueprintIdentifier = "BB4A78FDBC484FFDFF9059A2"
+            BuildableName = "Vellumi.app"
+            BlueprintName = "Vellumi"
+            ReferencedContainer = "container:Vellumi.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -99,10 +99,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E6CCD85BEE81D8FF2ED073CA"
-            BuildableName = "Molten.app"
-            BlueprintName = "Molten"
-            ReferencedContainer = "container:Molten.xcodeproj">
+            BlueprintIdentifier = "BB4A78FDBC484FFDFF9059A2"
+            BuildableName = "Vellumi.app"
+            BlueprintName = "Vellumi"
+            ReferencedContainer = "container:Vellumi.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

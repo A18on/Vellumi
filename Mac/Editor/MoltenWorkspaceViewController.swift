@@ -32,11 +32,11 @@ final class MoltenWorkspaceViewController: NSViewController {
     private let replaceField = NSTextField()
     private let statusBar = NSVisualEffectView()
     private let wordCountLabel = NSTextField(labelWithString: "")
-    private var showsOutline = UserDefaults.standard.bool(forKey: "Molten.showsOutline")
-    private var showsFileTree = UserDefaults.standard.bool(forKey: "Molten.showsFileTree")
+    private var showsOutline = UserDefaults.standard.bool(forKey: "Vellumi.showsOutline")
+    private var showsFileTree = UserDefaults.standard.bool(forKey: "Vellumi.showsFileTree")
     private var pendingStatsWorkItem: DispatchWorkItem?
     private var imageCardExportWindowController: NSWindowController?
-    private let statsQueue = DispatchQueue(label: "com.aaron.molten.stats", qos: .utility)
+    private let statsQueue = DispatchQueue(label: "com.aaron.vellumi.stats", qos: .utility)
     private var statsGeneration = 0
 
     private weak var document: MoltenDocument?
@@ -183,7 +183,7 @@ final class MoltenWorkspaceViewController: NSViewController {
 
     @objc func toggleOutline(_ sender: Any?) {
         showsOutline.toggle()
-        UserDefaults.standard.set(showsOutline, forKey: "Molten.showsOutline")
+        UserDefaults.standard.set(showsOutline, forKey: "Vellumi.showsOutline")
         outlineItem.animator().isCollapsed = !showsOutline
         if showsOutline {
             refreshOutline()
@@ -236,7 +236,7 @@ final class MoltenWorkspaceViewController: NSViewController {
 
     @objc func toggleFileTree(_ sender: Any?) {
         showsFileTree.toggle()
-        UserDefaults.standard.set(showsFileTree, forKey: "Molten.showsFileTree")
+        UserDefaults.standard.set(showsFileTree, forKey: "Vellumi.showsFileTree")
         fileTreeItem.animator().isCollapsed = !showsFileTree
         if showsFileTree {
             refreshFileTree()
@@ -388,6 +388,78 @@ final class MoltenWorkspaceViewController: NSViewController {
             wordCountLabel.leadingAnchor.constraint(equalTo: statusBar.leadingAnchor, constant: 12),
             wordCountLabel.centerYAnchor.constraint(equalTo: statusBar.centerYAnchor),
         ])
+    }
+}
+
+// MARK: - Unified toolbar
+
+extension MoltenWorkspaceViewController: NSToolbarDelegate {
+    private static let outlineItemID = NSToolbarItem.Identifier("vellumi.outline")
+    private static let fileTreeItemID = NSToolbarItem.Identifier("vellumi.filetree")
+    private static let exportItemID = NSToolbarItem.Identifier("vellumi.export")
+
+    func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+        [Self.outlineItemID, Self.fileTreeItemID, .flexibleSpace, Self.exportItemID]
+    }
+
+    func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+        toolbarDefaultItemIdentifiers(toolbar)
+    }
+
+    func toolbar(
+        _ toolbar: NSToolbar,
+        itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier,
+        willBeInsertedIntoToolbar flag: Bool
+    ) -> NSToolbarItem? {
+        switch itemIdentifier {
+        case Self.outlineItemID:
+            return makeButtonItem(
+                id: itemIdentifier,
+                symbol: "list.bullet.rectangle",
+                labelKey: "toolbar.outline",
+                action: #selector(toggleOutline(_:))
+            )
+        case Self.fileTreeItemID:
+            return makeButtonItem(
+                id: itemIdentifier,
+                symbol: "folder",
+                labelKey: "toolbar.fileTree",
+                action: #selector(toggleFileTree(_:))
+            )
+        case Self.exportItemID:
+            let item = NSMenuToolbarItem(itemIdentifier: itemIdentifier)
+            item.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: L10n.string("toolbar.export"))
+            item.label = L10n.string("toolbar.export")
+            item.toolTip = L10n.string("toolbar.export")
+            let menu = NSMenu()
+            menu.addItem(withTitle: L10n.string("menu.exportHTML"), action: #selector(exportHTML(_:)), keyEquivalent: "")
+            menu.addItem(withTitle: L10n.string("menu.exportPDF"), action: #selector(exportPDF(_:)), keyEquivalent: "")
+            menu.addItem(withTitle: L10n.string("menu.exportImageCards"), action: #selector(exportImageCards(_:)), keyEquivalent: "")
+            menu.addItem(.separator())
+            menu.addItem(withTitle: L10n.string("menu.print"), action: #selector(printDocument(_:)), keyEquivalent: "")
+            for entry in menu.items { entry.target = self }
+            item.menu = menu
+            item.showsIndicator = true
+            return item
+        default:
+            return nil
+        }
+    }
+
+    private func makeButtonItem(
+        id: NSToolbarItem.Identifier,
+        symbol: String,
+        labelKey: String,
+        action: Selector
+    ) -> NSToolbarItem {
+        let item = NSToolbarItem(itemIdentifier: id)
+        item.image = NSImage(systemSymbolName: symbol, accessibilityDescription: L10n.string(labelKey))
+        item.label = L10n.string(labelKey)
+        item.toolTip = L10n.string(labelKey)
+        item.target = self
+        item.action = action
+        item.isBordered = true
+        return item
     }
 }
 

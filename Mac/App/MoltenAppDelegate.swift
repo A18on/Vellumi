@@ -20,7 +20,7 @@ final class MoltenAppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func setEditorTheme(_ sender: NSMenuItem) {
         guard let theme = sender.representedObject as? String else { return }
-        UserDefaults.standard.set(theme, forKey: "Molten.editorTheme")
+        UserDefaults.standard.set(theme, forKey: "Vellumi.editorTheme")
         for case let document as MoltenDocument in NSDocumentController.shared.documents {
             document.editorViewController?.applyStoredTheme()
         }
@@ -33,7 +33,7 @@ final class MoltenAppDelegate: NSObject, NSApplicationDelegate {
 @MainActor
 enum MoltenAppearance {
     enum Mode: Int { case system = 0, light = 1, dark = 2 }
-    private static let key = "Molten.appearanceMode"
+    private static let key = "Vellumi.appearanceMode"
 
     static func applyStored() {
         apply(mode: Mode(rawValue: UserDefaults.standard.integer(forKey: key)) ?? .system)
@@ -60,7 +60,7 @@ enum MoltenMainMenuBuilder {
     static func build() -> NSMenu {
         let mainMenu = NSMenu()
 
-        mainMenu.addItem(submenu: appMenu(), title: "Molten")
+        mainMenu.addItem(submenu: appMenu(), title: "Vellumi")
         mainMenu.addItem(submenu: fileMenu(), title: L10n.string("menu.file"))
         mainMenu.addItem(submenu: editMenu(), title: L10n.string("menu.edit"))
         mainMenu.addItem(submenu: formatMenu(), title: L10n.string("menu.format"))
@@ -71,7 +71,7 @@ enum MoltenMainMenuBuilder {
     }
 
     private static func appMenu() -> NSMenu {
-        let menu = NSMenu(title: "Molten")
+        let menu = NSMenu(title: "Vellumi")
         menu.addItem(withTitle: L10n.string("menu.about"), action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
         menu.addItem(.separator())
         menu.addItem(withTitle: L10n.string("menu.hide"), action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")

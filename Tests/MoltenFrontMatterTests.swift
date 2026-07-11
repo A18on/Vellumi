@@ -1,5 +1,5 @@
 import XCTest
-@testable import Molten
+@testable import Vellumi
 
 final class MoltenFrontMatterTests: XCTestCase {
     func testSplitAndJoinRoundTripsExactly() {

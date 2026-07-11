@@ -7,7 +7,7 @@ final class MoltenFolderAccess {
     static let shared = MoltenFolderAccess()
 
     private let defaults: UserDefaults
-    private static let keyPrefix = "Molten.folderBookmark."
+    private static let keyPrefix = "Vellumi.folderBookmark."
     /// Folders whose scope has been started this session (leaked deliberately:
     /// scoped access stays open for the app's lifetime, matching how documents
     /// keep their folders in play).

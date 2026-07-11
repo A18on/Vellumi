@@ -1,5 +1,5 @@
 import XCTest
-@testable import Molten
+@testable import Vellumi
 
 final class MoltenProjectStoreTests: XCTestCase {
     private var defaults: UserDefaults!

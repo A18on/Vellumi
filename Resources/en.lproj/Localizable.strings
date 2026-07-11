@@ -1,6 +1,6 @@
 /* Document errors */
-"document.error.tooLarge" = "This file is larger than %d MB, which Molten cannot edit yet.";
-"document.error.encoding" = "This file is not UTF-8 text. Molten refuses to guess the encoding rather than risk corrupting it.";
+"document.error.tooLarge" = "This file is larger than %d MB, which Vellumi cannot edit yet.";
+"document.error.encoding" = "This file is not UTF-8 text. Vellumi refuses to guess the encoding rather than risk corrupting it.";
 
 /* Workspace */
 "status.wordCount" = "%d words";
@@ -9,11 +9,11 @@
 "outline.empty" = "No headings";
 
 /* Menus */
-"menu.about" = "About Molten";
-"menu.hide" = "Hide Molten";
+"menu.about" = "About Vellumi";
+"menu.hide" = "Hide Vellumi";
 "menu.hideOthers" = "Hide Others";
 "menu.showAll" = "Show All";
-"menu.quit" = "Quit Molten";
+"menu.quit" = "Quit Vellumi";
 "menu.file" = "File";
 "menu.new" = "New";
 "menu.open" = "Open…";
@@ -36,7 +36,7 @@
 "menu.zoom" = "Zoom";
 
 /* Image attachments */
-"folderAccess.message" = "Molten needs permission to save images into the \"%@\" folder (an assets/ subfolder will be created). Click Allow to grant access.";
+"folderAccess.message" = "Vellumi needs permission to save images into the \"%@\" folder (an assets/ subfolder will be created). Click Allow to grant access.";
 "folderAccess.prompt" = "Allow";
 "image.needsSave.title" = "Save the Document First";
 "image.needsSave.message" = "Images are stored in an assets/ folder next to your file. Save the document, then paste the image again.";
@@ -159,3 +159,8 @@
 "drafts.config.choose" = "Choose Folder…";
 "drafts.config.disable" = "Turn Off";
 "drafts.config.choosePrompt" = "Use as Drafts";
+
+/* Toolbar */
+"toolbar.outline" = "Outline";
+"toolbar.fileTree" = "Files";
+"toolbar.export" = "Export";

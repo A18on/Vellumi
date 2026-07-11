@@ -1,4 +1,4 @@
-name: Molten
+name: Vellumi
 
 options:
   minimumXcodeGenVersion: 2.44.0
@@ -14,7 +14,7 @@ settings:
       ONLY_ACTIVE_ARCH: YES
 
 targets:
-  Molten:
+  Vellumi:
     type: application
     platform: macOS
     sources:
@@ -42,12 +42,12 @@ targets:
       - sdk: WebKit.framework
     settings:
       base:
-        PRODUCT_NAME: Molten
-        PRODUCT_BUNDLE_IDENTIFIER: com.aaron.molten
+        PRODUCT_NAME: Vellumi
+        PRODUCT_BUNDLE_IDENTIFIER: com.aaron.vellumi
         INFOPLIST_FILE: Mac/App/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: NO
-        CODE_SIGN_ENTITLEMENTS: Molten.entitlements
+        CODE_SIGN_ENTITLEMENTS: Vellumi.entitlements
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "-"
         DEVELOPMENT_TEAM: ""
@@ -55,29 +55,29 @@ targets:
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 0.1.0
 
-  MoltenTests:
+  VellumiTests:
     type: bundle.unit-test
     platform: macOS
     sources:
       - Tests
     dependencies:
-      - target: Molten
+      - target: Vellumi
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.aaron.molten.tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.aaron.vellumi.tests
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "-"
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Molten.app/Contents/MacOS/Molten"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Vellumi.app/Contents/MacOS/Vellumi"
         BUNDLE_LOADER: "$(TEST_HOST)"
 
 schemes:
-  Molten:
+  Vellumi:
     build:
       targets:
-        Molten: all
-        MoltenTests: [test]
+        Vellumi: all
+        VellumiTests: [test]
     test:
       gatherCoverageData: false
       targets:
-        - MoltenTests
+        - VellumiTests

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Molten Image Card Renderer</title>
+  <title>Vellumi Image Card Renderer</title>
   <link rel="stylesheet" href="../vendor/highlight/github.min.css">
   <link rel="stylesheet" href="../vendor/katex/katex.min.css">
   <script src="../vendor/highlight/highlight.min.js"></script>
@@ -556,7 +556,7 @@
           </div>
           <div class="watermark-overlay" id="watermarkOverlay" aria-hidden="true"></div>
           <div class="card-watermark">
-            <span>Molten</span>
+            <span>Vellumi</span>
             <span id="pageMeta"></span>
           </div>
         </div>
@@ -783,7 +783,7 @@
       const footer = document.createElement("div");
       footer.className = "card-watermark";
       const brand = document.createElement("span");
-      brand.textContent = "Molten";
+      brand.textContent = "Vellumi";
       const meta = document.createElement("span");
       meta.textContent = `${formatDate()} · ${formatPageLabel(pageIndex, pageCount)}`;
       footer.append(brand, meta);
