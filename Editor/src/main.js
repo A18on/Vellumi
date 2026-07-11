@@ -58,7 +58,8 @@ import "@milkdown/crepe/theme/common/style.css";
 // Crepe's built-in strings (slash menu, placeholders, image upload buttons)
 // are English; mirror the app's zh-Hans localization when the SYSTEM language
 // is Chinese (navigator.language follows the host system in WKWebView).
-const isChinese = /^zh\b/i.test(navigator.language || "");
+const appLanguage = typeof window.__vellumiLanguage === "string" ? window.__vellumiLanguage : "";
+const isChinese = /^zh\b/i.test(appLanguage || navigator.language || "");
 
 const zhBlockEdit = {
   textGroup: {
@@ -404,11 +405,26 @@ window.moltenAPI = {
     // children containers) that chokes downstream consumers — the card
     // paginator dies on it and exported HTML drags editor chrome along.
     // Restore standard <li> structure.
-    clone.querySelectorAll("li.list-item").forEach((item) => {
+    // Deepest-first (reverse document order): replacing an outer <li> before
+    // its nested items would freeze the scaffolding into the copied innerHTML.
+    Array.from(clone.querySelectorAll("li.list-item")).reverse().forEach((item) => {
       const content = item.querySelector(".children .content-dom, .content-dom");
       const plain = document.createElement("li");
-      // A single wrapping <p> is markdown-normal inside <li>; keep innerHTML.
-      plain.innerHTML = content ? content.innerHTML : item.textContent;
+      if (content) {
+        // A single wrapping <p> is markdown-normal inside <li>.
+        plain.innerHTML = content.innerHTML;
+      } else {
+        plain.textContent = item.textContent; // never parse text as markup
+      }
+      // GFM task items: keep the checkbox and its state.
+      const checkbox = item.querySelector("input[type='checkbox']");
+      if (checkbox) {
+        const box = document.createElement("input");
+        box.type = "checkbox";
+        box.disabled = true;
+        if (checkbox.checked) box.setAttribute("checked", "");
+        plain.insertBefore(box, plain.firstChild);
+      }
       const wrapper = item.closest("div.milkdown-list-item-block") ?? item;
       wrapper.replaceWith(plain);
     });

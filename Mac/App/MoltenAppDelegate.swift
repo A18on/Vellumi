@@ -27,6 +27,21 @@ final class MoltenAppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+extension MoltenAppDelegate: NSMenuItemValidation {
+    /// Radio checkmarks for the Appearance and Theme menus — without these
+    /// the persisted selection is invisible.
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(setAppearanceMode(_:)) {
+            menuItem.state = menuItem.tag == MoltenAppearance.current.rawValue ? .on : .off
+        }
+        if menuItem.action == #selector(setEditorTheme(_:)) {
+            let active = UserDefaults.standard.string(forKey: "Vellumi.editorTheme") ?? "frame"
+            menuItem.state = (menuItem.representedObject as? String) == active ? .on : .off
+        }
+        return true
+    }
+}
+
 /// App-wide light/dark override. The editor's theme stylesheets key off
 /// prefers-color-scheme, which WKWebView derives from the effective
 /// appearance — so flipping NSApp.appearance restyles everything at once.

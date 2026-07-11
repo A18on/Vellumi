@@ -32,7 +32,12 @@ struct MoltenDraftsStore {
         defaults.removeObject(forKey: Key.bookmark)
     }
 
-    /// Resolves the Drafts folder URL, refreshing the bookmark if stale. Nil if unset/unresolvable.
+    /// Resolves the Drafts folder URL, refreshing the bookmark if stale, and
+    /// STARTS its security scope (left open for the app's lifetime, matching
+    /// the folder-access policy elsewhere) — without this the sandbox
+    /// silently rejects the draft write and File ▸ New falls back to a
+    /// scratch buffer while the user believes drafts are on. Nil if
+    /// unset/unresolvable.
     func resolveFolderURL() -> URL? {
         guard let data = defaults.data(forKey: Key.bookmark),
               let resolved = URL.resolvingDocumentFolderBookmark(data) else {
@@ -41,6 +46,7 @@ struct MoltenDraftsStore {
         if let refreshed = resolved.refreshedData {
             defaults.set(refreshed, forKey: Key.bookmark)
         }
+        _ = resolved.url.startAccessingSecurityScopedResource()
         return resolved.url
     }
 }

@@ -34,6 +34,7 @@ final class MoltenWorkspaceViewController: NSViewController {
     private let wordCountLabel = NSTextField(labelWithString: "")
     private var showsOutline = UserDefaults.standard.bool(forKey: "Vellumi.showsOutline")
     private var showsFileTree = UserDefaults.standard.bool(forKey: "Vellumi.showsFileTree")
+    private var collapseObservations: [NSKeyValueObservation] = []
     private var pendingStatsWorkItem: DispatchWorkItem?
     private var imageCardExportWindowController: NSWindowController?
     private let statsQueue = DispatchQueue(label: "com.aaron.vellumi.stats", qos: .utility)
@@ -170,7 +171,9 @@ final class MoltenWorkspaceViewController: NSViewController {
         if showsOutline {
             refreshOutline()
         }
-        refreshFileTree()
+        // NOTE: the file tree is NOT refreshed here — document content never
+        // changes the folder listing, and a full recursive disk walk per
+        // keystroke is pure waste. It refreshes on toggle and after saves.
     }
 
     private func refreshOutline() {
@@ -231,9 +234,39 @@ final class MoltenWorkspaceViewController: NSViewController {
         splitViewController.addSplitViewItem(outlineItem)
         splitViewController.addSplitViewItem(editorItem)
         addChild(splitViewController)
+
+        // The user can also collapse a sidebar by dragging its divider shut,
+        // which bypasses the toggle actions — observe the items so the stored
+        // state (and the next toggle) stays truthful.
+        collapseObservations = [
+            outlineItem.observe(\.isCollapsed) { [weak self] item, _ in
+                DispatchQueue.main.async {
+                    guard let self, self.showsOutline == item.isCollapsed else { return }
+                    self.showsOutline = !item.isCollapsed
+                    UserDefaults.standard.set(self.showsOutline, forKey: "Vellumi.showsOutline")
+                    if self.showsOutline { self.refreshOutline() }
+                }
+            },
+            fileTreeItem.observe(\.isCollapsed) { [weak self] item, _ in
+                DispatchQueue.main.async {
+                    guard let self, self.showsFileTree == item.isCollapsed else { return }
+                    self.showsFileTree = !item.isCollapsed
+                    UserDefaults.standard.set(self.showsFileTree, forKey: "Vellumi.showsFileTree")
+                    if self.showsFileTree { self.refreshFileTree() }
+                }
+            }
+        ]
     }
 
     // MARK: - File tree sidebar
+
+    /// Called by the document after a completed save — the file URL (Save As,
+    /// first save) or the folder contents may have changed.
+    func noteDocumentSaved() {
+        if showsFileTree {
+            refreshFileTree()
+        }
+    }
 
     @objc func toggleFileTree(_ sender: Any?) {
         showsFileTree.toggle()

@@ -32,6 +32,21 @@ final class MoltenEditorViewController: NSViewController {
         // Serves document-relative images (assets/…) to the sandboxed surface.
         configuration.setURLSchemeHandler(assetSchemeHandler, forURLScheme: MoltenAssetSchemeHandler.scheme)
 
+        // navigator.language in WKWebView follows the SYSTEM locale, but the
+        // app's UI language can differ (per-app language setting, localization
+        // fallback). Inject the app-resolved language so the editor's slash
+        // menu / placeholders match the rest of the UI.
+        if let appLanguage = Bundle.main.preferredLocalizations.first,
+           let encoded = try? JSONEncoder().encode(appLanguage),
+           let literal = String(data: encoded, encoding: .utf8) {
+            let script = WKUserScript(
+                source: "window.__vellumiLanguage = \(literal);",
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: true
+            )
+            configuration.userContentController.addUserScript(script)
+        }
+
         webView = WKWebView(
             frame: NSRect(origin: .zero, size: MoltenDocument.defaultContentSize),
             configuration: configuration

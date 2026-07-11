@@ -19,13 +19,18 @@ final class MoltenProjectsWindowController: NSWindowController {
         window.isReleasedWhenClosed = false
         window.setFrameAutosaveName("MoltenProjectsWindow")
         super.init(window: window)
-        window.contentViewController = NSHostingController(rootView: MoltenProjectsView(model: MoltenProjectsModel()))
+        window.contentViewController = NSHostingController(rootView: MoltenProjectsView(model: model))
     }
+
+    private let model = MoltenProjectsModel()
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
 
     func show() {
+        // Disk may have changed since last open — refresh everything visible.
+        model.reload()
+        model.reloadRecents()
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: false)
     }
@@ -218,12 +223,38 @@ final class MoltenProjectsModel: ObservableObject {
             NSSound.beep()
             return
         }
-        do {
-            try FileManager.default.moveItem(at: file.url, to: target)
-            refreshFiles(projectID)
-        } catch {
-            NSApp.presentError(error)
+        // If the file is OPEN, rename through its NSDocument so the document
+        // follows the file — a raw move would fork it: the next autosave
+        // resurrects the old name and all edits land in the wrong file.
+        let standardized = file.url.standardizedFileURL
+        if let open = NSDocumentController.shared.documents.first(where: {
+            $0.fileURL?.standardizedFileURL == standardized
+        }) {
+            open.move(to: target) { [weak self] error in
+                if let error {
+                    NSApp.presentError(error)
+                }
+                self?.refreshFiles(projectID)
+            }
+            return
         }
+        // Closed file: coordinated move so other presenters stay consistent.
+        var moveError: NSError?
+        NSFileCoordinator(filePresenter: nil).coordinate(
+            writingItemAt: file.url,
+            options: .forMoving,
+            error: &moveError
+        ) { url in
+            do {
+                try FileManager.default.moveItem(at: url, to: target)
+            } catch {
+                DispatchQueue.main.async { NSApp.presentError(error) }
+            }
+        }
+        if let moveError {
+            NSApp.presentError(moveError)
+        }
+        refreshFiles(projectID)
     }
 
     private static func promptForName(title: String, current: String) -> String? {
@@ -258,13 +289,14 @@ final class MoltenProjectsModel: ObservableObject {
         }
         searchGeneration += 1
         let generation = searchGeneration
-        let store = self.store
-        let snapshot = projects
+        // Resolve folder URLs on the main actor; the detached task only uses
+        // the pure static enumerator (no shared store instance off-main).
+        let folders = projects.compactMap { store.resolveFolderURL(for: $0) }
         contentSearchActive = true
         contentResults = []
         Task { [weak self] in
             let results = await Task.detached(priority: .userInitiated) {
-                let corpus = snapshot.flatMap { store.markdownFiles(in: $0) ?? [] }
+                let corpus = folders.flatMap { MoltenProjectStore.markdownFiles(inFolder: $0) ?? [] }
                 return MoltenProjectContentSearch.search(query: query, files: corpus, caseSensitive: false)
             }.value
             guard let self, self.searchGeneration == generation else { return }
@@ -290,9 +322,11 @@ final class MoltenProjectsModel: ObservableObject {
             }
             guard let document = document as? MoltenDocument, !query.isEmpty else { return }
             // The editor may still be booting; retry briefly until find lands.
+            // Weak: a closed document must not be kept alive by pending retries.
             func attempt(_ remaining: Int) {
-                document.editorViewController?.find(query, backwards: false) { found in
-                    if !found, remaining > 0 {
+                guard let editor = document.editorViewController else { return }
+                editor.find(query, backwards: false) { [weak document] found in
+                    if !found, remaining > 0, document != nil {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             attempt(remaining - 1)
                         }

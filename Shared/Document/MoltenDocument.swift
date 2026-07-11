@@ -130,9 +130,16 @@ final class MoltenDocument: NSDocument {
         completionHandler: @escaping (Error?) -> Void
     ) {
         refreshTextFromEditor {
+            // Snapshot BEFORE the async write: keystrokes bridged during the
+            // write must not be recorded as "on disk".
+            let snapshot = self.text
             super.save(to: url, ofType: typeName, for: saveOperation) { error in
-                if error == nil {
-                    self.savedText = self.text
+                // autosave-ELSEWHERE writes a recovery file, not the document;
+                // treating it as saved would let undo-back-to-it read as clean
+                // and close without a prompt, losing the content.
+                if error == nil, saveOperation != .autosaveElsewhereOperation {
+                    self.savedText = snapshot
+                    self.workspaceViewController?.noteDocumentSaved()
                 }
                 completionHandler(error)
             }
@@ -255,6 +262,22 @@ final class MoltenDocument: NSDocument {
     }
 
     func reloadIfCleanAndChangedOnDisk() {
+        // The dirty flag lags the editor by up to the JS debounce window —
+        // flush it first, or an external change could clobber the last second
+        // of typing.
+        guard let editor = editorViewController else {
+            performReloadIfCleanAndChangedOnDisk()
+            return
+        }
+        editor.pullMarkdown { [weak self] markdown in
+            if let self, let markdown {
+                self.editorTextDidChange(markdown)
+            }
+            self?.performReloadIfCleanAndChangedOnDisk()
+        }
+    }
+
+    private func performReloadIfCleanAndChangedOnDisk() {
         guard let url = fileURL, !isDocumentEdited else { return }
         let values = try? url.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
         guard let onDisk = values?.contentModificationDate else { return }
@@ -262,7 +285,14 @@ final class MoltenDocument: NSDocument {
         // Same size ceiling as the open path — an external swap to a huge file
         // must not trigger an unbounded read.
         if let size = values?.fileSize, size > Self.maximumFileSize { return }
-        guard let data = try? Data(contentsOf: url),
+        // Coordinated read: an uncoordinated Data(contentsOf:) can observe a
+        // torn half-written file mid-sync and record it as authoritative.
+        var coordinatedData: Data?
+        let coordinator = NSFileCoordinator(filePresenter: self)
+        coordinator.coordinate(readingItemAt: url, options: [], error: nil) { readURL in
+            coordinatedData = try? Data(contentsOf: readURL)
+        }
+        guard let data = coordinatedData,
               data.count <= Self.maximumFileSize,
               let reloaded = try? Self.decodeText(from: data) else {
             return
