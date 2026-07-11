@@ -33,6 +33,7 @@ import { editorViewCtx } from "@milkdown/core";
 import { undoCommand, redoCommand } from "@milkdown/plugin-history";
 import {
   insertHrCommand,
+  toggleLinkCommand,
   toggleEmphasisCommand,
   toggleInlineCodeCommand,
   toggleStrongCommand,
@@ -343,6 +344,12 @@ window.moltenAPI = {
   insertHorizontalRule() {
     focusEditor();
     crepe?.editor.action(callCommand(insertHrCommand.key));
+  },
+  // ⌘K: wrap the selection in a link (empty href pops Crepe's link tooltip
+  // for the URL); on an existing link it unwraps.
+  toggleLink() {
+    focusEditor();
+    crepe?.editor.action(callCommand(toggleLinkCommand.key, { href: "" }));
   },
   // Headings for the native outline sidebar. Walking the ProseMirror tree is
   // cheap relative to serialization; positions are document offsets usable

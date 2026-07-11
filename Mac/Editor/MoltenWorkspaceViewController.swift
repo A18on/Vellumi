@@ -157,10 +157,11 @@ final class MoltenWorkspaceViewController: NSViewController {
             let count = MoltenWordCount.count(text)
             DispatchQueue.main.async {
                 guard let self, self.statsGeneration == generation else { return }
-                self.wordCountLabel.stringValue = String(
-                    format: L10n.string("status.wordCount"),
-                    count
-                )
+                let minutes = max(1, Int((Double(count) / 400.0).rounded(.up)))
+                let base = String(format: L10n.string("status.wordCount"), count)
+                self.wordCountLabel.stringValue = count == 0
+                    ? base
+                    : base + "  ·  " + String(format: L10n.string("status.readingTime"), minutes)
             }
         }
         pendingStatsWorkItem = workItem

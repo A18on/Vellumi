@@ -164,3 +164,7 @@
 "toolbar.outline" = "大纲";
 "toolbar.fileTree" = "文件";
 "toolbar.export" = "导出";
+
+/* 链接与阅读时间 */
+"format.link" = "链接…";
+"status.readingTime" = "阅读约 %d 分钟";

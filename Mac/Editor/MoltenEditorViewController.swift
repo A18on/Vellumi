@@ -252,6 +252,10 @@ final class MoltenEditorViewController: NSViewController {
         webView.evaluateJavaScript("window.moltenAPI.insertHorizontalRule();")
     }
 
+    @objc func toggleLink(_ sender: Any?) {
+        webView.evaluateJavaScript("window.moltenAPI.toggleLink();")
+    }
+
     // MARK: - Native menu actions → ProseMirror history
 
     // WKWebView does not respond to undo:/redo:, so menu clicks land here via

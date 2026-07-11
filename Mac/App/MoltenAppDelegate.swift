@@ -171,6 +171,7 @@ enum MoltenMainMenuBuilder {
         menu.addItem(withTitle: L10n.string("format.inlineCode"), action: #selector(MoltenEditorViewController.toggleInlineCode(_:)), keyEquivalent: "e")
         let strike = menu.addItem(withTitle: L10n.string("format.strikethrough"), action: #selector(MoltenEditorViewController.toggleStrikethrough(_:)), keyEquivalent: "x")
         strike.keyEquivalentModifierMask = [.command, .shift]
+        menu.addItem(withTitle: L10n.string("format.link"), action: #selector(MoltenEditorViewController.toggleLink(_:)), keyEquivalent: "k")
 
         menu.addItem(.separator())
         let bullet = menu.addItem(withTitle: L10n.string("format.bulletList"), action: #selector(MoltenEditorViewController.toggleBulletList(_:)), keyEquivalent: "u")

@@ -164,3 +164,7 @@
 "toolbar.outline" = "Outline";
 "toolbar.fileTree" = "Files";
 "toolbar.export" = "Export";
+
+/* Link & reading time */
+"format.link" = "Link…";
+"status.readingTime" = "%d min read";
