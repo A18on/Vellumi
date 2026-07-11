@@ -27,9 +27,11 @@ struct MoltenFileTreeSidebar: View {
                 List(model.nodes, children: \.children, selection: $selection) { node in
                     Label(node.name, systemImage: node.isDirectory ? "folder" : "doc.text")
                         .fontWeight(node.id == model.currentFilePath ? .semibold : .regular)
+                        .padding(.vertical, 2)
                         .tag(node.id)
                 }
                 .listStyle(.sidebar)
+                .padding(.top, 6)
                 // Return / double-click / assistive activation (MarkMac lesson).
                 .contextMenu(forSelectionType: String.self) { ids in
                     if let id = ids.first, let node = Self.node(withID: id, in: model.nodes), !node.isDirectory {

@@ -525,7 +525,8 @@ struct MoltenOutlineSidebar: View {
                                 .font(.callout)
                                 .fontWeight(heading.level <= 1 ? .semibold : .regular)
                                 .lineLimit(1)
-                                .padding(.leading, CGFloat(max(0, heading.level - 1)) * 12)
+                                .padding(.leading, 4 + CGFloat(max(0, heading.level - 1)) * 12)
+                                .padding(.vertical, 3)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .buttonStyle(.plain)
@@ -533,6 +534,7 @@ struct MoltenOutlineSidebar: View {
                     }
                 }
                 .listStyle(.sidebar)
+                .padding(.top, 6)
                 .onChange(of: selection) { pos in
                     if let pos, let heading = model.headings.first(where: { $0.pos == pos }) {
                         onSelect(heading)
