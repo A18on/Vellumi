@@ -7,3 +7,4 @@ Editor/node_modules/
 Resources/dist/*
 !Resources/dist/.gitkeep
 .DS_Store
+dist/
