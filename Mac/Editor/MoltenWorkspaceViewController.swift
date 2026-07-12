@@ -679,7 +679,15 @@ struct MoltenOutlineSidebar: View {
                 List(selection: $selection) {
                     ForEach(model.headings) { heading in
                         Button {
-                            onSelect(heading)
+                            // Route through `selection` so the List highlight
+                            // always follows the click; only a re-click on the
+                            // already-selected row navigates directly (no
+                            // selection change → onChange stays silent).
+                            if selection == heading.pos {
+                                onSelect(heading)
+                            } else {
+                                selection = heading.pos
+                            }
                         } label: {
                             Text(heading.text.isEmpty ? "—" : heading.text)
                                 .font(.callout)
@@ -688,6 +696,11 @@ struct MoltenOutlineSidebar: View {
                                 .padding(.leading, 4 + CGFloat(max(0, heading.level - 1)) * 12)
                                 .padding(.vertical, 3)
                                 .frame(maxWidth: .infinity, alignment: .leading)
+                                // Full-row hit area: bare Text only hit-tests
+                                // its glyphs — clicking ON the text hit the
+                                // button (navigate, no highlight) while the
+                                // blank space hit the row (highlight). Unify.
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                         .tag(heading.pos)
