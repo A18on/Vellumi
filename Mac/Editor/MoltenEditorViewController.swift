@@ -96,6 +96,7 @@ final class MoltenEditorViewController: NSViewController {
         assetSchemeHandler.documentDirectory = document?.fileURL?.deletingLastPathComponent()
         guard isEditorReady else { return }
         applyStoredTheme()
+        applyStoredViewSettings()
         // callAsyncJavaScript marshals the string as an argument — no O(N)
         // escaping pass, no parsing a megabytes-long script literal.
         webView.callAsyncJavaScript(
@@ -225,6 +226,16 @@ final class MoltenEditorViewController: NSViewController {
     func applyStoredTheme() {
         let theme = UserDefaults.standard.string(forKey: "Vellumi.editorTheme") ?? "frame"
         webView.evaluateJavaScript("window.moltenAPI.setTheme('\(theme)');")
+    }
+
+    /// Pushes zoom + spellcheck + typewriter/focus modes into the surface.
+    /// Called on every document load AND whenever a menu/preferences toggle
+    /// broadcasts a change.
+    func applyStoredViewSettings() {
+        webView.pageZoom = MoltenViewSettings.zoom
+        webView.evaluateJavaScript("window.moltenAPI?.setSpellcheck(\(MoltenViewSettings.spellcheck));")
+        webView.evaluateJavaScript("window.moltenAPI?.setTypewriter(\(MoltenViewSettings.typewriter));")
+        webView.evaluateJavaScript("window.moltenAPI?.setFocusMode(\(MoltenViewSettings.focusMode));")
     }
 
     // MARK: - Format menu → ProseMirror commands

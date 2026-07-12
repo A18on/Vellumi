@@ -6,6 +6,14 @@ final class MoltenAppDelegate: NSObject, NSApplicationDelegate {
         NSApp.mainMenu = MoltenMainMenuBuilder.build()
     }
 
+    @objc func showPreferences(_ sender: Any?) {
+        MoltenPreferencesWindowController.shared.show()
+    }
+
+    @objc func showQuickOpen(_ sender: Any?) {
+        MoltenQuickOpenWindowController.shared.show()
+    }
+
     @objc func showProjects(_ sender: Any?) {
         MoltenProjectsWindowController.shared.show()
     }
@@ -17,6 +25,13 @@ final class MoltenAppDelegate: NSObject, NSApplicationDelegate {
     @objc func setAppearanceMode(_ sender: NSMenuItem) {
         MoltenAppearance.apply(mode: MoltenAppearance.Mode(rawValue: sender.tag) ?? .system)
     }
+
+    @objc func zoomIn(_ sender: Any?) { MoltenViewSettings.zoomIn() }
+    @objc func zoomOut(_ sender: Any?) { MoltenViewSettings.zoomOut() }
+    @objc func resetZoom(_ sender: Any?) { MoltenViewSettings.resetZoom() }
+    @objc func toggleTypewriter(_ sender: Any?) { MoltenViewSettings.typewriter.toggle() }
+    @objc func toggleFocusMode(_ sender: Any?) { MoltenViewSettings.focusMode.toggle() }
+    @objc func toggleSpellcheck(_ sender: Any?) { MoltenViewSettings.spellcheck.toggle() }
 
     @objc func setEditorTheme(_ sender: NSMenuItem) {
         guard let theme = sender.representedObject as? String else { return }
@@ -37,6 +52,15 @@ extension MoltenAppDelegate: NSMenuItemValidation {
         if menuItem.action == #selector(setEditorTheme(_:)) {
             let active = UserDefaults.standard.string(forKey: "Vellumi.editorTheme") ?? "frame"
             menuItem.state = (menuItem.representedObject as? String) == active ? .on : .off
+        }
+        if menuItem.action == #selector(toggleTypewriter(_:)) {
+            menuItem.state = MoltenViewSettings.typewriter ? .on : .off
+        }
+        if menuItem.action == #selector(toggleFocusMode(_:)) {
+            menuItem.state = MoltenViewSettings.focusMode ? .on : .off
+        }
+        if menuItem.action == #selector(toggleSpellcheck(_:)) {
+            menuItem.state = MoltenViewSettings.spellcheck ? .on : .off
         }
         return true
     }
@@ -89,6 +113,8 @@ enum MoltenMainMenuBuilder {
         let menu = NSMenu(title: "Vellumi")
         menu.addItem(withTitle: L10n.string("menu.about"), action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
         menu.addItem(.separator())
+        menu.addItem(withTitle: L10n.string("menu.preferences"), action: #selector(MoltenAppDelegate.showPreferences(_:)), keyEquivalent: ",")
+        menu.addItem(.separator())
         menu.addItem(withTitle: L10n.string("menu.hide"), action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         let hideOthers = menu.addItem(withTitle: L10n.string("menu.hideOthers"), action: #selector(NSApplication.hideOtherApplications(_:)), keyEquivalent: "h")
         hideOthers.keyEquivalentModifierMask = [.command, .option]
@@ -102,13 +128,25 @@ enum MoltenMainMenuBuilder {
         let menu = NSMenu(title: L10n.string("menu.file"))
         menu.addItem(withTitle: L10n.string("menu.new"), action: #selector(NSDocumentController.newDocument(_:)), keyEquivalent: "n")
         menu.addItem(withTitle: L10n.string("menu.open"), action: #selector(NSDocumentController.openDocument(_:)), keyEquivalent: "o")
+        let quickOpen = menu.addItem(
+            withTitle: L10n.string("menu.quickOpen"),
+            action: #selector(MoltenAppDelegate.showQuickOpen(_:)),
+            keyEquivalent: "p"
+        )
+        quickOpen.keyEquivalentModifierMask = [.command, .shift]
         menu.addItem(.separator())
         menu.addItem(withTitle: L10n.string("menu.close"), action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
         menu.addItem(withTitle: L10n.string("menu.save"), action: #selector(NSDocument.save(_:)), keyEquivalent: "s")
         let saveAs = menu.addItem(withTitle: L10n.string("menu.saveAs"), action: #selector(NSDocument.saveAs(_:)), keyEquivalent: "s")
         saveAs.keyEquivalentModifierMask = [.command, .shift]
         menu.addItem(withTitle: L10n.string("menu.revert"), action: #selector(NSDocument.revertToSaved(_:)), keyEquivalent: "")
+        menu.addItem(withTitle: L10n.string("menu.browseVersions"), action: #selector(NSDocument.browseVersions(_:)), keyEquivalent: "")
         menu.addItem(.separator())
+        menu.addItem(
+            withTitle: L10n.string("menu.editFrontMatter"),
+            action: #selector(MoltenWorkspaceViewController.editFrontMatter(_:)),
+            keyEquivalent: ""
+        )
         menu.addItem(
             withTitle: L10n.string("menu.draftsFolder"),
             action: #selector(MoltenDocumentController.configureDraftsFolder(_:)),
@@ -223,6 +261,37 @@ enum MoltenMainMenuBuilder {
         fileTree.keyEquivalentModifierMask = [.command, .option]
 
         menu.addItem(.separator())
+        menu.addItem(
+            withTitle: L10n.string("menu.sourceMode"),
+            action: #selector(MoltenWorkspaceViewController.toggleSourceMode(_:)),
+            keyEquivalent: "/"
+        )
+
+        let typewriter = menu.addItem(
+            withTitle: L10n.string("menu.typewriter"),
+            action: #selector(MoltenAppDelegate.toggleTypewriter(_:)),
+            keyEquivalent: "t"
+        )
+        typewriter.keyEquivalentModifierMask = [.command, .option]
+        let focusMode = menu.addItem(
+            withTitle: L10n.string("menu.focusMode"),
+            action: #selector(MoltenAppDelegate.toggleFocusMode(_:)),
+            keyEquivalent: "f"
+        )
+        focusMode.keyEquivalentModifierMask = [.command, .option]
+        menu.addItem(
+            withTitle: L10n.string("menu.spellcheck"),
+            action: #selector(MoltenAppDelegate.toggleSpellcheck(_:)),
+            keyEquivalent: ""
+        )
+
+        menu.addItem(.separator())
+        menu.addItem(withTitle: L10n.string("menu.zoomIn"), action: #selector(MoltenAppDelegate.zoomIn(_:)), keyEquivalent: "+")
+        menu.addItem(withTitle: L10n.string("menu.zoomOut"), action: #selector(MoltenAppDelegate.zoomOut(_:)), keyEquivalent: "-")
+        let actual = menu.addItem(withTitle: L10n.string("menu.actualSize"), action: #selector(MoltenAppDelegate.resetZoom(_:)), keyEquivalent: "0")
+        actual.keyEquivalentModifierMask = [.command, .control]
+
+        menu.addItem(.separator())
         let appearance = NSMenu(title: L10n.string("menu.appearance"))
         for (title, mode) in [("appearance.system", 0), ("appearance.light", 1), ("appearance.dark", 2)] {
             let item = appearance.addItem(
@@ -255,6 +324,11 @@ enum MoltenMainMenuBuilder {
         let menu = NSMenu(title: L10n.string("menu.window"))
         menu.addItem(withTitle: L10n.string("menu.minimize"), action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
         menu.addItem(withTitle: L10n.string("menu.zoom"), action: #selector(NSWindow.performZoom(_:)), keyEquivalent: "")
+        menu.addItem(.separator())
+        menu.addItem(withTitle: L10n.string("menu.showPreviousTab"), action: #selector(NSWindow.selectPreviousTab(_:)), keyEquivalent: "")
+        menu.addItem(withTitle: L10n.string("menu.showNextTab"), action: #selector(NSWindow.selectNextTab(_:)), keyEquivalent: "")
+        menu.addItem(withTitle: L10n.string("menu.moveTabToNewWindow"), action: #selector(NSWindow.moveTabToNewWindow(_:)), keyEquivalent: "")
+        menu.addItem(withTitle: L10n.string("menu.mergeAllWindows"), action: #selector(NSWindow.mergeAllWindows(_:)), keyEquivalent: "")
         NSApp.windowsMenu = menu
         return menu
     }

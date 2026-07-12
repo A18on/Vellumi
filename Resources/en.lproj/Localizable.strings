@@ -168,3 +168,38 @@
 /* Link & reading time */
 "format.link" = "Link…";
 "status.readingTime" = "%d min read";
+
+/* v0.2 features */
+"menu.preferences" = "Settings…";
+"menu.quickOpen" = "Quick Open…";
+"menu.editFrontMatter" = "Edit Front Matter…";
+"menu.browseVersions" = "Browse All Versions…";
+"menu.sourceMode" = "Source Mode";
+"menu.typewriter" = "Typewriter Mode";
+"menu.focusMode" = "Focus Mode";
+"menu.spellcheck" = "Check Spelling";
+"menu.zoomIn" = "Zoom In";
+"menu.zoomOut" = "Zoom Out";
+"menu.actualSize" = "Actual Size";
+"menu.showPreviousTab" = "Show Previous Tab";
+"menu.showNextTab" = "Show Next Tab";
+"menu.moveTabToNewWindow" = "Move Tab to New Window";
+"menu.mergeAllWindows" = "Merge All Windows";
+"prefs.title" = "Settings";
+"prefs.section.appearance" = "Appearance";
+"prefs.section.editing" = "Editing";
+"prefs.section.files" = "Files";
+"prefs.zoom" = "Editor Zoom";
+"prefs.wordGoal" = "Word count goal";
+"prefs.wordGoal.unit" = "words (0 = off)";
+"prefs.wordGoal.help" = "Shows progress toward the goal in the status bar.";
+"prefs.draftsFolder" = "Drafts folder";
+"prefs.draftsFolder.none" = "Not set";
+"prefs.draftsFolder.configure" = "Configure…";
+"status.wordGoal" = "Goal %d%% of %d";
+"quickopen.placeholder" = "Fuzzy file name…";
+"quickopen.empty" = "No matching files";
+"frontmatter.title" = "Front Matter";
+"frontmatter.invalid" = "Must be a fenced YAML block (--- … ---) with nothing after the closing fence, or empty to remove.";
+"frontmatter.hint" = "Kept byte-for-byte around your document body.";
+"frontmatter.save" = "Save";

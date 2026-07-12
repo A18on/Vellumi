@@ -43,6 +43,11 @@ final class MoltenDocument: NSDocument {
             defer: false
         )
         window.minSize = NSSize(width: 480, height: 320)
+        // Native window tabs (⌘T-style tabbing, Merge All Windows). Preferred
+        // rather than automatic so documents tab together even when the
+        // system-wide setting is "never".
+        window.tabbingMode = .preferred
+        window.tabbingIdentifier = "VellumiDocument"
         window.titlebarAppearsTransparent = true
         // Editor surface color extends into the titlebar (Bear/Craft-style
         // seamless chrome).
@@ -161,7 +166,10 @@ final class MoltenDocument: NSDocument {
     }
 
     private func refreshTextFromEditor(then continuation: @escaping () -> Void) {
-        guard let editor = editorViewController else {
+        // Source mode: the NSTextView delegate pushes every keystroke into
+        // `text` synchronously, and the web editor holds STALE content —
+        // pulling from it would overwrite the source edits.
+        guard !sourceModeActive, let editor = editorViewController else {
             continuation()
             return
         }
@@ -177,6 +185,33 @@ final class MoltenDocument: NSDocument {
             }
             continuation()
         }
+    }
+
+    // MARK: - Source mode
+
+    /// True while the workspace shows the plain-markdown source view; save
+    /// paths then trust `text` instead of pulling from the web editor.
+    var sourceModeActive = false
+
+    /// Full on-disk representation (front matter + body) for the source view.
+    var fullSourceText: String {
+        MoltenFrontMatter.join(frontMatter: frontMatter, body: text)
+    }
+
+    /// Adopts edits from the source view. The full text is re-split so front
+    /// matter added/edited/removed in source mode is honored.
+    func adoptSourceText(_ fullText: String) {
+        let parts = MoltenFrontMatter.split(fullText)
+        frontMatter = parts.frontMatter
+        editorTextDidChange(parts.body)
+    }
+
+    /// Adopts an edited front-matter block from the editor sheet. Callers
+    /// validate the fence shape; this only records the change.
+    func setFrontMatter(_ newValue: String) {
+        guard newValue != frontMatter else { return }
+        frontMatter = newValue
+        updateChangeCount(.changeDone)
     }
 
     // MARK: - Bridge callbacks

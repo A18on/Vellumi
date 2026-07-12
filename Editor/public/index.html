@@ -27,6 +27,22 @@
        appearance); an in-app override would need to swap the theme <link>s,
        not just color-scheme. */
     .milkdown { background: transparent; }
+    /* Focus mode: dim everything except the caret's block. Opacity-only
+       transition — animating anything layout-affecting here would wobble. */
+    body.vellumi-focus-mode .ProseMirror > * {
+      opacity: 0.3;
+      transition: opacity 0.25s ease-out;
+    }
+    body.vellumi-focus-mode .ProseMirror > .vellumi-focus-active {
+      opacity: 1;
+    }
+    /* Mermaid diagrams: centered, width-capped, padded like a block. */
+    .vellumi-mermaid {
+      text-align: center;
+      padding: 8px 0;
+      white-space: pre-wrap; /* raw-source fallback stays readable */
+    }
+    .vellumi-mermaid svg { max-width: 100%; }
   </style>
 </head>
 <body>

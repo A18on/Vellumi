@@ -36,6 +36,9 @@ final class MoltenWorkspaceViewController: NSViewController {
     private var showsFileTree = UserDefaults.standard.bool(forKey: "Vellumi.showsFileTree")
     private var collapseObservations: [NSKeyValueObservation] = []
     private var pendingStatsWorkItem: DispatchWorkItem?
+    private var sourceScrollView: NSScrollView?
+    private var sourceTextView: NSTextView?
+    private(set) var isSourceMode = false
     private var imageCardExportWindowController: NSWindowController?
     private let statsQueue = DispatchQueue(label: "com.aaron.vellumi.stats", qos: .utility)
     private var statsGeneration = 0
@@ -146,6 +149,25 @@ final class MoltenWorkspaceViewController: NSViewController {
 
     private var findBarHeightConstraint: NSLayoutConstraint?
 
+    private var lastWordCount = 0
+
+    /// Renders "N 字 · 阅读约 M 分钟 · 目标 42%" from the cached count — split
+    /// out so a goal change in Preferences can re-render without recounting.
+    private func renderStatusLine() {
+        let count = lastWordCount
+        var parts = [String(format: L10n.string("status.wordCount"), count)]
+        if count > 0 {
+            let minutes = max(1, Int((Double(count) / 400.0).rounded(.up)))
+            parts.append(String(format: L10n.string("status.readingTime"), minutes))
+        }
+        let goal = UserDefaults.standard.integer(forKey: "Vellumi.wordGoal")
+        if goal > 0 {
+            let percent = Int((Double(count) / Double(goal) * 100).rounded())
+            parts.append(String(format: L10n.string("status.wordGoal"), percent, goal))
+        }
+        wordCountLabel.stringValue = parts.joined(separator: "  ·  ")
+    }
+
     // MARK: - Content updates (from the document)
 
     /// Called on every bridged change: refreshes word count (off-main) and the
@@ -158,11 +180,8 @@ final class MoltenWorkspaceViewController: NSViewController {
             let count = MoltenWordCount.count(text)
             DispatchQueue.main.async {
                 guard let self, self.statsGeneration == generation else { return }
-                let minutes = max(1, Int((Double(count) / 400.0).rounded(.up)))
-                let base = String(format: L10n.string("status.wordCount"), count)
-                self.wordCountLabel.stringValue = count == 0
-                    ? base
-                    : base + "  ·  " + String(format: L10n.string("status.readingTime"), minutes)
+                self.lastWordCount = count
+                self.renderStatusLine()
             }
         }
         pendingStatsWorkItem = workItem
@@ -300,6 +319,126 @@ final class MoltenWorkspaceViewController: NSViewController {
         }
     }
 
+    // MARK: - Front matter sheet
+
+    /// Shows the protected YAML block in an editable sheet. The block is
+    /// normally invisible by design (the melt editor would mangle it); this
+    /// is the explicit hatch for viewing/editing it.
+    @objc func editFrontMatter(_ sender: Any?) {
+        guard let document, let window = view.window else { return }
+        let sheet = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 520, height: 320),
+            styleMask: [.titled],
+            backing: .buffered,
+            defer: false
+        )
+        sheet.isReleasedWhenClosed = false
+        let initial = document.frontMatter.isEmpty
+            ? "---\ntitle: \n---\n"
+            : document.frontMatter
+        sheet.contentViewController = NSHostingController(
+            rootView: MoltenFrontMatterSheet(initialText: initial) { [weak self, weak window, weak sheet] newValue in
+                guard let window, let sheet else { return }
+                defer {
+                    window.endSheet(sheet)
+                    self?.editorViewController.focusEditingSurface()
+                }
+                guard let newValue else { return }
+                self?.document?.setFrontMatter(newValue)
+            }
+        )
+        window.beginSheet(sheet)
+    }
+
+    // MARK: - Source mode (⌘/)
+
+    /// Swaps the melt surface for a plain-markdown NSTextView showing the FULL
+    /// file (front matter included) and back. The text view's delegate feeds
+    /// every change into the document, so all save paths stay correct while
+    /// the web editor is parked.
+    @objc func toggleSourceMode(_ sender: Any?) {
+        if isSourceMode {
+            exitSourceMode()
+        } else {
+            enterSourceMode()
+        }
+    }
+
+    private func enterSourceMode() {
+        guard let document, !isSourceMode else { return }
+        // Flush the newest keystrokes out of the web editor BEFORE freezing it.
+        editorViewController.pullMarkdown { [weak self] markdown in
+            guard let self, let document = self.document else { return }
+            if let markdown {
+                document.editorTextDidChange(markdown)
+            }
+            self.isSourceMode = true
+            document.sourceModeActive = true
+
+            let scroll = self.sourceScrollView ?? self.makeSourceScrollView()
+            self.sourceScrollView = scroll
+            if scroll.superview == nil {
+                let container = self.view
+                scroll.translatesAutoresizingMaskIntoConstraints = false
+                container.addSubview(scroll)
+                let split = self.splitViewController.view
+                NSLayoutConstraint.activate([
+                    scroll.topAnchor.constraint(equalTo: split.topAnchor),
+                    scroll.leadingAnchor.constraint(equalTo: split.leadingAnchor),
+                    scroll.trailingAnchor.constraint(equalTo: split.trailingAnchor),
+                    scroll.bottomAnchor.constraint(equalTo: split.bottomAnchor),
+                ])
+            }
+            self.sourceTextView?.string = document.fullSourceText
+            scroll.isHidden = false
+            self.splitViewController.view.isHidden = true
+            self.view.window?.makeFirstResponder(self.sourceTextView)
+        }
+    }
+
+    private func exitSourceMode() {
+        guard let document, isSourceMode else { return }
+        isSourceMode = false
+        document.sourceModeActive = false
+        // The delegate already synced every keystroke; adopt once more for
+        // safety, then rebuild the melt surface from the (possibly re-split)
+        // body text.
+        if let sourceTextView {
+            document.adoptSourceText(sourceTextView.string)
+        }
+        sourceScrollView?.isHidden = true
+        splitViewController.view.isHidden = false
+        editorViewController.loadDocumentText(document.text)
+        editorViewController.focusEditingSurface()
+    }
+
+    private func makeSourceScrollView() -> NSScrollView {
+        let scroll = NSScrollView()
+        scroll.hasVerticalScroller = true
+        scroll.drawsBackground = true
+        scroll.backgroundColor = .textBackgroundColor
+
+        let textView = NSTextView()
+        textView.autoresizingMask = [.width]
+        textView.isRichText = false
+        textView.allowsUndo = true
+        textView.usesFindBar = true
+        textView.isAutomaticQuoteSubstitutionEnabled = false
+        textView.isAutomaticDashSubstitutionEnabled = false
+        textView.isAutomaticTextReplacementEnabled = false
+        textView.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
+        textView.textContainerInset = NSSize(width: 24, height: 20)
+        textView.delegate = self
+        textView.minSize = NSSize(width: 0, height: 0)
+        textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        textView.isVerticallyResizable = true
+        textView.textContainer?.widthTracksTextView = true
+
+        scroll.documentView = textView
+        sourceTextView = textView
+        return scroll
+    }
+
     // MARK: - Find bar
 
     @objc func showFind(_ sender: Any?) {
@@ -410,6 +549,11 @@ final class MoltenWorkspaceViewController: NSViewController {
     // MARK: - Status bar
 
     private func configureStatusBar() {
+        NotificationCenter.default.addObserver(
+            forName: .moltenWordGoalChanged, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.renderStatusLine() }
+        }
         statusBar.material = .titlebar
         statusBar.blendingMode = .withinWindow
 
@@ -494,6 +638,22 @@ extension MoltenWorkspaceViewController: NSToolbarDelegate {
         item.action = action
         item.isBordered = true
         return item
+    }
+}
+
+extension MoltenWorkspaceViewController: NSTextViewDelegate {
+    func textDidChange(_ notification: Notification) {
+        guard isSourceMode, let textView = sourceTextView else { return }
+        document?.adoptSourceText(textView.string)
+    }
+}
+
+extension MoltenWorkspaceViewController: NSMenuItemValidation {
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(toggleSourceMode(_:)) {
+            menuItem.state = isSourceMode ? .on : .off
+        }
+        return true
     }
 }
 

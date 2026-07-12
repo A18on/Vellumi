@@ -29,7 +29,8 @@
 // throwaway empty editor at boot would double every document-open.
 
 import { Crepe } from "@milkdown/crepe";
-import { editorViewCtx } from "@milkdown/core";
+import { editorViewCtx, editorViewOptionsCtx } from "@milkdown/core";
+import mermaid from "mermaid";
 import { undoCommand, redoCommand } from "@milkdown/plugin-history";
 import {
   insertHrCommand,
@@ -44,6 +45,7 @@ import {
   wrapInOrderedListCommand,
 } from "@milkdown/preset-commonmark";
 import { toggleStrikethroughCommand } from "@milkdown/preset-gfm";
+import { diagram } from "@milkdown/plugin-diagram";
 import { TextSelection } from "@milkdown/prose/state";
 import { callCommand } from "@milkdown/utils";
 import "@milkdown/crepe/theme/common/style.css";
@@ -105,6 +107,133 @@ function localizedFeatureConfigs() {
     [Crepe.Feature.BlockEdit]: zhBlockEdit,
     [Crepe.Feature.Placeholder]: { text: "输入正文,或按 / 唤起命令…" },
   };
+}
+// ---------------------------------------------------------------------------
+
+// ---- Mermaid rendering -----------------------------------------------------
+// plugin-diagram (7.7) supplies the schema/remark mapping for ```mermaid
+// fences, but its NodeView predates Crepe 7.21 and never installs — so we
+// provide our own: a plain ProseMirror nodeView that renders the source
+// through mermaid and falls back to raw text when the graph doesn't parse.
+// Editing the source happens in source mode (⌘/); the node itself is atomic.
+const liveMermaidViews = new Set();
+let mermaidSeq = 0;
+
+function mermaidTheme() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "default";
+}
+
+mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: mermaidTheme() });
+
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: mermaidTheme() });
+  liveMermaidViews.forEach((entry) => entry.render(entry.code));
+});
+
+function mermaidNodeView(node) {
+  const dom = document.createElement("div");
+  dom.className = "vellumi-mermaid";
+  dom.setAttribute("contenteditable", "false");
+  const entry = {
+    code: "",
+    render(code) {
+      entry.code = code;
+      if (!code.trim()) {
+        dom.textContent = "";
+        return;
+      }
+      const id = `vellumi-mermaid-${++mermaidSeq}`;
+      mermaid
+        .render(id, code)
+        .then(({ svg }) => {
+          if (entry.code === code) dom.innerHTML = svg;
+        })
+        .catch(() => {
+          // Invalid graph source: show it verbatim (mermaid may leave a
+          // scratch element behind on failure — remove it).
+          document.getElementById(`d${id}`)?.remove();
+          if (entry.code === code) dom.textContent = code;
+        });
+    },
+  };
+  liveMermaidViews.add(entry);
+  entry.render(node.attrs.value ?? node.textContent ?? "");
+  return {
+    dom,
+    update(updated) {
+      if (updated.type.name !== "diagram") return false;
+      entry.render(updated.attrs.value ?? updated.textContent ?? "");
+      return true;
+    },
+    ignoreMutation: () => true,
+    destroy() {
+      liveMermaidViews.delete(entry);
+    },
+  };
+}
+// -----------------------------------------------------------------------------
+
+// ---- View modes -----------------------------------------------------------
+// Typewriter: keep the caret line vertically anchored (~45% of the viewport)
+// while typing/navigating. Focus: dim every top-level block except the one
+// holding the caret. Both are driven off selectionchange — it fires for
+// typing AND caret movement, which is exactly the trigger set we want.
+let typewriterEnabled = false;
+let focusModeEnabled = false;
+let spellcheckEnabled = false;
+
+function editingSurface() {
+  return root.querySelector(".ProseMirror");
+}
+
+function caretTopBlock() {
+  const surface = editingSurface();
+  const selection = document.getSelection();
+  let node = selection?.anchorNode;
+  if (!surface || !node || !surface.contains(node)) return null;
+  while (node.parentNode && node.parentNode !== surface) node = node.parentNode;
+  return node instanceof Element ? node : null;
+}
+
+function updateViewModes() {
+  if (focusModeEnabled) {
+    const active = caretTopBlock();
+    editingSurface()
+      ?.querySelectorAll(":scope > .vellumi-focus-active")
+      .forEach((el) => {
+        if (el !== active) el.classList.remove("vellumi-focus-active");
+      });
+    active?.classList.add("vellumi-focus-active");
+  }
+  if (typewriterEnabled) {
+    const selection = document.getSelection();
+    if (!selection?.rangeCount) return;
+    const range = selection.getRangeAt(0).cloneRange();
+    range.collapse(false);
+    let rect = range.getBoundingClientRect();
+    if (!rect || (rect.height === 0 && rect.top === 0)) {
+      const container = range.startContainer;
+      const el = container instanceof Element ? container : container.parentElement;
+      rect = el?.getBoundingClientRect();
+    }
+    if (!rect) return;
+    const delta = rect.top - window.innerHeight * 0.45;
+    // Dead zone: without it every keystroke micro-scrolls by sub-pixel
+    // amounts and the page shimmers.
+    if (Math.abs(delta) > 4) {
+      window.scrollBy({ top: delta, behavior: "auto" });
+    }
+  }
+}
+
+document.addEventListener("selectionchange", () => {
+  if (typewriterEnabled || focusModeEnabled) {
+    requestAnimationFrame(updateViewModes);
+  }
+});
+
+function applySpellcheck() {
+  editingSurface()?.setAttribute("spellcheck", spellcheckEnabled ? "true" : "false");
 }
 // ---------------------------------------------------------------------------
 
@@ -231,6 +360,18 @@ async function createEditor(markdown) {
       },
     },
   });
+  // Mermaid: plugin-diagram for schema/serialization, our nodeView for the
+  // actual rendering (see mermaidNodeView above).
+  next.editor.use(diagram);
+  next.editor.config((ctx) => {
+    ctx.update(editorViewOptionsCtx, (prev) => ({
+      ...prev,
+      nodeViews: {
+        ...(prev.nodeViews ?? {}),
+        diagram: (node) => mermaidNodeView(node),
+      },
+    }));
+  });
   next.on((listener) => {
     // `updated` fires per transaction WITHOUT serializing; markdown is pulled
     // lazily in flushChange.
@@ -252,6 +393,7 @@ async function createEditor(markdown) {
   // normalizes (list markers, blank lines), and that echo must not count as
   // an edit — otherwise every document opens already dirty.
   lastSentMarkdown = next.getMarkdown();
+  applySpellcheck();
   focusEditor();
 }
 
@@ -511,6 +653,26 @@ window.moltenAPI = {
     } else {
       pending.reject(new Error("image save failed"));
     }
+  },
+  // View-mode toggles driven by the native View menu / Preferences.
+  setTypewriter(on) {
+    typewriterEnabled = Boolean(on);
+    if (typewriterEnabled) updateViewModes();
+  },
+  setFocusMode(on) {
+    focusModeEnabled = Boolean(on);
+    document.body.classList.toggle("vellumi-focus-mode", focusModeEnabled);
+    if (focusModeEnabled) {
+      updateViewModes();
+    } else {
+      editingSurface()
+        ?.querySelectorAll(".vellumi-focus-active")
+        .forEach((el) => el.classList.remove("vellumi-focus-active"));
+    }
+  },
+  setSpellcheck(on) {
+    spellcheckEnabled = Boolean(on);
+    applySpellcheck();
   },
   // Exposed for tests: the display-time rewrite of document-relative srcs.
   rewriteAssetURL,

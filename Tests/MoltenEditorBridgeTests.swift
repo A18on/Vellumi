@@ -228,4 +228,62 @@ final class MoltenEditorBridgeTests: XCTestCase {
         // scrollToHeading with a real pos executes without throwing.
         _ = try evaluate("window.moltenAPI.scrollToHeading(window.moltenAPI.getOutline()[2].pos); 'ok'")
     }
+    // MARK: - View modes / spellcheck / mermaid / footnotes
+
+    func testFocusAndSpellcheckAPIsToggleDOMState() throws {
+        try loadEditorPage()
+        try setMarkdown("# 标题\n\n第一段。\n\n第二段。")
+
+        _ = try evaluate("window.moltenAPI.setFocusMode(true)")
+        let hasClass = try evaluate("document.body.classList.contains('vellumi-focus-mode')") as? Bool
+        XCTAssertEqual(hasClass, true, "focus mode must tag <body>")
+        _ = try evaluate("window.moltenAPI.setFocusMode(false)")
+        let cleared = try evaluate("document.body.classList.contains('vellumi-focus-mode')") as? Bool
+        XCTAssertEqual(cleared, false)
+
+        _ = try evaluate("window.moltenAPI.setSpellcheck(true)")
+        let spell = try evaluate("document.querySelector('.ProseMirror')?.getAttribute('spellcheck')") as? String
+        XCTAssertEqual(spell, "true", "spellcheck attribute must land on the editing surface")
+        _ = try evaluate("window.moltenAPI.setSpellcheck(false)")
+        let spellOff = try evaluate("document.querySelector('.ProseMirror')?.getAttribute('spellcheck')") as? String
+        XCTAssertEqual(spellOff, "false")
+
+        XCTAssertNoThrow(try evaluate("window.moltenAPI.setTypewriter(true)"))
+        XCTAssertNoThrow(try evaluate("window.moltenAPI.setTypewriter(false)"))
+    }
+
+    func testFootnoteSyntaxSurvivesRoundTrip() throws {
+        try loadEditorPage()
+        try setMarkdown("正文引用[^1]继续。\n\n[^1]: 脚注内容\n")
+
+        let markdown = try XCTUnwrap(try evaluate("window.moltenAPI.getMarkdown()") as? String)
+        XCTAssertTrue(markdown.contains("[^1]"), "footnote reference must not be mangled, got: \(markdown)")
+        XCTAssertTrue(markdown.contains("[^1]: 脚注内容") || markdown.contains("[^1]:"), "footnote definition must survive, got: \(markdown)")
+    }
+
+    /// Mermaid needs requestAnimationFrame → park the web view in an offscreen
+    /// window (rAF never fires window-less; same lesson as the card renderer).
+    func testMermaidFenceRendersSVG() throws {
+        try loadEditorPage()
+        let window = NSWindow(
+            contentRect: NSRect(x: -2000, y: -2000, width: 900, height: 700),
+            styleMask: [.titled],
+            backing: .buffered,
+            defer: false
+        )
+        window.contentView = webView
+        window.orderFrontRegardless()
+        defer { window.orderOut(nil) }
+
+        try setMarkdown("```mermaid\ngraph TD;\n  A-->B;\n```\n")
+        try waitUntil(
+            "document.querySelector('.vellumi-mermaid svg') !== null",
+            description: "mermaid diagram rendered as SVG",
+            timeout: 20
+        )
+        let markdown = try XCTUnwrap(try evaluate("window.moltenAPI.getMarkdown()") as? String)
+        XCTAssertTrue(markdown.contains("mermaid"), "mermaid fence must survive serialization, got: \(markdown)")
+        XCTAssertTrue(markdown.contains("A-->B") || markdown.contains("A --> B"), "diagram source must survive, got: \(markdown)")
+    }
+
 }

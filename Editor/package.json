@@ -9,9 +9,14 @@
     "watch": "node build.mjs --watch"
   },
   "dependencies": {
-    "@milkdown/crepe": "^7.21.2"
+    "@milkdown/crepe": "^7.21.2",
+    "@milkdown/plugin-diagram": "7.7.0"
   },
   "devDependencies": {
     "esbuild": "^0.25.0"
+  },
+  "overrides": {
+    "@milkdown/utils": "7.21.2",
+    "@milkdown/exception": "7.21.2"
   }
 }

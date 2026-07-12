@@ -168,3 +168,38 @@
 /* 链接与阅读时间 */
 "format.link" = "链接…";
 "status.readingTime" = "阅读约 %d 分钟";
+
+/* v0.2 features */
+"menu.preferences" = "设置…";
+"menu.quickOpen" = "快速打开…";
+"menu.editFrontMatter" = "编辑 Front Matter…";
+"menu.browseVersions" = "浏览所有版本…";
+"menu.sourceMode" = "源码模式";
+"menu.typewriter" = "打字机模式";
+"menu.focusMode" = "专注模式";
+"menu.spellcheck" = "拼写检查";
+"menu.zoomIn" = "放大";
+"menu.zoomOut" = "缩小";
+"menu.actualSize" = "实际大小";
+"menu.showPreviousTab" = "显示上一个标签页";
+"menu.showNextTab" = "显示下一个标签页";
+"menu.moveTabToNewWindow" = "将标签页移到新窗口";
+"menu.mergeAllWindows" = "合并所有窗口";
+"prefs.title" = "设置";
+"prefs.section.appearance" = "外观";
+"prefs.section.editing" = "编辑";
+"prefs.section.files" = "文件";
+"prefs.zoom" = "编辑器缩放";
+"prefs.wordGoal" = "字数目标";
+"prefs.wordGoal.unit" = "字(0 为关闭)";
+"prefs.wordGoal.help" = "在状态栏显示目标完成进度。";
+"prefs.draftsFolder" = "草稿文件夹";
+"prefs.draftsFolder.none" = "未设置";
+"prefs.draftsFolder.configure" = "配置…";
+"status.wordGoal" = "目标 %d%%(%d 字)";
+"quickopen.placeholder" = "模糊匹配文件名…";
+"quickopen.empty" = "没有匹配的文件";
+"frontmatter.title" = "Front Matter";
+"frontmatter.invalid" = "需要是完整的 YAML 围栏块(--- … ---),闭合围栏后不能有内容;留空则移除。";
+"frontmatter.hint" = "将按字节原样保留在正文之外。";
+"frontmatter.save" = "保存";
