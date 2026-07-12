@@ -28,11 +28,17 @@ Release build (ad-hoc signed DMG + zip into `dist/`): `./scripts/release.sh`.
 
 - **Melt editing** — headings, bold/italic, lists, quotes, code, tables, KaTeX fuse into typography as you type (Crepe/ProseMirror); slash menu and floating format toolbar included
 - **Keyboard-first** — ⌘0–6 headings, ⌘B/I/E, ⌘K link, ⌘⇧X/U/O/Q, ⌥⌘- and more via the Format menu
+- **Source mode** — ⌘/ flips to a plain-markdown view of the full file (front matter included) and back
+- **Typewriter & focus modes** — caret line stays anchored; non-active blocks dim (View menu / Settings)
+- **Mermaid** — ```mermaid fences render as live diagrams, following light/dark
+- **Quick Open** — ⇧⌘P fuzzy filename search across all tracked projects
+- **Native window tabs** — documents open as tabs; merge/split from the Window menu
+- **Settings** — ⌘, panel: appearance, theme, editor zoom (⌘+/⌘-), spellcheck, word-count goal, drafts folder
 - **Files stay honest** — plain UTF-8 `.md` on disk; strict encoding (no lossy guessing); 20 MB guard; external changes auto-reload clean documents
 - **Workspace** — outline sidebar (⌥⌘1, click/arrow-key navigation), find & replace (⌘F, transaction-level replace-all with single-step undo), mixed CJK/latin word count status bar
 - **Images** — paste/drop saves into `assets/` next to the document (one-time folder permission), displayed in-editor via a sandboxed asset scheme
 - **Export** — self-contained HTML (⇧⌘E), PDF, print, and **image cards**: themed, paginated share-images (PNG/JPEG, watermark, folder/ZIP output)
-- **Themes** — Frame / Nord / Classic editor themes (View ▸ Theme), plus a System/Light/Dark appearance override; front matter is protected byte-for-byte
+- **Themes** — Frame / Nord / Classic editor themes (View ▸ Theme), plus a System/Light/Dark appearance override; front matter is protected byte-for-byte and editable via File ▸ Edit Front Matter
 - **Projects** — ⇧⌘0 launcher: track folders, browse/rename files, full-text search across projects, per-project New Note, optional Drafts folder for File ▸ New
 - **Bilingual** — English and 简体中文 throughout, including the editor's slash menu
 
