@@ -286,4 +286,110 @@ final class MoltenEditorBridgeTests: XCTestCase {
         XCTAssertTrue(markdown.contains("A-->B") || markdown.contains("A --> B"), "diagram source must survive, got: \(markdown)")
     }
 
+    // MARK: - Kernel polish batch
+
+    func testEmojiShortcodeCompletes() throws {
+        try loadEditorPage()
+        try setMarkdown("")
+        // Simulate typing the closing colon of :smile: through the input-rule
+        // path: insert ":smile" then dispatch the final ":" as text input.
+        _ = try evaluate("""
+        (() => {
+          const view = document.querySelector('.ProseMirror');
+          view.focus();
+          const sel = window.getSelection();
+          document.execCommand('insertText', false, ':smile');
+          document.execCommand('insertText', false, ':');
+          return true;
+        })()
+        """)
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        let markdown = try XCTUnwrap(try evaluate("window.moltenAPI.getMarkdown()") as? String)
+        XCTAssertTrue(markdown.contains("😄"), "emoji shortcode must complete, got: \(markdown)")
+    }
+
+    func testSmartPunctuationTogglesViaRebuild() throws {
+        try loadEditorPage()
+        try setMarkdown("正文")
+        _ = try evaluate("window.moltenAPI.setSmartPunctuation(true)")
+        try waitUntil(
+            "window.moltenAPI.getMarkdown() !== null",
+            description: "editor rebuilt after smart punctuation toggle"
+        )
+        _ = try evaluate("""
+        (() => {
+          document.querySelector('.ProseMirror').focus();
+          document.execCommand('insertText', false, '..');
+          document.execCommand('insertText', false, '.');
+          return true;
+        })()
+        """)
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        let markdown = try XCTUnwrap(try evaluate("window.moltenAPI.getMarkdown()") as? String)
+        XCTAssertTrue(markdown.contains("…"), "ellipsis rule must fire when enabled, got: \(markdown)")
+    }
+
+    func testCodeBlockLanguagesRegistered() throws {
+        try loadEditorPage()
+        let window = NSWindow(
+            contentRect: NSRect(x: -2000, y: -2000, width: 900, height: 700),
+            styleMask: [.titled],
+            backing: .buffered,
+            defer: false
+        )
+        window.contentView = webView
+        window.orderFrontRegardless()
+        defer { window.orderOut(nil) }
+        try setMarkdown("```python\nprint(1)\n```\n")
+        // The CodeMirror component must mount (guards against the
+        // editorViewOptionsCtx.nodeViews clobbering bug that shipped plain
+        // <pre> blocks) and the language registry must feed it.
+        try waitUntil(
+            "document.querySelector('.cm-editor, milkdown-code-block') !== null",
+            description: "CodeMirror component mounted",
+            timeout: 15
+        )
+        // The searchable picker is fed from the configured LanguageDescription
+        // list; the fence language must round-trip either way.
+        let markdown = try XCTUnwrap(try evaluate("window.moltenAPI.getMarkdown()") as? String)
+        XCTAssertTrue(markdown.contains("```python"), "language tag must survive, got: \(markdown)")
+    }
+
+    func testTypographyAPISetsCSSVariables() throws {
+        try loadEditorPage()
+        try setMarkdown("正文")
+        _ = try evaluate("""
+        window.moltenAPI.setTypography({scheme: 'sans', lineHeight: 1.8, paragraphSpacing: 1.2, maxWidth: 900})
+        """)
+        let font = try evaluate("document.documentElement.getAttribute('data-vellumi-font')") as? String
+        XCTAssertEqual(font, "sans")
+        let lineHeight = try evaluate("document.documentElement.style.getPropertyValue('--vellumi-line-height')") as? String
+        XCTAssertEqual(lineHeight, "1.8")
+        // Reset: 0 / "default" clears everything back to theme values.
+        _ = try evaluate("window.moltenAPI.setTypography({scheme: 'default', lineHeight: 0, paragraphSpacing: 0, maxWidth: 0})")
+        let cleared = try evaluate("document.documentElement.hasAttribute('data-vellumi-font')") as? Bool
+        XCTAssertEqual(cleared, false)
+    }
+
+    func testScrollFractionRoundTrip() throws {
+        try loadEditorPage()
+        // applyPendingScroll runs inside requestAnimationFrame, which never
+        // fires in a window-less web view — park it offscreen (same lesson as
+        // the card renderer and mermaid tests).
+        let window = NSWindow(
+            contentRect: NSRect(x: -2000, y: -2000, width: 900, height: 700),
+            styleMask: [.titled],
+            backing: .buffered,
+            defer: false
+        )
+        window.contentView = webView
+        window.orderFrontRegardless()
+        defer { window.orderOut(nil) }
+        try setMarkdown(Array(repeating: "段落内容", count: 300).enumerated().map { "第\($0.offset)段 \($0.element)" }.joined(separator: "\n\n"))
+        _ = try evaluate("window.moltenAPI.setScrollFraction(0.5)")
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        let fraction = try XCTUnwrap(try evaluate("window.moltenAPI.getScrollFraction()") as? Double)
+        XCTAssertEqual(fraction, 0.5, accuracy: 0.1, "scroll fraction must round-trip")
+    }
+
 }

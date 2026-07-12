@@ -17,11 +17,25 @@
       -webkit-text-size-adjust: 100%;
     }
     #editor {
-      max-width: 760px;
+      max-width: var(--vellumi-max-width, 760px);
       min-height: 100%;
       margin: 0 auto;
       padding: 48px 56px 40vh;
       box-sizing: border-box;
+    }
+    /* Typography overrides (Preferences ▸ 排印). Unset variables fall back to
+       the active theme's own metrics. */
+    :root[data-vellumi-font="serif"] .milkdown {
+      --crepe-font-default: Georgia, "Times New Roman", "Songti SC", "STSong", serif;
+    }
+    :root[data-vellumi-font="sans"] .milkdown {
+      --crepe-font-default: -apple-system, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", sans-serif;
+    }
+    .milkdown .ProseMirror {
+      line-height: var(--vellumi-line-height, inherit);
+    }
+    .milkdown .ProseMirror > p {
+      margin-block: var(--vellumi-paragraph-spacing, revert);
     }
     /* Theming follows prefers-color-scheme only (WKWebView mirrors the host
        appearance); an in-app override would need to swap the theme <link>s,

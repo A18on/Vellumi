@@ -203,3 +203,17 @@
 "frontmatter.invalid" = "需要是完整的 YAML 围栏块(--- … ---),闭合围栏后不能有内容;留空则移除。";
 "frontmatter.hint" = "将按字节原样保留在正文之外。";
 "frontmatter.save" = "保存";
+
+/* typography & polish batch */
+"prefs.section.typography" = "排印";
+"prefs.fontScheme" = "字体";
+"prefs.fontScheme.default" = "主题默认";
+"prefs.fontScheme.serif" = "衬线体";
+"prefs.fontScheme.sans" = "非衬线体";
+"prefs.lineHeight" = "行距";
+"prefs.paragraphSpacing" = "段距";
+"prefs.lineWidth" = "行宽";
+"prefs.themeDefault" = "主题默认";
+"prefs.typography.reset" = "重置排印设置";
+"prefs.smartPunctuation" = "智能标点";
+"prefs.smartPunctuation.help" = "输入时自动转换弯引号、省略号(…)与破折号(—)。";

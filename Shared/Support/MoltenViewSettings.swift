@@ -43,6 +43,37 @@ enum MoltenViewSettings {
         set { UserDefaults.standard.set(newValue, forKey: focusModeKey); broadcast() }
     }
 
+    // MARK: - Typography (Preferences ▸ 排印)
+
+    /// "default" (theme's own stack) | "serif" | "sans".
+    static var fontScheme: String {
+        get { UserDefaults.standard.string(forKey: "Vellumi.fontScheme") ?? "default" }
+        set { UserDefaults.standard.set(newValue, forKey: "Vellumi.fontScheme"); broadcast() }
+    }
+
+    /// 0 = theme default; otherwise 1.2…2.2.
+    static var lineHeight: Double {
+        get { UserDefaults.standard.double(forKey: "Vellumi.lineHeight") }
+        set { UserDefaults.standard.set(newValue, forKey: "Vellumi.lineHeight"); broadcast() }
+    }
+
+    /// Paragraph spacing in em; 0 = theme default.
+    static var paragraphSpacing: Double {
+        get { UserDefaults.standard.double(forKey: "Vellumi.paragraphSpacing") }
+        set { UserDefaults.standard.set(newValue, forKey: "Vellumi.paragraphSpacing"); broadcast() }
+    }
+
+    /// Editor column width in px; 0 = default 760.
+    static var lineWidth: Double {
+        get { UserDefaults.standard.double(forKey: "Vellumi.lineWidth") }
+        set { UserDefaults.standard.set(newValue, forKey: "Vellumi.lineWidth"); broadcast() }
+    }
+
+    static var smartPunctuation: Bool {
+        get { UserDefaults.standard.bool(forKey: "Vellumi.smartPunctuation") }
+        set { UserDefaults.standard.set(newValue, forKey: "Vellumi.smartPunctuation"); broadcast() }
+    }
+
     /// Re-applies the current settings to every open document's editor.
     static func broadcast() {
         for case let document as MoltenDocument in NSDocumentController.shared.documents {

@@ -60,7 +60,7 @@ writeFileSync(join(outDir, ".gitkeep"), "");
 
 if (watch) {
   // Dev loop: skip minification (the slowest phase) and keep readable stacks.
-  const ctx = await context({ ...options, minify: false, sourcemap: "inline" });
+  const ctx = await context({ ...options, minify: true, sourcemap: "inline" });
   await ctx.watch();
   console.log("watching…");
 } else {

@@ -29,7 +29,7 @@
 // throwaway empty editor at boot would double every document-open.
 
 import { Crepe } from "@milkdown/crepe";
-import { editorViewCtx, editorViewOptionsCtx } from "@milkdown/core";
+import { editorViewCtx } from "@milkdown/core";
 import mermaid from "mermaid";
 import { undoCommand, redoCommand } from "@milkdown/plugin-history";
 import {
@@ -45,9 +45,12 @@ import {
   wrapInOrderedListCommand,
 } from "@milkdown/preset-commonmark";
 import { toggleStrikethroughCommand } from "@milkdown/preset-gfm";
-import { diagram } from "@milkdown/plugin-diagram";
+import { diagram, diagramSchema } from "@milkdown/plugin-diagram";
 import { TextSelection } from "@milkdown/prose/state";
-import { callCommand } from "@milkdown/utils";
+import { InputRule, inputRules, smartQuotes, ellipsis, emDash } from "@milkdown/prose/inputrules";
+import { callCommand, $prose, $view } from "@milkdown/utils";
+import { languages as codeLanguages } from "@codemirror/language-data";
+import { gemoji } from "gemoji";
 import "@milkdown/crepe/theme/common/style.css";
 // Frame theme ships as separate light/dark files (each redefines the same
 // variables), so they are built as standalone stylesheets and index.html
@@ -173,6 +176,32 @@ function mermaidNodeView(node) {
 }
 // -----------------------------------------------------------------------------
 
+// ---- Smart punctuation & emoji completion ----------------------------------
+// Smart punctuation (curly quotes, …, —) uses the stock ProseMirror rules;
+// it is baked in at editor construction, so toggling rebuilds the editor
+// (rare event, acceptable history reset). Emoji :name: completion is always
+// on — it only fires on the exact :shortcode: form.
+let smartPunctuationEnabled = false;
+
+const emojiByName = new Map();
+for (const entry of gemoji) {
+  for (const name of entry.names) emojiByName.set(name, entry.emoji);
+}
+
+const emojiRule = new InputRule(/:([a-zA-Z0-9_+-]+):$/, (state, match, start, end) => {
+  const emoji = emojiByName.get(match[1]);
+  return emoji ? state.tr.insertText(emoji, start, end) : null;
+});
+
+function inputRulesPlugin() {
+  const rules = [emojiRule];
+  if (smartPunctuationEnabled) {
+    rules.push(...smartQuotes, ellipsis, emDash);
+  }
+  return $prose(() => inputRules({ rules }));
+}
+// -----------------------------------------------------------------------------
+
 // ---- View modes -----------------------------------------------------------
 // Typewriter: keep the caret line vertically anchored (~45% of the viewport)
 // while typing/navigating. Focus: dim every top-level block except the one
@@ -227,6 +256,7 @@ function updateViewModes() {
 }
 
 document.addEventListener("selectionchange", () => {
+  if (isComposing) return; // never scroll under the IME candidate window
   if (typewriterEnabled || focusModeEnabled) {
     requestAnimationFrame(updateViewModes);
   }
@@ -237,8 +267,28 @@ function applySpellcheck() {
 }
 // ---------------------------------------------------------------------------
 
+// ---- IME composition guard --------------------------------------------------
+// During pinyin (etc.) composition the DOM holds transient candidate text.
+// Serializing then costs main-thread time in the IME's critical path AND can
+// capture half-composed garbage; typewriter scrolling mid-composition makes
+// the candidate window chase the caret. Both wait for compositionend.
+let isComposing = false;
+document.addEventListener("compositionstart", () => {
+  isComposing = true;
+});
+document.addEventListener("compositionend", () => {
+  isComposing = false;
+  scheduleChange();
+});
+// -----------------------------------------------------------------------------
+
 const CHANGE_DEBOUNCE_MS = 150;
 const CHANGE_MAX_LATENCY_MS = 1000;
+// Adaptive throttle: large documents serialize slowly; measuring the actual
+// cost and scaling the debounce keeps typing latency flat instead of paying
+// a fixed 150ms cadence on a 10k-line file.
+let changeDebounceMS = CHANGE_DEBOUNCE_MS;
+let changeMaxLatencyMS = CHANGE_MAX_LATENCY_MS;
 
 const root = document.getElementById("editor");
 let crepe = null;
@@ -248,6 +298,19 @@ let lastSentMarkdown = null;
 // Guards the async rebuild in setMarkdown: a stale create() must not clobber
 // a newer document load.
 let loadGeneration = 0;
+// Scroll restore across editor rebuilds (source-mode round trip): applied
+// after the next createEditor completes, or immediately when idle.
+let pendingScrollFraction = null;
+
+function applyPendingScroll() {
+  if (pendingScrollFraction === null) return;
+  const fraction = pendingScrollFraction;
+  pendingScrollFraction = null;
+  requestAnimationFrame(() => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    window.scrollTo({ top: fraction * Math.max(0, max), behavior: "auto" });
+  });
+}
 
 function post(message) {
   try {
@@ -263,9 +326,20 @@ function post(message) {
 function flushChange() {
   clearTimeout(changeTimer);
   changeTimer = null;
+  if (isComposing) {
+    // Never serialize mid-composition; compositionend reschedules.
+    changeTimer = setTimeout(flushChange, changeDebounceMS);
+    return;
+  }
   oldestPendingChangeAt = null;
   if (!crepe) return;
+  const before = performance.now();
   const markdown = crepe.getMarkdown();
+  const cost = performance.now() - before;
+  // 10x the serialize cost, floored at the base cadence: a 1ms doc keeps the
+  // snappy 150ms; a 60ms doc backs off to 600ms and stops eating keystrokes.
+  changeDebounceMS = Math.min(2000, Math.max(CHANGE_DEBOUNCE_MS, cost * 10));
+  changeMaxLatencyMS = Math.min(8000, Math.max(CHANGE_MAX_LATENCY_MS, cost * 40));
   if (markdown !== lastSentMarkdown) {
     lastSentMarkdown = markdown;
     post({ type: "change", markdown });
@@ -275,12 +349,12 @@ function flushChange() {
 function scheduleChange() {
   const now = Date.now();
   oldestPendingChangeAt ??= now;
-  if (now - oldestPendingChangeAt >= CHANGE_MAX_LATENCY_MS) {
+  if (now - oldestPendingChangeAt >= changeMaxLatencyMS) {
     flushChange();
     return;
   }
   clearTimeout(changeTimer);
-  changeTimer = setTimeout(flushChange, CHANGE_DEBOUNCE_MS);
+  changeTimer = setTimeout(flushChange, changeDebounceMS);
 }
 
 // ---- Image save pipeline -------------------------------------------------
@@ -351,6 +425,11 @@ async function createEditor(markdown) {
     defaultValue: markdown,
     featureConfigs: {
       ...localizedFeatureConfigs(),
+      // Full CodeMirror language registry: real syntax highlighting plus a
+      // useful searchable language picker (the default set is EMPTY).
+      [Crepe.Feature.CodeMirror]: {
+        languages: codeLanguages,
+      },
       [Crepe.Feature.ImageBlock]: {
         onUpload: uploadImage,
         inlineOnUpload: uploadImage,
@@ -361,17 +440,13 @@ async function createEditor(markdown) {
     },
   });
   // Mermaid: plugin-diagram for schema/serialization, our nodeView for the
-  // actual rendering (see mermaidNodeView above).
+  // actual rendering (see mermaidNodeView above). Registered as a $view
+  // plugin — NEVER via editorViewOptionsCtx.nodeViews, which REPLACES the
+  // nodeViews milkdown gathers from components and silently disables the
+  // code block / image block / list item / table UIs.
   next.editor.use(diagram);
-  next.editor.config((ctx) => {
-    ctx.update(editorViewOptionsCtx, (prev) => ({
-      ...prev,
-      nodeViews: {
-        ...(prev.nodeViews ?? {}),
-        diagram: (node) => mermaidNodeView(node),
-      },
-    }));
-  });
+  next.editor.use($view(diagramSchema.node, () => (node) => mermaidNodeView(node)));
+  next.editor.use(inputRulesPlugin());
   next.on((listener) => {
     // `updated` fires per transaction WITHOUT serializing; markdown is pulled
     // lazily in flushChange.
@@ -395,6 +470,7 @@ async function createEditor(markdown) {
   lastSentMarkdown = next.getMarkdown();
   applySpellcheck();
   focusEditor();
+  applyPendingScroll();
 }
 
 function focusEditor() {
@@ -653,6 +729,50 @@ window.moltenAPI = {
     } else {
       pending.reject(new Error("image save failed"));
     }
+  },
+  // Typography: preferences-driven CSS variable overrides. `scheme` picks a
+  // font stack ("default" keeps the theme's own), the numeric knobs feed CSS
+  // variables consumed in index.html. 0/null = theme default for each.
+  setTypography(config) {
+    const root2 = document.documentElement;
+    const scheme = config?.scheme;
+    if (scheme === "serif" || scheme === "sans") {
+      root2.setAttribute("data-vellumi-font", scheme);
+    } else {
+      root2.removeAttribute("data-vellumi-font");
+    }
+    const setVar = (name, value, unit) => {
+      if (typeof value === "number" && value > 0) {
+        root2.style.setProperty(name, `${value}${unit}`);
+      } else {
+        root2.style.removeProperty(name);
+      }
+    };
+    setVar("--vellumi-line-height", config?.lineHeight, "");
+    setVar("--vellumi-paragraph-spacing", config?.paragraphSpacing, "em");
+    setVar("--vellumi-max-width", config?.maxWidth, "px");
+  },
+  // Curly quotes / … / — while typing. Rebuilds the editor (rules are baked
+  // in at construction); content survives via the normal serialize path.
+  setSmartPunctuation(on) {
+    const next = Boolean(on);
+    if (next === smartPunctuationEnabled) return;
+    smartPunctuationEnabled = next;
+    if (crepe) {
+      const markdown = crepe.getMarkdown();
+      lastSentMarkdown = markdown;
+      window.moltenAPI.setMarkdown(markdown);
+    }
+  },
+  // Scroll position exchange for source-mode round trips.
+  getScrollFraction() {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    return max > 1 ? window.scrollY / max : 0;
+  },
+  setScrollFraction(fraction) {
+    if (typeof fraction !== "number") return;
+    pendingScrollFraction = Math.max(0, Math.min(1, fraction));
+    applyPendingScroll();
   },
   // View-mode toggles driven by the native View menu / Preferences.
   setTypewriter(on) {

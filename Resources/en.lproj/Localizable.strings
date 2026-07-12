@@ -203,3 +203,17 @@
 "frontmatter.invalid" = "Must be a fenced YAML block (--- … ---) with nothing after the closing fence, or empty to remove.";
 "frontmatter.hint" = "Kept byte-for-byte around your document body.";
 "frontmatter.save" = "Save";
+
+/* typography & polish batch */
+"prefs.section.typography" = "Typography";
+"prefs.fontScheme" = "Font";
+"prefs.fontScheme.default" = "Theme default";
+"prefs.fontScheme.serif" = "Serif";
+"prefs.fontScheme.sans" = "Sans-serif";
+"prefs.lineHeight" = "Line height";
+"prefs.paragraphSpacing" = "Paragraph spacing";
+"prefs.lineWidth" = "Line width";
+"prefs.themeDefault" = "Theme default";
+"prefs.typography.reset" = "Reset Typography";
+"prefs.smartPunctuation" = "Smart punctuation";
+"prefs.smartPunctuation.help" = "Curly quotes, ellipsis (…) and em dash (—) as you type.";

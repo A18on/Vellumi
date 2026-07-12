@@ -366,7 +366,11 @@ final class MoltenWorkspaceViewController: NSViewController {
 
     private func enterSourceMode() {
         guard let document, !isSourceMode else { return }
-        // Flush the newest keystrokes out of the web editor BEFORE freezing it.
+        // Flush the newest keystrokes out of the web editor BEFORE freezing it,
+        // and capture the reading position so ⌘/ lands where the eye already is.
+        editorViewController.fetchScrollFraction { [weak self] fraction in
+            self?.pendingSourceScrollFraction = fraction
+        }
         editorViewController.pullMarkdown { [weak self] markdown in
             guard let self, let document = self.document else { return }
             if let markdown {
@@ -393,7 +397,27 @@ final class MoltenWorkspaceViewController: NSViewController {
             scroll.isHidden = false
             self.splitViewController.view.isHidden = true
             self.view.window?.makeFirstResponder(self.sourceTextView)
+            // Restore the melt view's reading position in the source view.
+            DispatchQueue.main.async {
+                self.applySourceScrollFraction(self.pendingSourceScrollFraction)
+                self.pendingSourceScrollFraction = 0
+            }
         }
+    }
+
+    private var pendingSourceScrollFraction: Double = 0
+
+    private func applySourceScrollFraction(_ fraction: Double) {
+        guard let scroll = sourceScrollView, let docView = scroll.documentView else { return }
+        let maxOffset = max(0, docView.frame.height - scroll.contentSize.height)
+        scroll.contentView.scroll(to: NSPoint(x: 0, y: fraction * maxOffset))
+        scroll.reflectScrolledClipView(scroll.contentView)
+    }
+
+    private func currentSourceScrollFraction() -> Double {
+        guard let scroll = sourceScrollView, let docView = scroll.documentView else { return 0 }
+        let maxOffset = max(1, docView.frame.height - scroll.contentSize.height)
+        return Double(scroll.contentView.bounds.origin.y) / Double(maxOffset)
     }
 
     private func exitSourceMode() {
@@ -406,9 +430,12 @@ final class MoltenWorkspaceViewController: NSViewController {
         if let sourceTextView {
             document.adoptSourceText(sourceTextView.string)
         }
+        let fraction = currentSourceScrollFraction()
         sourceScrollView?.isHidden = true
         splitViewController.view.isHidden = false
         editorViewController.loadDocumentText(document.text)
+        // Applied by the JS side once the rebuilt editor lays out.
+        editorViewController.setScrollFraction(fraction)
         editorViewController.focusEditingSurface()
     }
 

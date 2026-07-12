@@ -9,8 +9,10 @@
     "watch": "node build.mjs --watch"
   },
   "dependencies": {
+    "@codemirror/language-data": "^6.5.2",
     "@milkdown/crepe": "^7.21.2",
-    "@milkdown/plugin-diagram": "7.7.0"
+    "@milkdown/plugin-diagram": "7.7.0",
+    "gemoji": "^8.1.0"
   },
   "devDependencies": {
     "esbuild": "^0.25.0"

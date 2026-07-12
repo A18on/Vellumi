@@ -40,6 +40,11 @@ struct MoltenPreferencesView: View {
     @AppStorage("Vellumi.typewriter") private var typewriter = false
     @AppStorage("Vellumi.focusMode") private var focusMode = false
     @AppStorage("Vellumi.wordGoal") private var wordGoal = 0
+    @AppStorage("Vellumi.smartPunctuation") private var smartPunctuation = false
+    @AppStorage("Vellumi.fontScheme") private var fontScheme = "default"
+    @AppStorage("Vellumi.lineHeight") private var lineHeight = 0.0
+    @AppStorage("Vellumi.paragraphSpacing") private var paragraphSpacing = 0.0
+    @AppStorage("Vellumi.lineWidth") private var lineWidth = 0.0
 
     @State private var draftsFolderName = MoltenPreferencesView.currentDraftsFolderName()
 
@@ -78,7 +83,45 @@ struct MoltenPreferencesView: View {
                 .onChange(of: editorZoom) { _ in MoltenViewSettings.broadcast() }
             }
 
+            Section(L10n.string("prefs.section.typography")) {
+                Picker(L10n.string("prefs.fontScheme"), selection: $fontScheme) {
+                    Text(L10n.string("prefs.fontScheme.default")).tag("default")
+                    Text(L10n.string("prefs.fontScheme.serif")).tag("serif")
+                    Text(L10n.string("prefs.fontScheme.sans")).tag("sans")
+                }
+                .onChange(of: fontScheme) { _ in MoltenViewSettings.broadcast() }
+
+                typographySlider(
+                    L10n.string("prefs.lineHeight"),
+                    value: $lineHeight,
+                    range: 1.2...2.2,
+                    display: lineHeight == 0 ? L10n.string("prefs.themeDefault") : String(format: "%.1f", lineHeight)
+                )
+                typographySlider(
+                    L10n.string("prefs.paragraphSpacing"),
+                    value: $paragraphSpacing,
+                    range: 0.2...2.0,
+                    display: paragraphSpacing == 0 ? L10n.string("prefs.themeDefault") : String(format: "%.1f em", paragraphSpacing)
+                )
+                typographySlider(
+                    L10n.string("prefs.lineWidth"),
+                    value: $lineWidth,
+                    range: 560...1080,
+                    display: lineWidth == 0 ? "760 px" : String(format: "%.0f px", lineWidth)
+                )
+                Button(L10n.string("prefs.typography.reset")) {
+                    lineHeight = 0
+                    paragraphSpacing = 0
+                    lineWidth = 0
+                    fontScheme = "default"
+                    MoltenViewSettings.broadcast()
+                }
+            }
+
             Section(L10n.string("prefs.section.editing")) {
+                Toggle(L10n.string("prefs.smartPunctuation"), isOn: $smartPunctuation)
+                    .onChange(of: smartPunctuation) { _ in MoltenViewSettings.broadcast() }
+                    .help(L10n.string("prefs.smartPunctuation.help"))
                 Toggle(L10n.string("menu.typewriter"), isOn: $typewriter)
                     .onChange(of: typewriter) { _ in MoltenViewSettings.broadcast() }
                 Toggle(L10n.string("menu.focusMode"), isOn: $focusMode)
@@ -119,6 +162,23 @@ struct MoltenPreferencesView: View {
         .formStyle(.grouped)
         .frame(width: 460)
         .fixedSize(horizontal: false, vertical: true)
+    }
+
+    @ViewBuilder
+    private func typographySlider(
+        _ title: String,
+        value: Binding<Double>,
+        range: ClosedRange<Double>,
+        display: String
+    ) -> some View {
+        HStack {
+            Slider(value: value, in: range) { Text(title) }
+                .onChange(of: value.wrappedValue) { _ in MoltenViewSettings.broadcast() }
+            Text(display)
+                .monospacedDigit()
+                .frame(width: 72, alignment: .trailing)
+                .foregroundStyle(.secondary)
+        }
     }
 
     private static func currentDraftsFolderName() -> String? {

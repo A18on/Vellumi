@@ -19,7 +19,7 @@ enum MoltenExporter {
                 fileType: "html",
                 for: document
             ) { url in
-                let page = selfContainedHTML(bodyHTML: bodyHTML, title: document.exportBaseName)
+                let page = selfContainedHTML(bodyHTML: expandTOC(in: bodyHTML), title: document.exportBaseName)
                 do {
                     try Data(page.utf8).write(to: url)
                 } catch {
@@ -27,6 +27,65 @@ enum MoltenExporter {
                 }
             }
         }
+    }
+
+    /// Typora-compatible `[toc]` support at export time: heading tags get
+    /// slug ids and any paragraph whose entire text is "[toc]" becomes a
+    /// nested nav list. In the editor the marker stays plain text by design.
+    static func expandTOC(in bodyHTML: String) -> String {
+        var html = bodyHTML
+        var headings: [(level: Int, text: String, slug: String)] = []
+        var usedSlugs = Set<String>()
+
+        // Give every h1–h6 an id (idempotent slugs, de-duplicated).
+        let headingPattern = try! NSRegularExpression(
+            pattern: "<h([1-6])([^>]*)>(.*?)</h\\1>",
+            options: [.dotMatchesLineSeparators]
+        )
+        let source = html as NSString
+        var rebuilt = ""
+        var cursor = 0
+        for match in headingPattern.matches(in: html, range: NSRange(location: 0, length: source.length)) {
+            let level = Int(source.substring(with: match.range(at: 1))) ?? 1
+            let attrs = source.substring(with: match.range(at: 2))
+            let inner = source.substring(with: match.range(at: 3))
+            let text = inner.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+            var slug = text
+                .lowercased()
+                .replacingOccurrences(of: "[^\\p{L}\\p{N}]+", with: "-", options: .regularExpression)
+                .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+            if slug.isEmpty { slug = "heading" }
+            var unique = slug
+            var counter = 2
+            while !usedSlugs.insert(unique).inserted {
+                unique = "\(slug)-\(counter)"
+                counter += 1
+            }
+            headings.append((level, text, unique))
+            rebuilt += source.substring(with: NSRange(location: cursor, length: match.range.location - cursor))
+            rebuilt += "<h\(level) id=\"\(unique)\"\(attrs)>\(inner)</h\(level)>"
+            cursor = match.range.location + match.range.length
+        }
+        rebuilt += source.substring(from: cursor)
+        html = rebuilt
+
+        guard !headings.isEmpty else { return html }
+        let minLevel = headings.map(\.level).min() ?? 1
+        let items = headings.map { heading in
+            let indent = heading.level - minLevel
+            let escaped = heading.text
+                .replacingOccurrences(of: "&", with: "&amp;")
+                .replacingOccurrences(of: "<", with: "&lt;")
+            return "<li style=\"margin-left: \(indent)em\"><a href=\"#\(heading.slug)\">\(escaped)</a></li>"
+        }.joined()
+        let nav = "<nav class=\"vellumi-toc\"><ul style=\"list-style: none; padding-left: 0\">\(items)</ul></nav>"
+
+        // Replace paragraphs whose entire visible text is "[toc]".
+        return html.replacingOccurrences(
+            of: "<p[^>]*>\\s*\\[toc\\]\\s*</p>",
+            with: nav,
+            options: [.regularExpression, .caseInsensitive]
+        )
     }
 
     /// Wraps body HTML with the bundled editor/theme stylesheets inlined, so

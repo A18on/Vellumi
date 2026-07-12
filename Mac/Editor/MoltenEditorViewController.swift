@@ -236,6 +236,30 @@ final class MoltenEditorViewController: NSViewController {
         webView.evaluateJavaScript("window.moltenAPI?.setSpellcheck(\(MoltenViewSettings.spellcheck));")
         webView.evaluateJavaScript("window.moltenAPI?.setTypewriter(\(MoltenViewSettings.typewriter));")
         webView.evaluateJavaScript("window.moltenAPI?.setFocusMode(\(MoltenViewSettings.focusMode));")
+        webView.evaluateJavaScript("window.moltenAPI?.setSmartPunctuation(\(MoltenViewSettings.smartPunctuation));")
+        webView.callAsyncJavaScript(
+            "window.moltenAPI?.setTypography(config);",
+            arguments: ["config": [
+                "scheme": MoltenViewSettings.fontScheme,
+                "lineHeight": MoltenViewSettings.lineHeight,
+                "paragraphSpacing": MoltenViewSettings.paragraphSpacing,
+                "maxWidth": MoltenViewSettings.lineWidth,
+            ]],
+            in: nil,
+            in: .page
+        ) { _ in }
+    }
+
+    /// Current scroll position as a 0…1 fraction (source-mode round trips).
+    func fetchScrollFraction(completion: @escaping (Double) -> Void) {
+        webView.evaluateJavaScript("window.moltenAPI.getScrollFraction();") { result, _ in
+            completion(result as? Double ?? 0)
+        }
+    }
+
+    /// Applied after the next editor rebuild completes (or immediately).
+    func setScrollFraction(_ fraction: Double) {
+        webView.evaluateJavaScript("window.moltenAPI.setScrollFraction(\(fraction));")
     }
 
     // MARK: - Format menu → ProseMirror commands
