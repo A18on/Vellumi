@@ -124,43 +124,76 @@ final class MoltenDocument: NSDocument {
 
     // MARK: - Save chokepoint
 
-    /// EVERY save operation funnels through here (explicit save, Save As,
-    /// autosave-in-place, save-on-close, save-on-terminate). Refresh `text`
-    /// from the live editor first so the debounced change stream can't leave
-    /// the last keystrokes behind on ANY write path.
+    /// EVERY save operation funnels through here. DEADLOCK RULE: nothing in
+    /// this override (or autosave) may hop the main queue asynchronously —
+    /// NSDocument wraps saves in a "file activity", and canClose/terminate
+    /// WAIT SYNCHRONOUSLY on the main thread for open activities. An activity
+    /// that needs a main-queue callback (evaluateJavaScript) to finish can
+    /// then never finish: the app hard-hangs on the last window close.
+    /// Editor freshness is instead guaranteed BEFORE the machinery starts:
+    /// canClose/saveDocument/saveDocumentAs below pull the editor first, and
+    /// the change stream keeps `text` at most ~1s stale for plain autosaves.
     override func save(
         to url: URL,
         ofType typeName: String,
         for saveOperation: NSDocument.SaveOperationType,
         completionHandler: @escaping (Error?) -> Void
     ) {
-        refreshTextFromEditor {
-            // Snapshot BEFORE the async write: keystrokes bridged during the
-            // write must not be recorded as "on disk".
-            let snapshot = self.text
-            super.save(to: url, ofType: typeName, for: saveOperation) { error in
-                // autosave-ELSEWHERE writes a recovery file, not the document;
-                // treating it as saved would let undo-back-to-it read as clean
-                // and close without a prompt, losing the content.
-                if error == nil, saveOperation != .autosaveElsewhereOperation {
-                    self.savedText = snapshot
-                    self.workspaceViewController?.noteDocumentSaved()
-                }
-                completionHandler(error)
+        // Snapshot BEFORE the async write: keystrokes bridged during the
+        // write must not be recorded as "on disk".
+        let snapshot = self.text
+        super.save(to: url, ofType: typeName, for: saveOperation) { error in
+            // autosave-ELSEWHERE writes a recovery file, not the document;
+            // treating it as saved would let undo-back-to-it read as clean
+            // and close without a prompt, losing the content.
+            if error == nil, saveOperation != .autosaveElsewhereOperation {
+                self.savedText = snapshot
+                self.workspaceViewController?.noteDocumentSaved()
             }
+            completionHandler(error)
         }
     }
 
-    /// Belt-and-braces: some autosave variants enter here before reaching the
-    /// save(to:...) funnel. Refreshing twice is a cheap no-op.
-    override func autosave(
-        withImplicitCancellability autosavingIsImplicitlyCancellable: Bool,
-        completionHandler: @escaping (Error?) -> Void
+    /// User-initiated save (⌘S): pull the freshest serialization from the
+    /// editor BEFORE entering the save machinery — outside any file activity,
+    /// so the async hop is deadlock-free.
+    override func save(_ sender: Any?) {
+        refreshTextFromEditor { [weak self] in
+            self?.superSave(sender)
+        }
+    }
+
+    // Swift can't call super from a self-capturing closure; trampolines.
+    private func superSave(_ sender: Any?) { super.save(sender) }
+    private func superSaveAs(_ sender: Any?) { super.saveAs(sender) }
+    private func superCanClose(
+        withDelegate delegate: Any,
+        shouldClose shouldCloseSelector: Selector?,
+        contextInfo: UnsafeMutableRawPointer?
     ) {
-        refreshTextFromEditor {
-            super.autosave(
-                withImplicitCancellability: autosavingIsImplicitlyCancellable,
-                completionHandler: completionHandler
+        super.canClose(withDelegate: delegate, shouldClose: shouldCloseSelector, contextInfo: contextInfo)
+    }
+
+    /// Save As (⇧⌘S): same pre-pull as save.
+    override func saveAs(_ sender: Any?) {
+        refreshTextFromEditor { [weak self] in
+            self?.superSaveAs(sender)
+        }
+    }
+
+    /// Close (⌘W / window button / app termination review): pull first, then
+    /// let AppKit run its synchronous-waiting close dance against a document
+    /// whose `text` is already current and whose activities are all idle.
+    override func canClose(
+        withDelegate delegate: Any,
+        shouldClose shouldCloseSelector: Selector?,
+        contextInfo: UnsafeMutableRawPointer?
+    ) {
+        refreshTextFromEditor { [weak self] in
+            self?.superCanClose(
+                withDelegate: delegate,
+                shouldClose: shouldCloseSelector,
+                contextInfo: contextInfo
             )
         }
     }
