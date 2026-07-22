@@ -53,9 +53,49 @@ final class MoltenEditorViewController: NSViewController {
         )
         webView.navigationDelegate = self
         webView.setValue(false, forKey: "drawsBackground")
-        view = webView
+
+        // The web view lives inside a CLIPPING container so the sidebar
+        // toggle can freeze its width: during the collapse animation the
+        // web view stays put (pinned to the trailing edge at constant width)
+        // and the sidebar slides over it, instead of AppKit resizing the
+        // web view every frame — WebKit renders async, so per-frame resizes
+        // made the centered text column visibly wobble.
+        let container = NSView()
+        container.wantsLayer = true
+        container.layer?.masksToBounds = true
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(webView)
+        webViewLeadingConstraint = webView.leadingAnchor.constraint(equalTo: container.leadingAnchor)
+        NSLayoutConstraint.activate([
+            webViewLeadingConstraint!,
+            webView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            webView.topAnchor.constraint(equalTo: container.topAnchor),
+            webView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+        ])
+        view = container
 
         loadEditorPage()
+    }
+
+    private var webViewLeadingConstraint: NSLayoutConstraint?
+    private var frozenWidthConstraint: NSLayoutConstraint?
+
+    /// Freezes the web view at its current width, released from the leading
+    /// edge (trailing stays pinned). Call around sidebar toggle animations.
+    func beginConstantWidthAnimation() {
+        guard frozenWidthConstraint == nil else { return }
+        let frozen = webView.widthAnchor.constraint(equalToConstant: webView.frame.width)
+        webViewLeadingConstraint?.isActive = false
+        frozen.isActive = true
+        frozenWidthConstraint = frozen
+    }
+
+    /// Restores width-follows-container: exactly one reflow, at animation end.
+    func endConstantWidthAnimation() {
+        guard let frozen = frozenWidthConstraint else { return }
+        frozen.isActive = false
+        frozenWidthConstraint = nil
+        webViewLeadingConstraint?.isActive = true
     }
 
     override func viewDidAppear() {
@@ -167,6 +207,27 @@ final class MoltenEditorViewController: NSViewController {
                 completion(false)
             }
         }
+    }
+
+    /// Total case-insensitive occurrences of `term` for the find-bar label.
+    func countMatches(_ term: String, completion: @escaping (Int) -> Void) {
+        guard isEditorReady, !term.isEmpty else {
+            completion(0)
+            return
+        }
+        webView.callAsyncJavaScript(
+            "return window.moltenAPI.countMatches(term);",
+            arguments: ["term": term],
+            in: nil,
+            in: .page
+        ) { result in
+            completion((try? result.get()) as? Int ?? 0)
+        }
+    }
+
+    /// Collapses the lingering find-match selection (find bar dismissed).
+    func clearFindSelection() {
+        webView.evaluateJavaScript("window.moltenAPI?.clearFindSelection();")
     }
 
     /// The web view exposed for PDF/print snapshots.
@@ -337,6 +398,10 @@ extension MoltenEditorViewController: WKScriptMessageHandler {
         case "change":
             if let markdown = body["markdown"] as? String {
                 document?.editorTextDidChange(markdown)
+            }
+        case "normalized":
+            if (body["changed"] as? Bool) == true {
+                document?.workspaceViewController?.showNormalizationNoticeOnce()
             }
         case "boot-error":
             let detail = body["message"] as? String ?? "unknown"

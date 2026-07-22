@@ -6,6 +6,10 @@ import SwiftUI
 final class MoltenFileTreeModel: ObservableObject {
     @Published var nodes: [MoltenFileTreeNode] = []
     @Published var currentFilePath: String?
+    /// Set when the document HAS a folder but the sandbox scope isn't granted
+    /// yet — the empty state then offers an authorize button instead of the
+    /// misleading "save the document first" copy.
+    @Published var needsAuthorizationFolder: URL?
 }
 
 /// Recursive markdown tree of the current document's folder.
@@ -15,14 +19,27 @@ struct MoltenFileTreeSidebar: View {
 
     @State private var selection: String?
 
+    var onAuthorize: ((URL) -> Void)?
+
     var body: some View {
         Group {
             if model.nodes.isEmpty {
-                Text(L10n.string("filetree.empty"))
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(12)
+                VStack(alignment: .leading, spacing: 10) {
+                    if let folder = model.needsAuthorizationFolder {
+                        Text(L10n.string("filetree.needsAccess"))
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                        Button(L10n.string("filetree.authorize")) {
+                            onAuthorize?(folder)
+                        }
+                    } else {
+                        Text(L10n.string("filetree.empty"))
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .padding(12)
             } else {
                 List(model.nodes, children: \.children, selection: $selection) { node in
                     Label(node.name, systemImage: node.isDirectory ? "folder" : "doc.text")

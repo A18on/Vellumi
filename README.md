@@ -47,3 +47,9 @@ Roadmap in `docs/PLAN.md`.
 ## License
 
 MIT
+
+## Known limitations
+
+- **Markdown normalization** — the melt editor re-serializes your document on save (list markers, blank lines may be normalized). A one-time status-bar note appears when this applies; source mode (⌘/) always shows the file as-is.
+- **Undo history resets** when the editor rebuilds: switching source mode, toggling smart punctuation, or an external file reload.
+- Inline raw HTML renders as plain text (round-trips safely).

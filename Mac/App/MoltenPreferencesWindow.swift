@@ -46,6 +46,7 @@ struct MoltenPreferencesView: View {
     @AppStorage("Vellumi.paragraphSpacing") private var paragraphSpacing = 0.0
     @AppStorage("Vellumi.lineWidth") private var lineWidth = 0.0
 
+    @AppStorage("Vellumi.imageFolderName") private var imageFolderName = "assets"
     @State private var draftsFolderName = MoltenPreferencesView.currentDraftsFolderName()
 
     var body: some View {
@@ -144,6 +145,15 @@ struct MoltenPreferencesView: View {
             }
 
             Section(L10n.string("prefs.section.files")) {
+                HStack {
+                    Text(L10n.string("prefs.imageFolder"))
+                    Spacer()
+                    TextField("assets", text: $imageFolderName)
+                        .frame(width: 140)
+                        .multilineTextAlignment(.trailing)
+                }
+                .help(L10n.string("prefs.imageFolder.help"))
+
                 HStack {
                     Text(L10n.string("prefs.draftsFolder"))
                     Spacer()

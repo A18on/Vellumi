@@ -217,3 +217,15 @@
 "prefs.typography.reset" = "Reset Typography";
 "prefs.smartPunctuation" = "Smart punctuation";
 "prefs.smartPunctuation.help" = "Curly quotes, ellipsis (…) and em dash (—) as you type.";
+
+/* v0.4 polish batch */
+"find.matchCount" = "%d matches";
+"status.characterCount" = "%d characters";
+"status.paragraphCount" = "%d paragraphs";
+"status.cycleHint" = "Click to switch statistic";
+"filetree.needsAccess" = "This document's folder needs access authorization to browse.";
+"filetree.authorize" = "Authorize Folder Access…";
+"prefs.imageFolder" = "Image folder name";
+"prefs.imageFolder.help" = "Pasted images are saved to this folder beside the document.";
+"status.normalizationNotice" = "Saving will tidy this file's Markdown style — ⌘/ shows the original";
+"menu.checkForUpdates" = "Check for Updates…";

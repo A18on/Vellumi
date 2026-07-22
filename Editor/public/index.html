@@ -57,6 +57,28 @@
       white-space: pre-wrap; /* raw-source fallback stays readable */
     }
     .vellumi-mermaid svg { max-width: 100%; }
+    /* Crepe ships `transition: all .2s` on several editing affordances, which
+       animates POSITION too — the block handle visibly "chases" the pointer
+       across paragraphs and the toolbar slides after every selection change.
+       Narrow both to opacity so they fade instead of glide. */
+    .milkdown-block-handle,
+    milkdown-toolbar,
+    .milkdown-toolbar {
+      transition-property: opacity !important;
+    }
+    /* prosemirror-tables column resize affordance (experiment, item 11). */
+    .milkdown .column-resize-handle {
+      position: absolute;
+      right: -2px;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--crepe-color-primary, #4c6ef5);
+      opacity: 0.6;
+      pointer-events: none;
+      z-index: 20;
+    }
+    .milkdown .resize-cursor { cursor: col-resize; }
   </style>
 </head>
 <body>

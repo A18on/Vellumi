@@ -29,9 +29,11 @@ final class MoltenWorkspaceViewController: NSViewController {
     private var fileTreeGeneration = 0
     private let findBar = NSVisualEffectView()
     private let findField = NSSearchField()
+    private let matchCountLabel = NSTextField(labelWithString: "")
     private let replaceField = NSTextField()
     private let statusBar = NSVisualEffectView()
     private let wordCountLabel = NSTextField(labelWithString: "")
+    private let noticeLabel = NSTextField(labelWithString: "")
     private var showsOutline = UserDefaults.standard.bool(forKey: "Vellumi.showsOutline")
     private var showsFileTree = UserDefaults.standard.bool(forKey: "Vellumi.showsFileTree")
     private var collapseObservations: [NSKeyValueObservation] = []
@@ -120,20 +122,22 @@ final class MoltenWorkspaceViewController: NSViewController {
         // split view filling everything between.
         let container = NSView()
         let split = splitViewController.view
-        for subview in [findBar, split, statusBar] {
+        // Order matters: the find bar is added LAST so it overlays the split —
+        // it floats over the content (Safari-style) instead of pushing it
+        // down, which previously made the whole editor jump 34px on ⌘F.
+        for subview in [split, statusBar, findBar] {
             subview.translatesAutoresizingMaskIntoConstraints = false
             container.addSubview(subview)
         }
 
-        findBarHeightConstraint = findBar.heightAnchor.constraint(equalToConstant: 0)
         NSLayoutConstraint.activate([
             // safeArea keeps the bar below the (transparent, full-size) titlebar.
             findBar.topAnchor.constraint(equalTo: container.safeAreaLayoutGuide.topAnchor),
             findBar.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             findBar.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            findBarHeightConstraint!,
+            findBar.heightAnchor.constraint(equalToConstant: 40),
 
-            split.topAnchor.constraint(equalTo: findBar.bottomAnchor),
+            split.topAnchor.constraint(equalTo: container.safeAreaLayoutGuide.topAnchor),
             split.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             split.trailingAnchor.constraint(equalTo: container.trailingAnchor),
             split.bottomAnchor.constraint(equalTo: statusBar.topAnchor),
@@ -147,25 +151,56 @@ final class MoltenWorkspaceViewController: NSViewController {
         noteContentChanged("")
     }
 
-    private var findBarHeightConstraint: NSLayoutConstraint?
-
     private var lastWordCount = 0
+    private var lastCharacterCount = 0
+    private var lastParagraphCount = 0
 
     /// Renders "N 字 · 阅读约 M 分钟 · 目标 42%" from the cached count — split
     /// out so a goal change in Preferences can re-render without recounting.
     private func renderStatusLine() {
-        let count = lastWordCount
-        var parts = [String(format: L10n.string("status.wordCount"), count)]
-        if count > 0 {
-            let minutes = max(1, Int((Double(count) / 400.0).rounded(.up)))
-            parts.append(String(format: L10n.string("status.readingTime"), minutes))
+        // Click cycles the leading stat: words+reading time → characters →
+        // paragraphs (Bear-style). Word goal stays appended in every mode.
+        let mode = UserDefaults.standard.integer(forKey: "Vellumi.statsDisplayMode")
+        var parts: [String]
+        switch mode {
+        case 1:
+            parts = [String(format: L10n.string("status.characterCount"), lastCharacterCount)]
+        case 2:
+            parts = [String(format: L10n.string("status.paragraphCount"), lastParagraphCount)]
+        default:
+            let count = lastWordCount
+            parts = [String(format: L10n.string("status.wordCount"), count)]
+            if count > 0 {
+                let minutes = max(1, Int((Double(count) / 400.0).rounded(.up)))
+                parts.append(String(format: L10n.string("status.readingTime"), minutes))
+            }
         }
         let goal = UserDefaults.standard.integer(forKey: "Vellumi.wordGoal")
         if goal > 0 {
-            let percent = Int((Double(count) / Double(goal) * 100).rounded())
+            let percent = Int((Double(lastWordCount) / Double(goal) * 100).rounded())
             parts.append(String(format: L10n.string("status.wordGoal"), percent, goal))
         }
         wordCountLabel.stringValue = parts.joined(separator: "  ·  ")
+    }
+
+    private var hasShownNormalizationNotice = false
+
+    /// One-time, self-dismissing note that saving will normalize the file's
+    /// Markdown style (list markers, spacing) — with the ⌘/ escape hatch.
+    func showNormalizationNoticeOnce() {
+        guard !hasShownNormalizationNotice else { return }
+        hasShownNormalizationNotice = true
+        noticeLabel.stringValue = L10n.string("status.normalizationNotice")
+        noticeLabel.isHidden = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+            self?.noticeLabel.isHidden = true
+        }
+    }
+
+    @objc private func cycleStatsDisplay(_ sender: Any?) {
+        let next = (UserDefaults.standard.integer(forKey: "Vellumi.statsDisplayMode") + 1) % 3
+        UserDefaults.standard.set(next, forKey: "Vellumi.statsDisplayMode")
+        renderStatusLine()
     }
 
     // MARK: - Content updates (from the document)
@@ -178,9 +213,16 @@ final class MoltenWorkspaceViewController: NSViewController {
         let generation = statsGeneration
         let workItem = DispatchWorkItem { [weak self] in
             let count = MoltenWordCount.count(text)
+            let characters = text.unicodeScalars.filter { !CharacterSet.whitespacesAndNewlines.contains($0) }.count
+            let paragraphs = text
+                .components(separatedBy: "\n\n")
+                .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                .count
             DispatchQueue.main.async {
                 guard let self, self.statsGeneration == generation else { return }
                 self.lastWordCount = count
+                self.lastCharacterCount = characters
+                self.lastParagraphCount = paragraphs
                 self.renderStatusLine()
             }
         }
@@ -207,10 +249,22 @@ final class MoltenWorkspaceViewController: NSViewController {
     @objc func toggleOutline(_ sender: Any?) {
         showsOutline.toggle()
         UserDefaults.standard.set(showsOutline, forKey: "Vellumi.showsOutline")
-        outlineItem.animator().isCollapsed = !showsOutline
+        animateSidebarCollapse(outlineItem, collapsed: !showsOutline)
         if showsOutline {
             refreshOutline()
         }
+    }
+
+    /// Sidebar toggles animate with the editor's width FROZEN (see
+    /// MoltenEditorViewController.beginConstantWidthAnimation) — the panel
+    /// slides over stationary content instead of reflowing it every frame.
+    private func animateSidebarCollapse(_ item: NSSplitViewItem, collapsed: Bool) {
+        editorViewController.beginConstantWidthAnimation()
+        NSAnimationContext.runAnimationGroup({ _ in
+            item.animator().isCollapsed = collapsed
+        }, completionHandler: { [weak self] in
+            self?.editorViewController.endConstantWidthAnimation()
+        })
     }
 
     private func configureSplitViewController() {
@@ -228,6 +282,12 @@ final class MoltenWorkspaceViewController: NSViewController {
             onOpen: { url in
                 NSDocumentController.shared.openDocument(withContentsOf: url, display: true) { _, _, error in
                     if let error { NSApp.presentError(error) }
+                }
+            },
+            onAuthorize: { [weak self] folder in
+                // Interactive: pops the folder-locked NSOpenPanel once.
+                if MoltenFolderAccess.shared.ensureAccess(to: folder, interactive: true) {
+                    self?.refreshFileTree()
                 }
             }
         ))
@@ -290,7 +350,7 @@ final class MoltenWorkspaceViewController: NSViewController {
     @objc func toggleFileTree(_ sender: Any?) {
         showsFileTree.toggle()
         UserDefaults.standard.set(showsFileTree, forKey: "Vellumi.showsFileTree")
-        fileTreeItem.animator().isCollapsed = !showsFileTree
+        animateSidebarCollapse(fileTreeItem, collapsed: !showsFileTree)
         if showsFileTree {
             refreshFileTree()
         }
@@ -307,7 +367,9 @@ final class MoltenWorkspaceViewController: NSViewController {
             fileTreeModel.currentFilePath = nil
             return
         }
-        MoltenFolderAccess.shared.ensureAccess(to: folder, interactive: false)
+        let hasAccess = MoltenFolderAccess.shared.ensureAccess(to: folder, interactive: false)
+            || FileManager.default.isReadableFile(atPath: folder.path)
+        fileTreeModel.needsAuthorizationFolder = hasAccess ? nil : folder
         let currentPath = document?.fileURL.map { MoltenProjectStore.canonicalPath($0) }
         Task { [weak self] in
             let nodes = await Task.detached(priority: .userInitiated) {
@@ -473,14 +535,32 @@ final class MoltenWorkspaceViewController: NSViewController {
     }
 
     func showFindBar() {
+        // Source mode: the NSTextView owns find — use its native find bar.
+        if isSourceMode, let textView = sourceTextView {
+            let proxy = NSMenuItem()
+            proxy.tag = NSTextFinder.Action.showFindInterface.rawValue
+            textView.performTextFinderAction(proxy)
+            return
+        }
         findBar.isHidden = false
-        findBarHeightConstraint?.constant = 34
+        findBar.alphaValue = 0
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.15
+            findBar.animator().alphaValue = 1
+        }
+        updateMatchCount()
         view.window?.makeFirstResponder(findField)
     }
 
     @objc private func hideFindBar(_ sender: Any?) {
-        findBar.isHidden = true
-        findBarHeightConstraint?.constant = 0
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = 0.15
+            findBar.animator().alphaValue = 0
+        }, completionHandler: { [weak self] in
+            self?.findBar.isHidden = true
+        })
+        // Drop the lingering match highlight along with the bar.
+        editorViewController.clearFindSelection()
         editorViewController.focusEditingSurface()
     }
 
@@ -494,11 +574,27 @@ final class MoltenWorkspaceViewController: NSViewController {
 
     private func runFind(backwards: Bool) {
         let term = findField.stringValue
+        updateMatchCount()
         editorViewController.find(term, backwards: backwards) { found in
             if !found {
                 NSSound.beep()
             }
             // Keep typing focus in the field for repeated Enter presses.
+        }
+    }
+
+    /// Total-occurrence label ("17 处匹配"). window.find owns navigation and
+    /// exposes no index, so this is a count, not a position.
+    private func updateMatchCount() {
+        let term = findField.stringValue
+        guard !term.isEmpty else {
+            matchCountLabel.stringValue = ""
+            return
+        }
+        editorViewController.countMatches(term) { [weak self] count in
+            guard let self, self.findField.stringValue == term else { return }
+            self.matchCountLabel.stringValue = String(format: L10n.string("find.matchCount"), count)
+            self.matchCountLabel.textColor = count == 0 ? .systemRed : .secondaryLabelColor
         }
     }
 
@@ -512,10 +608,11 @@ final class MoltenWorkspaceViewController: NSViewController {
     }
 
     @objc private func replaceAll(_ sender: Any?) {
-        editorViewController.replaceAll(findField.stringValue, with: replaceField.stringValue) { count in
+        editorViewController.replaceAll(findField.stringValue, with: replaceField.stringValue) { [weak self] count in
             if count == 0 {
                 NSSound.beep()
             }
+            self?.updateMatchCount()
         }
     }
 
@@ -523,11 +620,27 @@ final class MoltenWorkspaceViewController: NSViewController {
         findBar.material = .headerView
         findBar.blendingMode = .withinWindow
         findBar.isHidden = true
+        // Floating bar: give it a hairline bottom edge + soft shadow so it
+        // reads as a layer above the content.
+        let divider = NSBox()
+        divider.boxType = .separator
+        divider.translatesAutoresizingMaskIntoConstraints = false
+        findBar.addSubview(divider)
+        NSLayoutConstraint.activate([
+            divider.leadingAnchor.constraint(equalTo: findBar.leadingAnchor),
+            divider.trailingAnchor.constraint(equalTo: findBar.trailingAnchor),
+            divider.bottomAnchor.constraint(equalTo: findBar.bottomAnchor),
+        ])
 
         findField.placeholderString = L10n.string("find.placeholder")
         findField.target = self
         findField.action = #selector(findNext(_:))
         findField.sendsSearchStringImmediately = false
+        findField.delegate = self
+
+        matchCountLabel.font = .systemFont(ofSize: 11)
+        matchCountLabel.textColor = .secondaryLabelColor
+        matchCountLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
 
         replaceField.placeholderString = L10n.string("replace.placeholder")
         replaceField.bezelStyle = .roundedBezel
@@ -553,7 +666,7 @@ final class MoltenWorkspaceViewController: NSViewController {
         [previous, next, replaceOne, replaceEvery, done].forEach { $0.bezelStyle = .accessoryBarAction }
         done.keyEquivalent = "\u{1b}" // Esc closes the bar
 
-        let row = NSStackView(views: [findField, previous, next, replaceField, replaceOne, replaceEvery, done])
+        let row = NSStackView(views: [findField, matchCountLabel, previous, next, replaceField, replaceOne, replaceEvery, done])
         row.orientation = .horizontal
         row.spacing = 6
         row.edgeInsets = NSEdgeInsets(top: 6, left: 10, bottom: 6, right: 10)
@@ -587,11 +700,25 @@ final class MoltenWorkspaceViewController: NSViewController {
         wordCountLabel.font = .systemFont(ofSize: 11)
         wordCountLabel.textColor = .secondaryLabelColor
         wordCountLabel.translatesAutoresizingMaskIntoConstraints = false
+        wordCountLabel.addGestureRecognizer(
+            NSClickGestureRecognizer(target: self, action: #selector(cycleStatsDisplay(_:)))
+        )
+        wordCountLabel.toolTip = L10n.string("status.cycleHint")
+
+        noticeLabel.font = .systemFont(ofSize: 11)
+        noticeLabel.textColor = .tertiaryLabelColor
+        noticeLabel.isHidden = true
+        noticeLabel.lineBreakMode = .byTruncatingHead
+        noticeLabel.translatesAutoresizingMaskIntoConstraints = false
+        statusBar.addSubview(noticeLabel)
         statusBar.addSubview(wordCountLabel)
         NSLayoutConstraint.activate([
             statusBar.heightAnchor.constraint(equalToConstant: 24),
             wordCountLabel.leadingAnchor.constraint(equalTo: statusBar.leadingAnchor, constant: 12),
             wordCountLabel.centerYAnchor.constraint(equalTo: statusBar.centerYAnchor),
+            noticeLabel.trailingAnchor.constraint(equalTo: statusBar.trailingAnchor, constant: -12),
+            noticeLabel.centerYAnchor.constraint(equalTo: statusBar.centerYAnchor),
+            noticeLabel.leadingAnchor.constraint(greaterThanOrEqualTo: wordCountLabel.trailingAnchor, constant: 16),
         ])
     }
 }
@@ -665,6 +792,13 @@ extension MoltenWorkspaceViewController: NSToolbarDelegate {
         item.action = action
         item.isBordered = true
         return item
+    }
+}
+
+extension MoltenWorkspaceViewController: NSSearchFieldDelegate {
+    func controlTextDidChange(_ notification: Notification) {
+        guard (notification.object as? NSSearchField) === findField else { return }
+        updateMatchCount()
     }
 }
 

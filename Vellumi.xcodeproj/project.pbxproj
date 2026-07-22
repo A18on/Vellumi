@@ -18,6 +18,7 @@
 		30E0B397027CA3943D3CBEAD /* MoltenDraftsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0B9D438F6098DD2C424298 /* MoltenDraftsStore.swift */; };
 		313AF69AA9D0ECEE9036D8AA /* MoltenDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42C2EC4126DFBD70DC15593F /* MoltenDocument.swift */; };
 		3A2271850BC3513A3997BDA5 /* MoltenEditorBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97979F7EAA6492AE6AA60D9D /* MoltenEditorBridgeTests.swift */; };
+		3ED2387B788D95CE2CB80464 /* Welcome.md in Resources */ = {isa = PBXBuildFile; fileRef = 76C1B055E1BA64B537C5D052 /* Welcome.md */; };
 		4E834EA492079579AEBFEF94 /* MoltenLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9E2DE1B1C002F873F4AC261 /* MoltenLog.swift */; };
 		519AB418C5A510994FDF06B3 /* MoltenFolderAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4E1952DBF9A73129076921 /* MoltenFolderAccess.swift */; };
 		52D4554978D590EF64EC9AD9 /* vendor in Resources */ = {isa = PBXBuildFile; fileRef = 6E4133636E3FFCB03F9E29BA /* vendor */; };
@@ -53,6 +54,7 @@
 		F02BB3015CDF54A7C0F5D98C /* MoltenProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0773CD8E65875A093E0144FD /* MoltenProject.swift */; };
 		F3DA0D5AC5032DEBA6CB61D6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AC77DF857715471E424DEEEF /* Assets.xcassets */; };
 		F62AF9E8729F7692239DADF2 /* MoltenFileTreeSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E5C34F36358EE8A31DDAD8A /* MoltenFileTreeSidebar.swift */; };
+		F6C05EE40E78B6B47F7ACC0A /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = D6E0CD511C83741A0E2E6CFC /* Sparkle */; };
 		FBDC9A19ED0182D0C3E77BCE /* MoltenImageCardTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CB1A6AFE6D4DDB39ED0E22 /* MoltenImageCardTypes.swift */; };
 /* End PBXBuildFile section */
 
@@ -97,6 +99,7 @@
 		61783E8C1BF23761ABB6E547 /* MoltenDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenDocumentTests.swift; sourceTree = "<group>"; };
 		62EE2A547CDF9F74C34C4FE9 /* MoltenProjectStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenProjectStoreTests.swift; sourceTree = "<group>"; };
 		6E4133636E3FFCB03F9E29BA /* vendor */ = {isa = PBXFileReference; lastKnownFileType = folder; name = vendor; path = Resources/vendor; sourceTree = SOURCE_ROOT; };
+		76C1B055E1BA64B537C5D052 /* Welcome.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Welcome.md; sourceTree = "<group>"; };
 		88EAEA544D30D806EDA82D5E /* MoltenImageCardRenderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenImageCardRenderTests.swift; sourceTree = "<group>"; };
 		8C1520E49EA2D57F9BA45560 /* MoltenImageAttachmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenImageAttachmentTests.swift; sourceTree = "<group>"; };
 		95CB1A6AFE6D4DDB39ED0E22 /* MoltenImageCardTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenImageCardTypes.swift; sourceTree = "<group>"; };
@@ -125,6 +128,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				63E45352AA48265EA04424B6 /* WebKit.framework in Frameworks */,
+				F6C05EE40E78B6B47F7ACC0A /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -168,6 +172,7 @@
 			isa = PBXGroup;
 			children = (
 				AC77DF857715471E424DEEEF /* Assets.xcassets */,
+				76C1B055E1BA64B537C5D052 /* Welcome.md */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -342,6 +347,7 @@
 			);
 			name = Vellumi;
 			packageProductDependencies = (
+				D6E0CD511C83741A0E2E6CFC /* Sparkle */,
 			);
 			productName = Vellumi;
 			productReference = 5C40CDE069F25AAC50BD454C /* Vellumi.app */;
@@ -375,6 +381,9 @@
 			);
 			mainGroup = FB98C2995E1FA0BFD195663A;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				E443E9DD3C80C4CA8DDD7224 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
@@ -391,6 +400,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3DA0D5AC5032DEBA6CB61D6 /* Assets.xcassets in Resources */,
+				3ED2387B788D95CE2CB80464 /* Welcome.md in Resources */,
 				76AFCD6B8E5D6FF5DBD5E1BE /* dist in Resources */,
 				77DB56A2A0BDA1E289AB91C2 /* en.lproj in Resources */,
 				EB9292B3A86F085BF368AA4C /* imagecard in Resources */,
@@ -704,6 +714,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E443E9DD3C80C4CA8DDD7224 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D6E0CD511C83741A0E2E6CFC /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E443E9DD3C80C4CA8DDD7224 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9EC72EE740EE54D7A6462959 /* Project object */;
 }

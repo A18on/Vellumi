@@ -1,7 +1,20 @@
 import AppKit
+import Sparkle
 
 @MainActor
 final class MoltenAppDelegate: NSObject, NSApplicationDelegate {
+    /// Sparkle: EdDSA-signed updates from the GitHub-hosted appcast. Started
+    /// eagerly so background update checks run on the standard schedule.
+    let updaterController = SPUStandardUpdaterController(
+        startingUpdater: true,
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+    )
+
+    @objc func checkForUpdates(_ sender: Any?) {
+        updaterController.checkForUpdates(sender)
+    }
+
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MoltenMainMenuBuilder.build()
     }
@@ -20,6 +33,29 @@ final class MoltenAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         MoltenAppearance.applyStored()
+        showWelcomeDocumentOnFirstLaunch()
+    }
+
+    /// First launch only: an untitled document pre-filled with a feature tour
+    /// (kept un-dirty — closing it leaves no trace, saving keeps it).
+    private func showWelcomeDocumentOnFirstLaunch() {
+        let key = "Vellumi.hasShownWelcome"
+        guard !UserDefaults.standard.bool(forKey: key),
+              let url = Bundle.main.url(forResource: "Welcome", withExtension: "md"),
+              let data = try? Data(contentsOf: url) else {
+            return
+        }
+        UserDefaults.standard.set(true, forKey: key)
+        // Skip when state restoration already brought documents back.
+        guard NSDocumentController.shared.documents.isEmpty else { return }
+        do {
+            let document = try NSDocumentController.shared.openUntitledDocumentAndDisplay(false)
+            try document.read(from: data, ofType: MoltenDocument.markdownType)
+            document.makeWindowControllers()
+            document.showWindows()
+        } catch {
+            MoltenLog.document.error("welcome document failed: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     @objc func setAppearanceMode(_ sender: NSMenuItem) {
@@ -112,6 +148,7 @@ enum MoltenMainMenuBuilder {
     private static func appMenu() -> NSMenu {
         let menu = NSMenu(title: "Vellumi")
         menu.addItem(withTitle: L10n.string("menu.about"), action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        menu.addItem(withTitle: L10n.string("menu.checkForUpdates"), action: #selector(MoltenAppDelegate.checkForUpdates(_:)), keyEquivalent: "")
         menu.addItem(.separator())
         menu.addItem(withTitle: L10n.string("menu.preferences"), action: #selector(MoltenAppDelegate.showPreferences(_:)), keyEquivalent: ",")
         menu.addItem(.separator())

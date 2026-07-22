@@ -44,7 +44,7 @@ import {
   wrapInHeadingCommand,
   wrapInOrderedListCommand,
 } from "@milkdown/preset-commonmark";
-import { toggleStrikethroughCommand } from "@milkdown/preset-gfm";
+import { toggleStrikethroughCommand, columnResizingPlugin } from "@milkdown/preset-gfm";
 import { diagram, diagramSchema } from "@milkdown/plugin-diagram";
 import { TextSelection } from "@milkdown/prose/state";
 import { InputRule, inputRules, smartQuotes, ellipsis, emDash } from "@milkdown/prose/inputrules";
@@ -339,7 +339,7 @@ function flushChange() {
   // 10x the serialize cost, floored at the base cadence: a 1ms doc keeps the
   // snappy 150ms; a 60ms doc backs off to 600ms and stops eating keystrokes.
   changeDebounceMS = Math.min(2000, Math.max(CHANGE_DEBOUNCE_MS, cost * 10));
-  changeMaxLatencyMS = Math.min(8000, Math.max(CHANGE_MAX_LATENCY_MS, cost * 40));
+  changeMaxLatencyMS = Math.min(3000, Math.max(CHANGE_MAX_LATENCY_MS, cost * 40));
   if (markdown !== lastSentMarkdown) {
     lastSentMarkdown = markdown;
     post({ type: "change", markdown });
@@ -446,6 +446,9 @@ async function createEditor(markdown) {
   // code block / image block / list item / table UIs.
   next.editor.use(diagram);
   next.editor.use($view(diagramSchema.node, () => (node) => mermaidNodeView(node)));
+  // Table column-width dragging (prosemirror-tables columnResizing). Exported
+  // by preset-gfm but NOT in its composed plugin list — opt in explicitly.
+  next.editor.use(columnResizingPlugin);
   next.editor.use(inputRulesPlugin());
   next.on((listener) => {
     // `updated` fires per transaction WITHOUT serializing; markdown is pulled
@@ -468,6 +471,9 @@ async function createEditor(markdown) {
   // normalizes (list markers, blank lines), and that echo must not count as
   // an edit — otherwise every document opens already dirty.
   lastSentMarkdown = next.getMarkdown();
+  // Typora-style normalization is a documented tradeoff — surface it so the
+  // shell can show a one-time notice (source mode shows the original).
+  post({ type: "normalized", changed: lastSentMarkdown !== markdown });
   applySpellcheck();
   focusEditor();
   applyPendingScroll();
@@ -508,8 +514,23 @@ window.moltenAPI = {
   setTheme(name) {
     const valid = ["frame", "nord", "classic"];
     const theme = valid.includes(name) ? name : "frame";
-    document.getElementById("theme-light")?.setAttribute("href", `themes/${theme}-light.css`);
-    document.getElementById("theme-dark")?.setAttribute("href", `themes/${theme}-dark.css`);
+    // Swap-on-load: setting href directly unloads the old sheet before the
+    // new one has parsed → one unstyled flash frame. Instead insert the new
+    // link, let it load, then retire the old one.
+    for (const mode of ["light", "dark"]) {
+      const id = `theme-${mode}`;
+      const old = document.getElementById(id);
+      const href = `themes/${theme}-${mode}.css`;
+      if (!old || old.getAttribute("href") === href) continue;
+      const fresh = old.cloneNode(false);
+      fresh.setAttribute("href", href);
+      fresh.addEventListener("load", () => old.remove(), { once: true });
+      // Safety: if load never fires (missing file), don't leave both active.
+      setTimeout(() => old.remove(), 500);
+      old.id = "";
+      fresh.id = id;
+      old.parentNode.insertBefore(fresh, old.nextSibling);
+    }
   },
   // Native Edit ▸ Undo/Redo menu items forward here — WKWebView exposes no
   // responder-chain undo, and ProseMirror's history is the real stack.
@@ -604,6 +625,35 @@ window.moltenAPI = {
   find(term, backwards) {
     if (typeof term !== "string" || !term) return false;
     return window.find(term, false, Boolean(backwards), true, false, true, false);
+  },
+  // Case-insensitive occurrence count across text nodes, for the "3 处匹配"
+  // label. Counting only (window.find owns navigation); cheap even on large
+  // docs because it walks the same text the serializer would.
+  countMatches(term) {
+    if (!crepe || typeof term !== "string" || !term) return 0;
+    let count = 0;
+    const needle = term.toLowerCase();
+    crepe.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      view.state.doc.descendants((node) => {
+        if (!node.isText) return;
+        const text = (node.text ?? "").toLowerCase();
+        let index = 0;
+        while ((index = text.indexOf(needle, index)) !== -1) {
+          count += 1;
+          index += needle.length;
+        }
+      });
+    });
+    return count;
+  },
+  // Closing the find bar: drop the lingering match selection so no stale
+  // highlight stays behind the caret.
+  clearFindSelection() {
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) {
+      selection.collapseToStart();
+    }
   },
   // Clean document HTML for export: the rendered ProseMirror subtree with
   // editing chrome stripped and molten-asset:// srcs restored to the

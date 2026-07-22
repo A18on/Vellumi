@@ -72,4 +72,16 @@ ditto -c -k --keepParent "$APP" "$ZIP"
 
 echo "==> Done:"
 ls -lh "$DMG" "$ZIP" | awk '{print "    "$5"  "$9}'
+# Sparkle: EdDSA-sign the update archives and regenerate appcast.xml at the
+# repo root (served raw from GitHub; SUFeedURL points at master).
+SPARKLE_BIN="$(find "$HOME/Library/Developer/Xcode/DerivedData" -path "*artifacts/sparkle/Sparkle/bin" -type d 2>/dev/null | head -1)"
+if [ -n "$SPARKLE_BIN" ] && [ -x "$SPARKLE_BIN/generate_appcast" ]; then
+  "$SPARKLE_BIN/generate_appcast" \
+    --download-url-prefix "https://github.com/SUDAcyber/Vellumi/releases/download/v$VERSION/" \
+    -o "$ROOT_DIR/appcast.xml" "$DIST" \
+    && echo "==> appcast.xml regenerated (EdDSA-signed)"
+else
+  echo "==> WARNING: Sparkle tools not found; appcast NOT updated"
+fi
+
 echo "    (un-notarized: first run via right-click → Open, or xattr -dr com.apple.quarantine)"

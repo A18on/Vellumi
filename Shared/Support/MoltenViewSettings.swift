@@ -74,11 +74,20 @@ enum MoltenViewSettings {
         set { UserDefaults.standard.set(newValue, forKey: "Vellumi.smartPunctuation"); broadcast() }
     }
 
+    private static var pendingBroadcast: DispatchWorkItem?
+
     /// Re-applies the current settings to every open document's editor.
+    /// Trailing-throttled: preference sliders fire per tick, and each apply is
+    /// an evaluateJavaScript round trip per open document — coalesce to 10/s.
     static func broadcast() {
-        for case let document as MoltenDocument in NSDocumentController.shared.documents {
-            document.editorViewController?.applyStoredViewSettings()
+        pendingBroadcast?.cancel()
+        let work = DispatchWorkItem {
+            for case let document as MoltenDocument in NSDocumentController.shared.documents {
+                document.editorViewController?.applyStoredViewSettings()
+            }
         }
+        pendingBroadcast = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: work)
     }
 }
 

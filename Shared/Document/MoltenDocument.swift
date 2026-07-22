@@ -268,6 +268,20 @@ final class MoltenDocument: NSDocument {
 
     // MARK: - Image attachments
 
+    /// Preferences ▸ Files ▸ image folder. Sanitized to a single path
+    /// component — separators/dots would escape the document folder.
+    static var imageFolderName: String {
+        let raw = UserDefaults.standard.string(forKey: "Vellumi.imageFolderName") ?? "assets"
+        let cleaned = raw
+            .components(separatedBy: CharacterSet(charactersIn: "/\\:"))
+            .joined()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if cleaned.isEmpty || cleaned == "." || cleaned == ".." {
+            return "assets"
+        }
+        return cleaned
+    }
+
     /// Writes a pasted/dropped image into `assets/` next to the document and
     /// returns the document-relative path, or nil when it can't (no file yet,
     /// permission declined, bad payload). Runs on the main thread — the write
@@ -287,7 +301,7 @@ final class MoltenDocument: NSDocument {
             return nil
         }
 
-        let assetsDirectory = folder.appendingPathComponent("assets", isDirectory: true)
+        let assetsDirectory = folder.appendingPathComponent(Self.imageFolderName, isDirectory: true)
         do {
             try FileManager.default.createDirectory(at: assetsDirectory, withIntermediateDirectories: true)
             let target = Self.uniqueAssetURL(in: assetsDirectory, preferredName: name)

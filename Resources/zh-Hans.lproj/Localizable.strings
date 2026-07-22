@@ -217,3 +217,15 @@
 "prefs.typography.reset" = "重置排印设置";
 "prefs.smartPunctuation" = "智能标点";
 "prefs.smartPunctuation.help" = "输入时自动转换弯引号、省略号(…)与破折号(—)。";
+
+/* v0.4 polish batch */
+"find.matchCount" = "%d 处匹配";
+"status.characterCount" = "%d 字符";
+"status.paragraphCount" = "%d 段";
+"status.cycleHint" = "点击切换统计维度";
+"filetree.needsAccess" = "需要授权访问文档所在文件夹后才能浏览。";
+"filetree.authorize" = "授权访问文件夹…";
+"prefs.imageFolder" = "图片文件夹名";
+"prefs.imageFolder.help" = "粘贴的图片会保存到文档旁的此文件夹。";
+"status.normalizationNotice" = "保存时将规范化本文档的 Markdown 书写 · ⌘/ 可查看原文";
+"menu.checkForUpdates" = "检查更新…";
