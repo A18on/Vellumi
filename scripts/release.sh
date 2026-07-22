@@ -76,10 +76,14 @@ ls -lh "$DMG" "$ZIP" | awk '{print "    "$5"  "$9}'
 # repo root (served raw from GitHub; SUFeedURL points at master).
 SPARKLE_BIN="$(find "$HOME/Library/Developer/Xcode/DerivedData" -path "*artifacts/sparkle/Sparkle/bin" -type d 2>/dev/null | head -1)"
 if [ -n "$SPARKLE_BIN" ] && [ -x "$SPARKLE_BIN/generate_appcast" ]; then
+  # Sparkle rejects two archives with the same version — feed it the zip only.
+  APPCAST_STAGE="$(mktemp -d)"
+  cp "$ZIP" "$APPCAST_STAGE/"
   "$SPARKLE_BIN/generate_appcast" \
     --download-url-prefix "https://github.com/SUDAcyber/Vellumi/releases/download/v$VERSION/" \
-    -o "$ROOT_DIR/appcast.xml" "$DIST" \
+    -o "$ROOT_DIR/appcast.xml" "$APPCAST_STAGE" \
     && echo "==> appcast.xml regenerated (EdDSA-signed)"
+  rm -rf "$APPCAST_STAGE"
 else
   echo "==> WARNING: Sparkle tools not found; appcast NOT updated"
 fi
