@@ -48,6 +48,13 @@ Roadmap in `docs/PLAN.md`.
 
 MIT
 
+## Install via Homebrew
+
+```bash
+brew tap SUDAcyber/tap
+brew install --cask vellumi
+```
+
 ## Known limitations
 
 - **Markdown normalization** — the melt editor re-serializes your document on save (list markers, blank lines may be normalized). A one-time status-bar note appears when this applies; source mode (⌘/) always shows the file as-is.
