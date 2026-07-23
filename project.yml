@@ -60,8 +60,8 @@ targets:
         CODE_SIGN_IDENTITY: "-"
         DEVELOPMENT_TEAM: ""
         ENABLE_HARDENED_RUNTIME: YES
-        CURRENT_PROJECT_VERSION: 4
-        MARKETING_VERSION: 0.4.0
+        CURRENT_PROJECT_VERSION: 5
+        MARKETING_VERSION: 0.4.1
 
   VellumiTests:
     type: bundle.unit-test

@@ -42,7 +42,29 @@ xcodebuild \
 echo "==> Verifying artifact"
 test -d "$APP" || { echo "build product missing: $APP" >&2; exit 1; }
 lipo -archs "$APP/Contents/MacOS/$APP_NAME"
-codesign --verify --deep --strict "$APP" && echo "code signature OK (ad-hoc)"
+
+echo "==> Re-signing embedded Sparkle with the app's (ad-hoc) identity"
+# The SPM artifact ships Developer-ID-signed; the app is ad-hoc (no Team ID).
+# dyld's library validation refuses to load a framework whose Team ID differs
+# from the main executable's — v0.4.0 crashed AT LAUNCH on every other Mac.
+# Uniform ad-hoc signatures (bottom-up, entitlements preserved) fix it.
+SPARKLE_FW="$APP/Contents/Frameworks/Sparkle.framework"
+if [ -d "$SPARKLE_FW" ]; then
+  for nested in     "$SPARKLE_FW/Versions/B/XPCServices/Downloader.xpc"     "$SPARKLE_FW/Versions/B/XPCServices/Installer.xpc"     "$SPARKLE_FW/Versions/B/Autoupdate"     "$SPARKLE_FW/Versions/B/Updater.app"; do
+    if [ -e "$nested" ]; then
+      codesign --force --sign - --preserve-metadata=entitlements "$nested"
+    fi
+  done
+  codesign --force --sign - "$SPARKLE_FW"
+fi
+codesign --force --sign - --preserve-metadata=entitlements "$APP"
+
+codesign --verify --deep --strict "$APP" && echo "code signature OK (uniform ad-hoc)"
+# Belt-and-braces: fail the release if any embedded code kept a Team ID.
+if codesign -dvv "$SPARKLE_FW" 2>&1 | grep -q "^TeamIdentifier=[^n]"; then
+  echo "ERROR: Sparkle framework still carries a Team ID" >&2
+  exit 1
+fi
 
 mkdir -p "$DIST"
 DMG="$DIST/$APP_NAME-$VERSION.dmg"
