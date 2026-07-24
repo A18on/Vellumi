@@ -66,6 +66,32 @@
     .milkdown-toolbar {
       transition-property: opacity !important;
     }
+    /* Selection visibility. Two problems: (1) WebKit's default selection wash
+       is too faint against the code block's own dark background; (2) inside
+       CodeMirror blocks the native ::selection is transparent — the visible
+       selection is CM's drawn .cm-selectionBackground layer, which the theme
+       styles too weakly. Use a clear accent wash for both, boosted in dark. */
+    .milkdown ::selection {
+      background: rgba(93, 128, 250, 0.35);
+    }
+    .milkdown .cm-editor .cm-selectionBackground {
+      background: rgba(93, 128, 250, 0.32) !important;
+    }
+    .milkdown .cm-editor.cm-focused .cm-selectionBackground {
+      background: rgba(93, 128, 250, 0.42) !important;
+    }
+    @media (prefers-color-scheme: dark) {
+      .milkdown ::selection {
+        background: rgba(130, 160, 255, 0.45);
+      }
+      .milkdown .cm-editor .cm-selectionBackground {
+        background: rgba(130, 160, 255, 0.42) !important;
+      }
+      .milkdown .cm-editor.cm-focused .cm-selectionBackground {
+        background: rgba(130, 160, 255, 0.55) !important;
+      }
+    }
+
     /* prosemirror-tables column resize affordance (experiment, item 11). */
     .milkdown .column-resize-handle {
       position: absolute;
