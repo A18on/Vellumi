@@ -24,6 +24,7 @@
 		52D4554978D590EF64EC9AD9 /* vendor in Resources */ = {isa = PBXBuildFile; fileRef = 6E4133636E3FFCB03F9E29BA /* vendor */; };
 		562881EBBC824BEA3EB324BF /* MoltenQuickOpenAndSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2713C9E5D2FD3A28822F6F6E /* MoltenQuickOpenAndSourceTests.swift */; };
 		56E9E6FB533E507A9D07A6BC /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46240FB9F7C36B28B2E77338 /* main.swift */; };
+		57C84939FD1523B86EBEA686 /* MoltenPerformanceMeasurementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F3111A5B528774FAEFE78CE /* MoltenPerformanceMeasurementTests.swift */; };
 		63E45352AA48265EA04424B6 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3333513E0089A998A51FA7D9 /* WebKit.framework */; };
 		698E7969011CB7F2342C6970 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968B7AD0388F5FBEEDEDF530 /* L10n.swift */; };
 		6C2E3B272B638525330D4427 /* MoltenExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B81F5A879C69DE7ACDBD1DC9 /* MoltenExporterTests.swift */; };
@@ -76,6 +77,7 @@
 		0B200A0C89AFF876EEC9DE62 /* MoltenQuickOpenWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenQuickOpenWindow.swift; sourceTree = "<group>"; };
 		13598A880EB7338E146FE873 /* MoltenViewSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenViewSettings.swift; sourceTree = "<group>"; };
 		179D786A72764ACD459F9177 /* MoltenImageCardExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenImageCardExportView.swift; sourceTree = "<group>"; };
+		1F3111A5B528774FAEFE78CE /* MoltenPerformanceMeasurementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenPerformanceMeasurementTests.swift; sourceTree = "<group>"; };
 		22028EC2E58741A6BAA7D6A5 /* MoltenWordCountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenWordCountTests.swift; sourceTree = "<group>"; };
 		2713C9E5D2FD3A28822F6F6E /* MoltenQuickOpenAndSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoltenQuickOpenAndSourceTests.swift; sourceTree = "<group>"; };
 		28A7D8F8164C6736A7BA9D01 /* dist */ = {isa = PBXFileReference; lastKnownFileType = folder; name = dist; path = Resources/dist; sourceTree = SOURCE_ROOT; };
@@ -227,6 +229,7 @@
 				44C7352C2748A42FFFAA9FAB /* MoltenFrontMatterTests.swift */,
 				8C1520E49EA2D57F9BA45560 /* MoltenImageAttachmentTests.swift */,
 				88EAEA544D30D806EDA82D5E /* MoltenImageCardRenderTests.swift */,
+				1F3111A5B528774FAEFE78CE /* MoltenPerformanceMeasurementTests.swift */,
 				62EE2A547CDF9F74C34C4FE9 /* MoltenProjectStoreTests.swift */,
 				2713C9E5D2FD3A28822F6F6E /* MoltenQuickOpenAndSourceTests.swift */,
 				4716C3B7F64FC47665B6D745 /* MoltenTOCExportTests.swift */,
@@ -459,6 +462,7 @@
 				780B64F8CDD2E8F6F487D73A /* MoltenFrontMatterTests.swift in Sources */,
 				A0AF649D8C06A268DCFC16B7 /* MoltenImageAttachmentTests.swift in Sources */,
 				0C13A8C90287B94F65F09FD5 /* MoltenImageCardRenderTests.swift in Sources */,
+				57C84939FD1523B86EBEA686 /* MoltenPerformanceMeasurementTests.swift in Sources */,
 				02C820269D3D88E59A68831F /* MoltenProjectStoreTests.swift in Sources */,
 				562881EBBC824BEA3EB324BF /* MoltenQuickOpenAndSourceTests.swift in Sources */,
 				D2A2A8AE427448B94545E9DA /* MoltenTOCExportTests.swift in Sources */,
