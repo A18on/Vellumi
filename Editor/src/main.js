@@ -669,6 +669,59 @@ window.moltenAPI = {
     clone
       .querySelectorAll(".ProseMirror-widget, .milkdown-block-handle, .crepe-placeholder, [data-crepe-placeholder]")
       .forEach((el) => el.remove());
+    // ---- Code blocks -------------------------------------------------------
+    // Crepe renders code through a CodeMirror nodeView: the container is a Vue
+    // app (`div.milkdown-code-block[data-v-app]`) with NO <pre> inside, so the
+    // scaffolding sweep at the end used to delete every code block that had
+    // been rendered. Rebuild each one as <pre><code>.
+    // The text comes from the ProseMirror document, not the DOM: CodeMirror
+    // virtualizes its lines, so a long block only has DOM for the lines that
+    // scrolled through the viewport.
+    const codeBlocks = [];
+    crepe.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      view.state.doc.descendants((node) => {
+        if (node.type.name === "code_block" || node.type.spec.code) {
+          codeBlocks.push({ language: node.attrs?.language ?? "", text: node.textContent });
+          return false;
+        }
+        return true;
+      });
+    });
+    Array.from(clone.querySelectorAll(".milkdown-code-block")).forEach((block, index) => {
+      const source = codeBlocks[index];
+      const pre = document.createElement("pre");
+      const code = document.createElement("code");
+      const language = source?.language || block.getAttribute("data-language") || "";
+      if (language) code.className = `language-${language}`;
+      // Fall back to the rendered lines only if the document lookup missed.
+      code.textContent =
+        source?.text ??
+        Array.from(block.querySelectorAll(".cm-line")).map((line) => line.textContent).join("\n");
+      pre.appendChild(code);
+      block.replaceWith(pre);
+    });
+
+    // ---- Tables ------------------------------------------------------------
+    // The table block is a Vue app too; unwrap it to the bare <table> so the
+    // column handles and drag affordances don't ship with the export.
+    clone.querySelectorAll(".milkdown-table-block").forEach((block) => {
+      // The block holds TWO <table> elements: an empty one inside
+      // `.drag-preview` (the drag ghost, first in document order) and the real
+      // one inside `.table-wrapper`. A bare querySelector("table") grabs the
+      // decoy and throws the content away.
+      // Discriminate on CONTENT, not position: `.drag-preview` sits inside
+      // `.table-wrapper` and comes first in document order, so both a bare
+      // querySelector("table") and a `.table-wrapper table` selector return
+      // the empty ghost and discard every row.
+      const table =
+        Array.from(block.querySelectorAll("table")).find(
+          (candidate) => candidate.querySelector("tr") && !candidate.closest(".drag-preview")
+        ) ?? block.querySelector("table");
+      if (table) block.replaceWith(table);
+    });
+
+    // ---- Lists -------------------------------------------------------------
     // Crepe wraps every list item in Vue scaffolding (icon svg, label wrapper,
     // children containers) that chokes downstream consumers — the card
     // paginator dies on it and exported HTML drags editor chrome along.
@@ -684,21 +737,29 @@ window.moltenAPI = {
       } else {
         plain.textContent = item.textContent; // never parse text as markup
       }
-      // GFM task items: keep the checkbox and its state.
-      const checkbox = item.querySelector("input[type='checkbox']");
-      if (checkbox) {
+      // GFM task items: Crepe draws the checkbox as an inline SVG inside
+      // `.label-wrapper .label`, carrying the state in a `checked`/`unchecked`
+      // class — there is no <input> to find, which is why the state used to be
+      // dropped entirely (and the wrapper deleted by the sweep below).
+      const label = item.querySelector(".label-wrapper .label");
+      if (label?.classList.contains("checked") || label?.classList.contains("unchecked")) {
         const box = document.createElement("input");
         box.type = "checkbox";
         box.disabled = true;
-        if (checkbox.checked) box.setAttribute("checked", "");
+        if (label.classList.contains("checked")) box.setAttribute("checked", "");
         plain.insertBefore(box, plain.firstChild);
       }
       const wrapper = item.closest("div.milkdown-list-item-block") ?? item;
       wrapper.replaceWith(plain);
     });
+
+    // ---- Images ------------------------------------------------------------
     // Image blocks are Vue components too — collapse each to a plain <img>
-    // BEFORE the scaffolding sweep below would drop them.
+    // BEFORE the scaffolding sweep below would drop them. Containers that own
+    // richer structure are skipped: an unqualified querySelector("img") used
+    // to reach into a table cell and replace the ENTIRE table with that image.
     clone.querySelectorAll("[data-v-app]").forEach((component) => {
+      if (component.querySelector("table, li, pre, .cm-editor")) return;
       const img = component.querySelector("img");
       if (img) {
         const plain = document.createElement("img");
@@ -731,11 +792,16 @@ window.moltenAPI = {
       const view = ctx.get(editorViewCtx);
       const { state } = view;
       const ranges = [];
+      // Case-INSENSITIVE, matching window.find (navigation) and countMatches
+      // (the "N matches" label). They used to disagree: searching "hello" for
+      // "Hello" reported 3 matches and navigated through them, while Replace
+      // silently did nothing and Replace All returned 0.
+      const needle = term.toLowerCase();
       state.doc.descendants((node, pos) => {
         if (!node.isText) return;
-        const text = node.text ?? "";
+        const text = (node.text ?? "").toLowerCase();
         let index = 0;
-        while ((index = text.indexOf(term, index)) !== -1) {
+        while ((index = text.indexOf(needle, index)) !== -1) {
           ranges.push({ from: pos + index, to: pos + index + term.length });
           index += term.length;
         }
@@ -761,7 +827,9 @@ window.moltenAPI = {
       const view = ctx.get(editorViewCtx);
       const { state } = view;
       const { from, to } = state.selection;
-      if (from !== to && state.doc.textBetween(from, to) === term) {
+      // Same case-insensitivity as above: window.find selects "Hello" when the
+      // user searched "hello", and a strict compare here refused to replace it.
+      if (from !== to && state.doc.textBetween(from, to).toLowerCase() === term.toLowerCase()) {
         view.dispatch(state.tr.insertText(safeReplacement, from, to));
         replaced = true;
       }

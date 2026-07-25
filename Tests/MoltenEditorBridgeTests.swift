@@ -392,4 +392,62 @@ final class MoltenEditorBridgeTests: XCTestCase {
         XCTAssertEqual(fraction, 0.5, accuracy: 0.1, "scroll fraction must round-trip")
     }
 
+    /// Export fidelity. Every one of these three shipped broken in v0.4.2:
+    /// rendered code blocks were deleted entirely by the scaffolding sweep, a
+    /// table containing an image was replaced BY that image, and task-list
+    /// checkbox state was dropped (Crepe draws an SVG, not an <input>).
+    func testExportPreservesCodeTablesAndTaskState() throws {
+        try loadEditorPage()
+        // Code blocks only mount their CodeMirror view in a real window.
+        let window = NSWindow(
+            contentRect: NSRect(x: -2000, y: -2000, width: 900, height: 900),
+            styleMask: [.titled], backing: .buffered, defer: false
+        )
+        window.contentView = webView
+        window.orderFrontRegardless()
+        defer { window.orderOut(nil) }
+
+        try setMarkdown("""
+        ```python
+        print(1)
+        ```
+
+        | A | B |
+        | - | - |
+        | ![img](x.png) | cell text |
+
+        - [x] done item
+        - [ ] todo item
+        """)
+        RunLoop.main.run(until: Date().addingTimeInterval(2))
+
+        let html = try XCTUnwrap(try evaluate("window.moltenAPI.getContentHTML()") as? String)
+
+        XCTAssertTrue(html.contains("<pre>"), "code block must survive as <pre>, got: \(html.prefix(400))")
+        XCTAssertTrue(html.contains("print(1)"), "code text must survive, got: \(html.prefix(400))")
+        XCTAssertTrue(html.contains("language-python"), "language tag must survive, got: \(html.prefix(400))")
+
+        XCTAssertTrue(html.contains("<table"), "table must survive, got: \(html.prefix(600))")
+        XCTAssertTrue(html.contains("cell text"), "other cells must survive alongside the image, got: \(html.prefix(600))")
+        XCTAssertFalse(html.contains("drag-preview"), "the drag ghost must not ship in the export")
+
+        XCTAssertTrue(html.contains("checkbox"), "task list must export checkboxes, got: \(html.prefix(600))")
+        XCTAssertTrue(html.contains("checked"), "checked state must survive")
+    }
+
+    /// Find, the match count, Replace and Replace All must agree on case.
+    func testReplaceIsCaseInsensitiveLikeFind() throws {
+        try loadEditorPage()
+        try setMarkdown("Hello world. HELLO again. hello once more.")
+
+        let count = try XCTUnwrap(try evaluate("window.moltenAPI.countMatches('hello')") as? Int)
+        XCTAssertEqual(count, 3, "the label counts case-insensitively")
+
+        let replaced = try XCTUnwrap(try evaluate("window.moltenAPI.replaceAll('hello', 'HI')") as? Int)
+        XCTAssertEqual(replaced, 3, "Replace All must match what the label promised")
+
+        let markdown = try XCTUnwrap(try evaluate("window.moltenAPI.getMarkdown()") as? String)
+        XCTAssertFalse(markdown.lowercased().contains("hello"), "no occurrence may remain, got: \(markdown)")
+    }
+
 }
