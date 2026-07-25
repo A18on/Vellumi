@@ -810,9 +810,25 @@ extension MoltenWorkspaceViewController: NSTextViewDelegate {
 }
 
 extension MoltenWorkspaceViewController: NSMenuItemValidation {
+    /// Commands that read the (parked) web editor or would be silently undone
+    /// by the source view's next keystroke are disabled while source mode is
+    /// on. Leaving them enabled shipped worse behavior than disabling them:
+    /// exports wrote pre-⌘/ content to disk with no warning, and front-matter
+    /// edits were rolled back by the next adoptSourceText.
+    private static let sourceModeDisabledActions: Set<Selector> = [
+        #selector(exportHTML(_:)),
+        #selector(exportPDF(_:)),
+        #selector(exportImageCards(_:)),
+        #selector(printDocument(_:)),
+        #selector(editFrontMatter(_:)),
+    ]
+
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         if menuItem.action == #selector(toggleSourceMode(_:)) {
             menuItem.state = isSourceMode ? .on : .off
+        }
+        if let action = menuItem.action, Self.sourceModeDisabledActions.contains(action) {
+            return !isSourceMode
         }
         return true
     }

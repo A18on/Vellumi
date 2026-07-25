@@ -107,6 +107,10 @@ final class MoltenEditorViewController: NSViewController {
     /// surface — each alone is insufficient (typing goes to the sidebar, or
     /// nowhere). Callers: window appear, find-bar dismissal, sidebar toggle.
     func focusEditingSurface() {
+        // In source mode the web view is hidden behind the source scroll view;
+        // focusing it would swallow keystrokes with no visible caret. The
+        // workspace owns that state, so ask it before stealing focus.
+        guard document?.workspaceViewController?.isSourceMode != true else { return }
         view.window?.makeFirstResponder(webView)
         webView.evaluateJavaScript("window.moltenAPI?.focus();")
     }

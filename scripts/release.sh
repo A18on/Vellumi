@@ -26,6 +26,18 @@ VERSION="${1:-$(grep -m1 'MARKETING_VERSION:' "$ROOT_DIR/project.yml" | sed 's/.
 echo "==> Releasing $APP_NAME $VERSION"
 
 cd "$ROOT_DIR"
+
+# The editor bundle is gitignored and Editor/build.mjs wipes dist/ before
+# rebuilding. project.yml references Resources/dist as a FOLDER, so an empty
+# or half-written dist copies silently and xcodebuild still returns 0 — the
+# result is a DMG whose every document is a blank editor. Build it here and
+# refuse to continue unless the artifacts exist.
+echo "==> Building editor bundle"
+"$ROOT_DIR/scripts/build-editor.sh"
+for artifact in "$ROOT_DIR/Resources/dist/editor.js" "$ROOT_DIR/Resources/dist/index.html"; do
+  test -s "$artifact" || { echo "ERROR: missing or empty $artifact" >&2; exit 1; }
+done
+
 xcodegen generate >/dev/null
 
 echo "==> Building Release (Universal: arm64 + x86_64)"
@@ -57,14 +69,34 @@ if [ -d "$SPARKLE_FW" ]; then
   done
   codesign --force --sign - "$SPARKLE_FW"
 fi
-codesign --force --sign - --preserve-metadata=entitlements "$APP"
+# Sign the app from the SOURCE entitlements rather than preserving whatever
+# Xcode injected: --preserve-metadata=entitlements kept the debug-only
+# com.apple.security.get-task-allow (any process of this user could attach a
+# debugger to an app holding the user's security-scoped folder bookmarks) and,
+# because an explicit preserve list replaces the defaults, dropped the hardened
+# runtime flag. Both are required for notarization later anyway.
+codesign --force --sign - --options runtime \
+  --entitlements "$ROOT_DIR/$APP_NAME.entitlements" "$APP"
 
 codesign --verify --deep --strict "$APP" && echo "code signature OK (uniform ad-hoc)"
-# Belt-and-braces: fail the release if any embedded code kept a Team ID.
+
+# Belt-and-braces assertions — each of these has shipped broken at least once.
 if codesign -dvv "$SPARKLE_FW" 2>&1 | grep -q "^TeamIdentifier=[^n]"; then
   echo "ERROR: Sparkle framework still carries a Team ID" >&2
   exit 1
 fi
+if ! codesign -dvv "$APP" 2>&1 | grep -q "flags=.*runtime"; then
+  echo "ERROR: app is missing the hardened runtime flag" >&2
+  exit 1
+fi
+if codesign -d --entitlements - --xml "$APP" 2>/dev/null | grep -q "get-task-allow"; then
+  echo "ERROR: get-task-allow leaked into the release build" >&2
+  exit 1
+fi
+for artifact in editor.js index.html; do
+  test -s "$APP/Contents/Resources/dist/$artifact" \
+    || { echo "ERROR: $artifact missing from the built app bundle" >&2; exit 1; }
+done
 
 mkdir -p "$DIST"
 DMG="$DIST/$APP_NAME-$VERSION.dmg"
@@ -96,7 +128,15 @@ echo "==> Done:"
 ls -lh "$DMG" "$ZIP" | awk '{print "    "$5"  "$9}'
 # Sparkle: EdDSA-sign the update archives and regenerate appcast.xml at the
 # repo root (served raw from GitHub; SUFeedURL points at master).
-SPARKLE_BIN="$(find "$HOME/Library/Developer/Xcode/DerivedData" -path "*artifacts/sparkle/Sparkle/bin" -type d 2>/dev/null | head -1)"
+# Look inside THIS build's derived data first. The old global search under
+# ~/Library/Developer/Xcode/DerivedData missed entirely on a clean machine (we
+# build into a private .build/release) and could otherwise pick another
+# project's Sparkle version; the appcast was then silently skipped and every
+# installed user stopped receiving updates.
+SPARKLE_BIN="$DERIVED/SourcePackages/artifacts/sparkle/Sparkle/bin"
+if [ ! -x "$SPARKLE_BIN/generate_appcast" ]; then
+  SPARKLE_BIN="$(find "$HOME/Library/Developer/Xcode/DerivedData" -path "*artifacts/sparkle/Sparkle/bin" -type d 2>/dev/null | head -1)"
+fi
 if [ -n "$SPARKLE_BIN" ] && [ -x "$SPARKLE_BIN/generate_appcast" ]; then
   # Sparkle rejects two archives with the same version — feed it the zip only.
   APPCAST_STAGE="$(mktemp -d)"
@@ -107,7 +147,19 @@ if [ -n "$SPARKLE_BIN" ] && [ -x "$SPARKLE_BIN/generate_appcast" ]; then
     && echo "==> appcast.xml regenerated (EdDSA-signed)"
   rm -rf "$APPCAST_STAGE"
 else
-  echo "==> WARNING: Sparkle tools not found; appcast NOT updated"
+  echo "ERROR: Sparkle tools not found; appcast would be stale and no installed" >&2
+  echo "       user would ever receive this release. Refusing to continue." >&2
+  exit 1
+fi
+
+# Sparkle compares CFBundleVersion, not the marketing string: shipping without
+# bumping it makes every existing install report "you are up to date".
+BUILD_NUMBER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Contents/Info.plist")"
+PREVIOUS_MAX="$(grep -oE '<sparkle:version>[0-9]+' "$ROOT_DIR/appcast.xml" 2>/dev/null | grep -oE '[0-9]+' | sort -n | tail -1)"
+if [ -n "$PREVIOUS_MAX" ] && [ "$BUILD_NUMBER" -le "$PREVIOUS_MAX" ]; then
+  echo "ERROR: CFBundleVersion $BUILD_NUMBER must exceed the newest appcast entry $PREVIOUS_MAX" >&2
+  echo "       (bump CURRENT_PROJECT_VERSION in project.yml)" >&2
+  exit 1
 fi
 
 echo "    (un-notarized: first run via right-click → Open, or xattr -dr com.apple.quarantine)"

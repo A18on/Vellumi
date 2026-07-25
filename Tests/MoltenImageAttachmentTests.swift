@@ -60,6 +60,31 @@ final class MoltenImageAttachmentTests: XCTestCase {
         let document = try makeDocument()
         XCTAssertNil(document.saveImageAttachment(name: "x.png", base64: "not-base64!!!"))
     }
+
+    /// Regression: the preference is a shipped, editable text field, but the
+    /// returned Markdown path used to be hardcoded to "assets/" — every paste
+    /// into a renamed folder wrote a dead link into the user's file.
+    func testCustomImageFolderNameIsUsedInBothPathAndMarkdown() throws {
+        UserDefaults.standard.set("images", forKey: "Vellumi.imageFolderName")
+        defer { UserDefaults.standard.removeObject(forKey: "Vellumi.imageFolderName") }
+
+        let document = try makeDocument()
+        let path = document.saveImageAttachment(name: "shot.png", base64: onePixelPNGBase64)
+
+        XCTAssertEqual(path, "images/shot.png", "the recorded link must match the folder written to")
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: folder.appendingPathComponent("images/shot.png").path),
+            "file must land in the configured folder"
+        )
+    }
+
+    func testAssetPathPercentEncodesBothComponents() {
+        XCTAssertEqual(
+            MoltenDocument.documentRelativeAssetPath(folderName: "my images", fileName: "a b.png"),
+            "my%20images/a%20b.png",
+            "spaces must be encoded the way the display-time rewrite expects"
+        )
+    }
 }
 
 final class MoltenAssetSchemeHandlerTests: XCTestCase {

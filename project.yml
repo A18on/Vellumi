@@ -62,6 +62,15 @@ targets:
         ENABLE_HARDENED_RUNTIME: YES
         CURRENT_PROJECT_VERSION: 6
         MARKETING_VERSION: 0.4.2
+      configs:
+        # RELEASE ONLY. Xcode otherwise injects
+        # com.apple.security.get-task-allow, which lets any process of this
+        # user attach a debugger to an app holding the user's security-scoped
+        # folder bookmarks; release.sh asserts it is gone from the shipped
+        # build. It must stay ON for Debug — XCTest's runner attaches to the
+        # app, and without it the test runner hangs before connecting.
+        Release:
+          CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
 
   VellumiTests:
     type: bundle.unit-test

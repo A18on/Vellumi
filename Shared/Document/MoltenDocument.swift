@@ -253,6 +253,12 @@ final class MoltenDocument: NSDocument {
     /// crash recovery and drive the dirty flag — including clearing it when
     /// an in-editor undo returns to the saved state.
     func editorTextDidChange(_ markdown: String) {
+        // Source mode parks the web editor holding pre-⌘/ content. Every entry
+        // point into this method (debounced change messages, the external-change
+        // reload pull) must be shut off, or that stale text overwrites the
+        // source view's edits in the model while the visible NSTextView keeps
+        // showing them — the edits then vanish on close.
+        guard !sourceModeActive else { return }
         guard markdown != text else { return }
         text = markdown
         updateChangeCount(markdown == savedText ? .changeCleared : .changeDone)
@@ -267,6 +273,17 @@ final class MoltenDocument: NSDocument {
     }
 
     // MARK: - Image attachments
+
+    /// The document-relative path recorded in the Markdown for a saved image.
+    /// Percent-encodes both components the way the display-time rewrite in
+    /// Editor/src/main.js (`encodeURI`) expects, so folder or file names with
+    /// spaces resolve through the molten-asset scheme.
+    static func documentRelativeAssetPath(folderName: String, fileName: String) -> String {
+        let allowed = CharacterSet.urlPathAllowed
+        let folder = folderName.addingPercentEncoding(withAllowedCharacters: allowed) ?? folderName
+        let file = fileName.addingPercentEncoding(withAllowedCharacters: allowed) ?? fileName
+        return "\(folder)/\(file)"
+    }
 
     /// Preferences ▸ Files ▸ image folder. Sanitized to a single path
     /// component — separators/dots would escape the document folder.
@@ -306,7 +323,10 @@ final class MoltenDocument: NSDocument {
             try FileManager.default.createDirectory(at: assetsDirectory, withIntermediateDirectories: true)
             let target = Self.uniqueAssetURL(in: assetsDirectory, preferredName: name)
             try data.write(to: target, options: .withoutOverwriting)
-            return "assets/\(target.lastPathComponent)"
+            // Must mirror the directory we actually wrote into — hardcoding
+            // "assets/" here silently produced dead links for anyone who
+            // changed the folder name in Preferences.
+            return Self.documentRelativeAssetPath(folderName: Self.imageFolderName, fileName: target.lastPathComponent)
         } catch {
             MoltenLog.document.error("Image save failed: \(error.localizedDescription, privacy: .public)")
             return nil
@@ -346,8 +366,9 @@ final class MoltenDocument: NSDocument {
     func reloadIfCleanAndChangedOnDisk() {
         // The dirty flag lags the editor by up to the JS debounce window —
         // flush it first, or an external change could clobber the last second
-        // of typing.
-        guard let editor = editorViewController else {
+        // of typing. In source mode there is nothing to flush: the NSTextView
+        // delegate already pushed every keystroke into `text` synchronously.
+        guard !sourceModeActive, let editor = editorViewController else {
             performReloadIfCleanAndChangedOnDisk()
             return
         }
