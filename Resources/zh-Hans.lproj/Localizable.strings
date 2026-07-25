@@ -1,5 +1,5 @@
 /* 文档错误 */
-"document.error.tooLarge" = "此文件超过 %d MB,Vellumi 目前无法编辑。";
+"document.error.tooLarge" = "此文件超过 %d MB。熔字编辑器在这个体量下无法保持流畅——请用其他编辑器打开,或拆分后再编辑。";
 "document.error.encoding" = "此文件不是 UTF-8 文本。Vellumi 拒绝猜测编码,以免损坏文件。";
 
 /* 工作区 */

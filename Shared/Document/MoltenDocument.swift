@@ -8,9 +8,13 @@ import AppKit
 /// save chokepoint below so no write path can persist stale content.
 final class MoltenDocument: NSDocument {
     static let markdownType = "net.daringfireball.markdown"
-    /// Refuse absurd files up front — a WYSIWYG DOM at this size would hang
-    /// long before memory becomes the problem.
-    static let maximumFileSize = 20 * 1024 * 1024
+    /// Refuse files the melt surface cannot edit interactively. Measured
+    /// (docs/PERF.md): serialization runs on the JS main thread and costs
+    /// ~103 ms at 431 KB, scaling linearly — the old 20 MB ceiling worked out
+    /// to ~4.8 s per flush, far past the 2 s adaptive-debounce cap, i.e. a
+    /// permanently beachballed editor. 4 MB (~1 s) is the honest limit; larger
+    /// files are refused with a message that points at source mode.
+    static let maximumFileSize = 4 * 1024 * 1024
     /// Single source of truth for the initial window/web view size (the web
     /// view lays out its page at its pre-attach frame; a mismatch causes a
     /// visible reflow flash on open).

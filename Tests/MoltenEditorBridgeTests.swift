@@ -433,6 +433,14 @@ final class MoltenEditorBridgeTests: XCTestCase {
 
         XCTAssertTrue(html.contains("checkbox"), "task list must export checkboxes, got: \(html.prefix(600))")
         XCTAssertTrue(html.contains("checked"), "checked state must survive")
+
+        // End-to-end: the same HTML the File ▸ Export as HTML… path writes out.
+        let page = MoltenExporter.selfContainedHTML(bodyHTML: html, title: "verify")
+        XCTAssertTrue(page.contains("<pre>"), "the written file keeps the code block")
+        XCTAssertTrue(page.contains("cell text"), "the written file keeps every table cell")
+        XCTAssertTrue(page.contains("type=\"checkbox\""), "the written file keeps task state")
+        XCTAssertFalse(page.contains("data-v-app"), "no Vue scaffolding may reach the file")
+        XCTAssertTrue(page.contains("<!doctype html>"), "self-contained page wrapper")
     }
 
     /// Find, the match count, Replace and Replace All must agree on case.

@@ -1,5 +1,5 @@
 /* Document errors */
-"document.error.tooLarge" = "This file is larger than %d MB, which Vellumi cannot edit yet.";
+"document.error.tooLarge" = "This file is larger than %d MB. The melt editor cannot stay responsive at that size — open it in another editor, or split it up.";
 "document.error.encoding" = "This file is not UTF-8 text. Vellumi refuses to guess the encoding rather than risk corrupting it.";
 
 /* Workspace */
