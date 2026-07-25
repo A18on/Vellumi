@@ -85,8 +85,10 @@ if codesign -dvv "$SPARKLE_FW" 2>&1 | grep -q "^TeamIdentifier=[^n]"; then
   echo "ERROR: Sparkle framework still carries a Team ID" >&2
   exit 1
 fi
-if ! codesign -dvv "$APP" 2>&1 | grep -q "flags=.*runtime"; then
+APP_FLAGS="$(codesign -dvv "$APP" 2>&1 | grep -m1 '^CodeDirectory' || true)"
+if ! printf '%s' "$APP_FLAGS" | grep -q "runtime"; then
   echo "ERROR: app is missing the hardened runtime flag" >&2
+  echo "       codesign reported: $APP_FLAGS" >&2
   exit 1
 fi
 if codesign -d --entitlements - --xml "$APP" 2>/dev/null | grep -q "get-task-allow"; then
@@ -126,6 +128,16 @@ ditto -c -k --keepParent "$APP" "$ZIP"
 
 echo "==> Done:"
 ls -lh "$DMG" "$ZIP" | awk '{print "    "$5"  "$9}'
+# Version gate BEFORE regenerating the appcast — comparing afterwards would
+# measure this build against the entry it just wrote for itself.
+BUILD_NUMBER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Contents/Info.plist")"
+PREVIOUS_MAX="$(grep -oE '<sparkle:version>[0-9]+' "$ROOT_DIR/appcast.xml" 2>/dev/null | grep -oE '[0-9]+' | sort -n | tail -1)"
+if [ -n "$PREVIOUS_MAX" ] && [ "$BUILD_NUMBER" -le "$PREVIOUS_MAX" ]; then
+  echo "ERROR: CFBundleVersion $BUILD_NUMBER must exceed the newest appcast entry $PREVIOUS_MAX" >&2
+  echo "       (bump CURRENT_PROJECT_VERSION in project.yml)" >&2
+  exit 1
+fi
+
 # Sparkle: EdDSA-sign the update archives and regenerate appcast.xml at the
 # repo root (served raw from GitHub; SUFeedURL points at master).
 # Look inside THIS build's derived data first. The old global search under
@@ -152,14 +164,5 @@ else
   exit 1
 fi
 
-# Sparkle compares CFBundleVersion, not the marketing string: shipping without
-# bumping it makes every existing install report "you are up to date".
-BUILD_NUMBER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Contents/Info.plist")"
-PREVIOUS_MAX="$(grep -oE '<sparkle:version>[0-9]+' "$ROOT_DIR/appcast.xml" 2>/dev/null | grep -oE '[0-9]+' | sort -n | tail -1)"
-if [ -n "$PREVIOUS_MAX" ] && [ "$BUILD_NUMBER" -le "$PREVIOUS_MAX" ]; then
-  echo "ERROR: CFBundleVersion $BUILD_NUMBER must exceed the newest appcast entry $PREVIOUS_MAX" >&2
-  echo "       (bump CURRENT_PROJECT_VERSION in project.yml)" >&2
-  exit 1
-fi
 
 echo "    (un-notarized: first run via right-click → Open, or xattr -dr com.apple.quarantine)"
