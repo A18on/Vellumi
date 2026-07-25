@@ -141,9 +141,14 @@ enum MarkdownImageCardExportError: LocalizedError, Equatable {
     case missingRendererResource
     case invalidDataURL
     case invalidBridgePayload
+    /// The renderer web view went away mid-export (content process jettisoned,
+    /// or the panel was dismissed while pages were still being captured).
+    case rendererUnavailable
 
     var errorDescription: String? {
         switch self {
+        case .rendererUnavailable:
+            return L10n.string("export.image.error.rendererUnavailable")
         case .missingRendererResource:
             return L10n.string("export.image.error.missingRenderer")
         case .invalidDataURL:

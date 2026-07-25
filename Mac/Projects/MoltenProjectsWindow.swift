@@ -44,6 +44,10 @@ final class MoltenProjectsModel: ObservableObject {
     @Published var expanded: Set<UUID> = []
     @Published private(set) var recents: [URL] = []
     @Published var searchText: String = ""
+    /// True while the detached full-text pass is running. Without it the view
+    /// rendered "no matches" the frame after the query was cleared, and that
+    /// false answer sat there for seconds on a large project.
+    @Published private(set) var isSearching = false
     @Published private(set) var contentResults: [MoltenProjectSearchResult] = []
     @Published private(set) var contentSearchActive = false
     /// The query the current results were produced for.
@@ -220,7 +224,13 @@ final class MoltenProjectsModel: ObservableObject {
         guard MoltenFolderAccess.shared.ensureAccess(to: folderURL, interactive: true) else { return }
         let target = file.url.deletingLastPathComponent().appendingPathComponent(newName)
         guard !FileManager.default.fileExists(atPath: target.path) else {
-            NSSound.beep()
+            // A beep alone left the user staring at a name they had just typed
+            // with no idea why nothing happened.
+            let alert = NSAlert()
+            alert.messageText = L10n.string("projects.rename.conflict.title")
+            alert.informativeText = String(format: L10n.string("projects.rename.conflict.message"), newName)
+            alert.addButton(withTitle: L10n.string("common.ok"))
+            alert.runModal()
             return
         }
         // If the file is OPEN, rename through its NSDocument so the document
@@ -294,12 +304,14 @@ final class MoltenProjectsModel: ObservableObject {
         let folders = projects.compactMap { store.resolveFolderURL(for: $0) }
         contentSearchActive = true
         contentResults = []
+        isSearching = true
         Task { [weak self] in
             let results = await Task.detached(priority: .userInitiated) {
                 let corpus = folders.flatMap { MoltenProjectStore.markdownFiles(inFolder: $0) ?? [] }
                 return MoltenProjectContentSearch.search(query: query, files: corpus, caseSensitive: false)
             }.value
             guard let self, self.searchGeneration == generation else { return }
+            self.isSearching = false
             self.contentQuery = query
             self.contentResults = results
         }
@@ -411,7 +423,14 @@ struct MoltenProjectsView: View {
     @ViewBuilder
     private var searchSection: some View {
         Section(L10n.string("projects.search.resultsTitle")) {
-            if model.contentResults.isEmpty {
+            if model.isSearching {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.small)
+                    Text(L10n.string("projects.search.searching"))
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            } else if model.contentResults.isEmpty {
                 Text(L10n.string("projects.search.noMatch"))
                     .font(.callout)
                     .foregroundStyle(.secondary)

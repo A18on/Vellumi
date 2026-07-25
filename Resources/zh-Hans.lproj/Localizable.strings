@@ -229,3 +229,7 @@
 "prefs.imageFolder.help" = "粘贴的图片会保存到文档旁的此文件夹。";
 "status.normalizationNotice" = "保存时将规范化本文档的 Markdown 书写 · ⌘/ 可查看原文";
 "menu.checkForUpdates" = "检查更新…";
+"export.image.error.rendererUnavailable" = "图片卡渲染器已停止响应,请重新导出。";
+"projects.search.searching" = "搜索中…";
+"projects.rename.conflict.title" = "名称已被占用";
+"projects.rename.conflict.message" = "该文件夹里已存在名为「%@」的文件,请换一个名字。";

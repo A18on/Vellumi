@@ -34,6 +34,9 @@ final class MoltenQuickOpenWindowController: NSWindowController {
     required init?(coder: NSCoder) { nil }
 
     func show() {
+        // The model is a singleton, so without this the panel reopened showing
+        // the previous search term and its stale result list.
+        model.query = ""
         model.reload()
         window?.center()
         window?.makeKeyAndOrderFront(nil)

@@ -43,8 +43,6 @@ targets:
         type: folder
       - path: Resources/Assets.xcassets
         buildPhase: resources
-      - path: Resources/Welcome.md
-        buildPhase: resources
     dependencies:
       - sdk: WebKit.framework
       - package: Sparkle

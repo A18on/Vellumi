@@ -229,3 +229,7 @@
 "prefs.imageFolder.help" = "Pasted images are saved to this folder beside the document.";
 "status.normalizationNotice" = "Saving will tidy this file's Markdown style — ⌘/ shows the original";
 "menu.checkForUpdates" = "Check for Updates…";
+"export.image.error.rendererUnavailable" = "The image card renderer stopped responding. Please try exporting again.";
+"projects.search.searching" = "Searching…";
+"projects.rename.conflict.title" = "That name is already taken";
+"projects.rename.conflict.message" = "A file named “%@” already exists in this folder. Choose a different name.";

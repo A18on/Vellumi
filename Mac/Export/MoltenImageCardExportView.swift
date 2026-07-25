@@ -230,14 +230,51 @@ final class MarkdownImageCardExportModel: NSObject, ObservableObject, WKScriptMe
     }
 
     func finish() {
+        pendingOptionsWork?.cancel()
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "markmacCard")
         webView?.navigationDelegate = nil
         webView = nil
-        pendingCaptures.removeAll()
+        // Fail the callbacks rather than dropping them: removeAll() left every
+        // caller awaiting a completion that could never arrive, so isExporting
+        // stayed true and the panel could not be used again.
+        failPendingCaptures(with: MarkdownImageCardExportError.rendererUnavailable)
     }
 
+    /// Settles every in-flight capture with an error exactly once.
+    private func failPendingCaptures(with error: Error) {
+        let pending = pendingCaptures
+        pendingCaptures.removeAll()
+        for (_, completion) in pending {
+            completion(.failure(error))
+        }
+        if !pending.isEmpty {
+            isExporting = false
+            isRendering = false
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    /// WebKit jettisons the content process under memory pressure. Without
+    /// this the export just hung forever with a spinner.
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        MoltenLog.document.error("Image card renderer process terminated")
+        failPendingCaptures(with: MarkdownImageCardExportError.rendererUnavailable)
+    }
+
+    private var pendingOptionsWork: DispatchWorkItem?
+
+    /// Coalesce option changes. The watermark field is bound directly, so every
+    /// keystroke used to kick off a full re-layout (deep-cloning the page and
+    /// re-running highlight + KaTeX for the whole document) with no debounce
+    /// and no cancellation — concurrent pagination passes then fought over the
+    /// same measuring stage.
     func optionsDidChange() {
-        applyOptions(preservePage: true)
+        pendingOptionsWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            self?.applyOptions(preservePage: true)
+        }
+        pendingOptionsWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: work)
     }
 
     func showPreviousPage() {
