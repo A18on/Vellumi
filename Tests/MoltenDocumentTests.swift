@@ -77,4 +77,23 @@ final class MoltenDocumentTests: XCTestCase {
         document.editorTextDidChange("same")
         XCTAssertFalse(document.isDocumentEdited, "echoed identical content must not mark the document edited")
     }
+    /// A BOM-less UTF-16 file decodes "successfully" as UTF-8 (NUL is a valid
+    /// UTF-8 byte) and used to be accepted as NUL-riddled mojibake, which the
+    /// next save wrote back over the user's original file.
+    func testNulBytesAreRejectedRatherThanDecodedAsMojibake() {
+        // "hi" in UTF-16LE without a BOM.
+        let utf16NoBOM = Data([0x68, 0x00, 0x69, 0x00])
+        XCTAssertThrowsError(try MoltenDocument.decodeText(from: utf16NoBOM)) { error in
+            XCTAssertEqual(
+                (error as NSError).code,
+                NSFileReadInapplicableStringEncodingError,
+                "must refuse rather than silently corrupt"
+            )
+        }
+    }
+
+    func testValidUTF8StillDecodes() throws {
+        XCTAssertEqual(try MoltenDocument.decodeText(from: Data("正文 text\n".utf8)), "正文 text\n")
+    }
+
 }

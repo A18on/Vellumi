@@ -363,7 +363,6 @@ function scheduleChange() {
 // "assets/pic.png". Display-time, relative srcs are rewritten to the
 // molten-asset:// scheme served by the shell.
 
-const IMAGE_SAVE_TIMEOUT_MS = 30_000;
 const pendingImageSaves = new Map();
 let imageSaveCounter = 0;
 
@@ -377,17 +376,29 @@ function arrayBufferToBase64(buffer) {
   return btoa(binary);
 }
 
+// The text path has maximumFileSize (20 MB); the image path had no ceiling at
+// all, so pasting a 60 MB original stalled the editor and spiked memory.
+const MAX_IMAGE_BYTES = 32 * 1024 * 1024;
+
 async function uploadImage(file) {
+  if (typeof file?.size === "number" && file.size > MAX_IMAGE_BYTES) {
+    throw new Error(
+      isChinese
+        ? "图片太大(超过 32 MB),请先压缩后再插入。"
+        : "Image is larger than 32 MB — please compress it before inserting."
+    );
+  }
   const base64 = arrayBufferToBase64(await file.arrayBuffer());
   const id = ++imageSaveCounter;
   return new Promise((resolve, reject) => {
     pendingImageSaves.set(id, { resolve, reject });
     post({ type: "image-save", id, name: file.name || "image.png", base64 });
-    setTimeout(() => {
-      if (pendingImageSaves.delete(id)) {
-        reject(new Error("image save timed out"));
-      }
-    }, IMAGE_SAVE_TIMEOUT_MS);
+    // No unilateral timeout: this timer runs in a separate process from the
+    // app's modal run loop, so a first-time folder-authorization panel that
+    // the user leaves open for a while used to make JS give up while Swift
+    // still went on to write the file — an orphan on disk and no image in the
+    // document. Swift always answers via resolveImageSave; the only way this
+    // promise stays pending is an editor teardown, which discards it anyway.
   });
 }
 
@@ -603,6 +614,9 @@ window.moltenAPI = {
     crepe.editor.action((ctx) => {
       const view = ctx.get(editorViewCtx);
       view.state.doc.descendants((node, pos) => {
+        // Headings are block nodes; returning false for non-blocks stops
+        // ProseMirror from recursing into every inline node of every paragraph.
+        if (!node.isBlock) return false;
         if (node.type.name === "heading") {
           outline.push({
             level: Number(node.attrs.level ?? 1),
@@ -878,6 +892,10 @@ window.moltenAPI = {
   setSmartPunctuation(on) {
     const next = Boolean(on);
     if (next === smartPunctuationEnabled) return;
+    // Flush first: the rebuild below resets lastSentMarkdown to the current
+    // content, so anything still sitting in the debounce window would never
+    // be reported to the shell.
+    if (changeTimer) flushChange();
     smartPunctuationEnabled = next;
     if (crepe) {
       const markdown = crepe.getMarkdown();

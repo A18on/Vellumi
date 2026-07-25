@@ -233,3 +233,8 @@
 "projects.search.searching" = "搜索中…";
 "projects.rename.conflict.title" = "名称已被占用";
 "projects.rename.conflict.message" = "该文件夹里已存在名为「%@」的文件,请换一个名字。";
+"find.previous" = "上一处匹配";
+"find.next" = "下一处匹配";
+"find.matchCountLabel" = "匹配数量";
+"menu.findNext" = "查找下一个";
+"menu.findPrevious" = "查找上一个";

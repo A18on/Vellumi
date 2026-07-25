@@ -37,6 +37,7 @@ final class MoltenWorkspaceViewController: NSViewController {
     private var showsOutline = UserDefaults.standard.bool(forKey: "Vellumi.showsOutline")
     private var showsFileTree = UserDefaults.standard.bool(forKey: "Vellumi.showsFileTree")
     private var collapseObservations: [NSKeyValueObservation] = []
+    private var wordGoalObserver: NSObjectProtocol?
     private var pendingStatsWorkItem: DispatchWorkItem?
     private var sourceScrollView: NSScrollView?
     private var sourceTextView: NSTextView?
@@ -111,6 +112,12 @@ final class MoltenWorkspaceViewController: NSViewController {
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { nil }
+
+    deinit {
+        if let wordGoalObserver {
+            NotificationCenter.default.removeObserver(wordGoalObserver)
+        }
+    }
 
     override func loadView() {
         configureFindBar()
@@ -507,6 +514,19 @@ final class MoltenWorkspaceViewController: NSViewController {
 
     private var pendingSourceScrollFraction: Double = 0
 
+    /// Source mode honors the editor zoom so ⌘+/⌘- keeps working after ⌘/ —
+    /// a reader at 200% used to drop back to a fixed 13pt.
+    private static func sourceFont() -> NSFont {
+        let size = 13.0 * MoltenViewSettings.zoom
+        return .monospacedSystemFont(ofSize: max(9, min(48, size)), weight: .regular)
+    }
+
+    /// Re-applies zoom-derived metrics to the source view (Preferences or the
+    /// View menu changed while it was showing).
+    func noteViewSettingsChanged() {
+        sourceTextView?.font = Self.sourceFont()
+    }
+
     private func applySourceScrollFraction(_ fraction: Double) {
         guard let scroll = sourceScrollView, let docView = scroll.documentView else { return }
         let maxOffset = max(0, docView.frame.height - scroll.contentSize.height)
@@ -553,7 +573,7 @@ final class MoltenWorkspaceViewController: NSViewController {
         textView.isAutomaticQuoteSubstitutionEnabled = false
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false
-        textView.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
+        textView.font = Self.sourceFont()
         textView.textContainerInset = NSSize(width: 24, height: 20)
         textView.delegate = self
         textView.minSize = NSSize(width: 0, height: 0)
@@ -600,6 +620,16 @@ final class MoltenWorkspaceViewController: NSViewController {
         // Drop the lingering match highlight along with the bar.
         editorViewController.clearFindSelection()
         editorViewController.focusEditingSurface()
+    }
+
+    /// ⌘G / ⇧⌘G. Opens the bar first when it isn't showing, so the shortcut
+    /// works from a cold start like every other macOS app.
+    @objc func findNextFromMenu(_ sender: Any?) {
+        if findBar.isHidden { showFindBar() } else { runFind(backwards: false) }
+    }
+
+    @objc func findPreviousFromMenu(_ sender: Any?) {
+        if findBar.isHidden { showFindBar() } else { runFind(backwards: true) }
     }
 
     @objc private func findNext(_ sender: Any?) {
@@ -702,6 +732,10 @@ final class MoltenWorkspaceViewController: NSViewController {
             action: #selector(hideFindBar(_:))
         )
         [previous, next, replaceOne, replaceEvery, done].forEach { $0.bezelStyle = .accessoryBarAction }
+        // "‹" and "›" are meaningless to VoiceOver on their own.
+        previous.setAccessibilityLabel(L10n.string("find.previous"))
+        next.setAccessibilityLabel(L10n.string("find.next"))
+        matchCountLabel.setAccessibilityLabel(L10n.string("find.matchCountLabel"))
         done.keyEquivalent = "\u{1b}" // Esc closes the bar
 
         let row = NSStackView(views: [findField, matchCountLabel, previous, next, replaceField, replaceOne, replaceEvery, done])
@@ -727,7 +761,7 @@ final class MoltenWorkspaceViewController: NSViewController {
     // MARK: - Status bar
 
     private func configureStatusBar() {
-        NotificationCenter.default.addObserver(
+        wordGoalObserver = NotificationCenter.default.addObserver(
             forName: .moltenWordGoalChanged, object: nil, queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.renderStatusLine() }
@@ -742,6 +776,8 @@ final class MoltenWorkspaceViewController: NSViewController {
             NSClickGestureRecognizer(target: self, action: #selector(cycleStatsDisplay(_:)))
         )
         wordCountLabel.toolTip = L10n.string("status.cycleHint")
+        wordCountLabel.setAccessibilityRole(.button)
+        wordCountLabel.setAccessibilityLabel(L10n.string("status.cycleHint"))
 
         noticeLabel.font = .systemFont(ofSize: 11)
         noticeLabel.textColor = .tertiaryLabelColor

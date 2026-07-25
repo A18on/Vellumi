@@ -233,6 +233,17 @@ enum MoltenMainMenuBuilder {
             action: #selector(MoltenWorkspaceViewController.showFind(_:)),
             keyEquivalent: "f"
         )
+        menu.addItem(
+            withTitle: L10n.string("menu.findNext"),
+            action: #selector(MoltenWorkspaceViewController.findNextFromMenu(_:)),
+            keyEquivalent: "g"
+        )
+        let findPrevious = menu.addItem(
+            withTitle: L10n.string("menu.findPrevious"),
+            action: #selector(MoltenWorkspaceViewController.findPreviousFromMenu(_:)),
+            keyEquivalent: "g"
+        )
+        findPrevious.keyEquivalentModifierMask = [.command, .shift]
         return menu
     }
 

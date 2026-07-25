@@ -233,3 +233,8 @@
 "projects.search.searching" = "Searching…";
 "projects.rename.conflict.title" = "That name is already taken";
 "projects.rename.conflict.message" = "A file named “%@” already exists in this folder. Choose a different name.";
+"find.previous" = "Previous match";
+"find.next" = "Next match";
+"find.matchCountLabel" = "Match count";
+"menu.findNext" = "Find Next";
+"menu.findPrevious" = "Find Previous";

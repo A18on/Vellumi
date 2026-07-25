@@ -332,11 +332,12 @@ final class MoltenProjectsModel: ObservableObject {
                 NSApp.presentError(error)
                 return
             }
-            guard let document = document as? MoltenDocument, !query.isEmpty else { return }
+            guard let opened = document as? MoltenDocument, !query.isEmpty else { return }
+            weak var document = opened
             // The editor may still be booting; retry briefly until find lands.
             // Weak: a closed document must not be kept alive by pending retries.
             func attempt(_ remaining: Int) {
-                guard let editor = document.editorViewController else { return }
+                guard let document, let editor = document.editorViewController else { return }
                 editor.find(query, backwards: false) { [weak document] found in
                     if !found, remaining > 0, document != nil {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {

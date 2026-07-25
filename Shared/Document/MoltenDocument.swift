@@ -115,6 +115,15 @@ final class MoltenDocument: NSDocument {
            let utf16 = String(data: data, encoding: .utf16) {
             return utf16
         }
+        // A BOM-less UTF-16 file decodes "successfully" as UTF-8 because NUL is
+        // a valid UTF-8 byte — the result is NUL-riddled mojibake that would
+        // then be written back over the original. Real Markdown never contains
+        // NUL, so treat it as the corruption signal it is.
+        if data.contains(0x00) {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSFileReadInapplicableStringEncodingError, userInfo: [
+                NSLocalizedDescriptionKey: L10n.string("document.error.encoding"),
+            ])
+        }
         guard var decoded = String(data: data, encoding: .utf8) else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSFileReadInapplicableStringEncodingError, userInfo: [
                 NSLocalizedDescriptionKey: L10n.string("document.error.encoding"),
@@ -158,7 +167,12 @@ final class MoltenDocument: NSDocument {
             if error == nil, saveOperation != .autosaveElsewhereOperation {
                 self.savedText = snapshot
                 self.savedFrontMatter = frontMatterSnapshot
-                self.workspaceViewController?.noteDocumentSaved()
+                // Autosave-in-place cannot change the folder listing, and a
+                // full recursive rescan (one realpath per node) on every
+                // autosave was pure churn. Only real saves can add/rename.
+                if saveOperation != .autosaveInPlaceOperation {
+                    self.workspaceViewController?.noteDocumentSaved()
+                }
             }
             completionHandler(error)
         }
@@ -267,7 +281,10 @@ final class MoltenDocument: NSDocument {
     // MARK: - Bridge callbacks
 
     /// Debounced content updates from the JS side keep `text` current for
-    /// crash recovery and drive the dirty flag — including clearing it when
+    /// crash recovery and drive the dirty flag. NOTE: with adaptive throttling
+    /// the worst-case staleness is the JS max-latency bound (3s on a large
+    /// document), not the 1s the original design assumed — this only widens the
+    /// crash-recovery window; every save path pulls fresh text first. — including clearing it when
     /// an in-editor undo returns to the saved state.
     func editorTextDidChange(_ markdown: String) {
         // Source mode parks the web editor holding pre-⌘/ content, so anything

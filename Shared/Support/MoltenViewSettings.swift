@@ -84,6 +84,8 @@ enum MoltenViewSettings {
         let work = DispatchWorkItem {
             for case let document as MoltenDocument in NSDocumentController.shared.documents {
                 document.editorViewController?.applyStoredViewSettings()
+                // Source mode has its own text view; it must follow the zoom too.
+                document.workspaceViewController?.noteViewSettingsChanged()
             }
         }
         pendingBroadcast = work

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -109,6 +109,15 @@
 </head>
 <body>
   <div id="editor"></div>
+  <script>
+    // VoiceOver picks its voice from <html lang>; hardcoding "en" made it read
+    // Chinese documents with an English voice. moltenAPI's injected app
+    // language is the best available signal.
+    document.documentElement.lang =
+      (typeof window.__vellumiLanguage === "string" && window.__vellumiLanguage) ||
+      navigator.language ||
+      "en";
+  </script>
   <script src="editor.js"></script>
 </body>
 </html>
