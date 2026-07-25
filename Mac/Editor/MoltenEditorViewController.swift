@@ -404,8 +404,8 @@ extension MoltenEditorViewController: WKScriptMessageHandler {
                 document?.editorTextDidChange(markdown)
             }
         case "normalized":
-            if (body["changed"] as? Bool) == true {
-                document?.workspaceViewController?.showNormalizationNoticeOnce()
+            if let markdown = body["markdown"] as? String {
+                document?.editorDidNormalize(markdown, changed: (body["changed"] as? Bool) == true)
             }
         case "boot-error":
             let detail = body["message"] as? String ?? "unknown"

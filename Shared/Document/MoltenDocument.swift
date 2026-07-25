@@ -24,6 +24,9 @@ final class MoltenDocument: NSDocument {
     /// back to the saved state clear the dirty flag instead of leaving the
     /// document permanently "Edited".
     private var savedText: String = ""
+    /// Front matter as last read from / written to disk. Without this the
+    /// dirty flag only tracked the body, so YAML-only edits looked clean.
+    private var savedFrontMatter: String = ""
     weak var editorViewController: MoltenEditorViewController?
     weak var workspaceViewController: MoltenWorkspaceViewController?
 
@@ -93,7 +96,12 @@ final class MoltenDocument: NSDocument {
         frontMatter = parts.frontMatter
         text = parts.body
         savedText = parts.body
+        savedFrontMatter = parts.frontMatter
         editorViewController?.loadDocumentText(parts.body)
+        // Revert (File ▸ Revert To Saved) lands here too: the source view, if
+        // showing, must be re-seeded or its stale text is re-adopted on the
+        // next keystroke and undoes the revert.
+        workspaceViewController?.noteDocumentContentReplaced()
     }
 
     /// UTF-8, plus deterministic BOM-identified UTF-16 (TextEdit's "Unicode"
@@ -142,12 +150,14 @@ final class MoltenDocument: NSDocument {
         // Snapshot BEFORE the async write: keystrokes bridged during the
         // write must not be recorded as "on disk".
         let snapshot = self.text
+        let frontMatterSnapshot = self.frontMatter
         super.save(to: url, ofType: typeName, for: saveOperation) { error in
             // autosave-ELSEWHERE writes a recovery file, not the document;
             // treating it as saved would let undo-back-to-it read as clean
             // and close without a prompt, losing the content.
             if error == nil, saveOperation != .autosaveElsewhereOperation {
                 self.savedText = snapshot
+                self.savedFrontMatter = frontMatterSnapshot
                 self.workspaceViewController?.noteDocumentSaved()
             }
             completionHandler(error)
@@ -235,8 +245,15 @@ final class MoltenDocument: NSDocument {
     /// matter added/edited/removed in source mode is honored.
     func adoptSourceText(_ fullText: String) {
         let parts = MoltenFrontMatter.split(fullText)
+        let frontMatterChanged = parts.frontMatter != frontMatter
         frontMatter = parts.frontMatter
-        editorTextDidChange(parts.body)
+        applyBodyText(parts.body)
+        // A front-matter-only edit leaves the body byte-identical, so
+        // applyBodyText early-returns and nothing would ever mark the document
+        // dirty — ⌘S wrote nothing and the YAML edit was silently discarded.
+        if frontMatterChanged, parts.body == text {
+            updateChangeCount(isEquivalentToSavedFile(body: text) ? .changeCleared : .changeDone)
+        }
     }
 
     /// Adopts an edited front-matter block from the editor sheet. Callers
@@ -244,7 +261,7 @@ final class MoltenDocument: NSDocument {
     func setFrontMatter(_ newValue: String) {
         guard newValue != frontMatter else { return }
         frontMatter = newValue
-        updateChangeCount(.changeDone)
+        updateChangeCount(isEquivalentToSavedFile(body: text) ? .changeCleared : .changeDone)
     }
 
     // MARK: - Bridge callbacks
@@ -253,16 +270,45 @@ final class MoltenDocument: NSDocument {
     /// crash recovery and drive the dirty flag — including clearing it when
     /// an in-editor undo returns to the saved state.
     func editorTextDidChange(_ markdown: String) {
-        // Source mode parks the web editor holding pre-⌘/ content. Every entry
-        // point into this method (debounced change messages, the external-change
-        // reload pull) must be shut off, or that stale text overwrites the
-        // source view's edits in the model while the visible NSTextView keeps
-        // showing them — the edits then vanish on close.
+        // Source mode parks the web editor holding pre-⌘/ content, so anything
+        // arriving FROM it is stale: adopting it would overwrite the source
+        // view's edits in the model while the visible NSTextView keeps showing
+        // them, and the edits would vanish on close. The guard belongs here, on
+        // the bridge entry point — NOT on applyBodyText, which the source view
+        // itself calls through adoptSourceText.
         guard !sourceModeActive else { return }
+        applyBodyText(markdown)
+    }
+
+    /// The single body mutation both surfaces funnel through.
+    private func applyBodyText(_ markdown: String) {
         guard markdown != text else { return }
         text = markdown
-        updateChangeCount(markdown == savedText ? .changeCleared : .changeDone)
+        updateChangeCount(isEquivalentToSavedFile(body: markdown) ? .changeCleared : .changeDone)
         workspaceViewController?.noteContentChanged(markdown)
+    }
+
+    /// Clean means BOTH parts match what was last read from / written to disk.
+    /// Comparing only the body let a front-matter-only edit read as clean.
+    private func isEquivalentToSavedFile(body: String) -> Bool {
+        body == savedText && frontMatter == savedFrontMatter
+    }
+
+    /// The editor reported its serialization right after (re)building. Crepe
+    /// normalizes Markdown on load, so for any file not already in its
+    /// canonical form this differs from what was read off disk — and the pull
+    /// in canClose then dirtied the document, letting autosave-in-place rewrite
+    /// a file the user only opened and closed. Adopting the normalized form as
+    /// the clean baseline removes that whole class of phantom edits.
+    func editorDidNormalize(_ markdown: String, changed: Bool) {
+        // Never on a dirty document: exiting source mode also rebuilds the
+        // editor, and clearing the flag there would hide real unsaved edits.
+        guard !isDocumentEdited, !sourceModeActive else { return }
+        text = markdown
+        savedText = markdown
+        if changed {
+            workspaceViewController?.showNormalizationNoticeOnce()
+        }
     }
 
     /// The editor surface finished booting (or reloaded after a web-content
@@ -406,11 +452,13 @@ final class MoltenDocument: NSDocument {
         frontMatter = parts.frontMatter
         text = parts.body
         savedText = parts.body
+        savedFrontMatter = parts.frontMatter
         updateChangeCount(.changeCleared)
         // Rebuilding the editor from the new content also resets ProseMirror's
         // history — stale undo entries can't replay onto the reloaded text.
         editorViewController?.loadDocumentText(parts.body)
         workspaceViewController?.noteContentChanged(parts.body)
+        workspaceViewController?.noteDocumentContentReplaced()
         MoltenLog.document.info("Reloaded document after external change on disk")
     }
 }

@@ -473,7 +473,10 @@ async function createEditor(markdown) {
   lastSentMarkdown = next.getMarkdown();
   // Typora-style normalization is a documented tradeoff — surface it so the
   // shell can show a one-time notice (source mode shows the original).
-  post({ type: "normalized", changed: lastSentMarkdown !== markdown });
+  // Carries the serialized text so the shell can adopt it as the clean
+  // baseline: without it, the first pull always differed from what was read
+  // off disk and silently dirtied (then rewrote) untouched files.
+  post({ type: "normalized", changed: lastSentMarkdown !== markdown, markdown: lastSentMarkdown });
   applySpellcheck();
   focusEditor();
   applyPendingScroll();

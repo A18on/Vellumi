@@ -339,6 +339,22 @@ final class MoltenWorkspaceViewController: NSViewController {
 
     // MARK: - File tree sidebar
 
+    /// The document's content was replaced wholesale (Revert To Saved, or an
+    /// external change reloaded from disk). The source view is the only surface
+    /// that is never re-seeded automatically — leaving it stale meant the next
+    /// keystroke re-adopted the pre-revert text and undid the reload.
+    func noteDocumentContentReplaced() {
+        guard isSourceMode, let document, let textView = sourceTextView else { return }
+        let selected = textView.selectedRange()
+        textView.string = document.fullSourceText
+        // Keep the caret where it was when the range still exists.
+        let limit = (textView.string as NSString).length
+        textView.setSelectedRange(NSRange(
+            location: min(selected.location, limit),
+            length: min(selected.length, max(0, limit - min(selected.location, limit)))
+        ))
+    }
+
     /// Called by the document after a completed save — the file URL (Save As,
     /// first save) or the folder contents may have changed.
     func noteDocumentSaved() {
