@@ -11,14 +11,6 @@
             <enclosure url="https://github.com/SUDAcyber/Vellumi/releases/download/v0.5.1/Vellumi-0.5.1.app.zip" length="7424243" type="application/octet-stream" sparkle:edSignature="IXWuxMFEDL5pyJjIwf+fgkJTji+6gSL9kk8/k+67LduonTKKeLCIRTTPVegKWMSzGnZzw8/AQVibrsqlQBoABw=="/>
         </item>
         <item>
-            <title>0.5.0</title>
-            <pubDate>Sat, 25 Jul 2026 18:11:05 +0800</pubDate>
-            <sparkle:version>7</sparkle:version>
-            <sparkle:shortVersionString>0.5.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/SUDAcyber/Vellumi/releases/download/v0.5.0/Vellumi-0.5.0.app.zip" length="7424613" type="application/octet-stream" sparkle:edSignature="GQK/r/f8oMwtnV61F4+DoJgSru0oVdnbRfF8NRSKpE5ha56J3Tl7rrArOpc/BbNV96WDhaGN3w6EvY2i9MDABw=="/>
-        </item>
-        <item>
             <title>0.4.2</title>
             <pubDate>Sat, 25 Jul 2026 02:22:17 +0800</pubDate>
             <sparkle:version>6</sparkle:version>
