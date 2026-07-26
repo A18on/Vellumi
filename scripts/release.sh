@@ -75,8 +75,21 @@ fi
 # debugger to an app holding the user's security-scoped folder bookmarks) and,
 # because an explicit preserve list replaces the defaults, dropped the hardened
 # runtime flag. Both are required for notarization later anyway.
-codesign --force --sign - --options runtime \
-  --entitlements "$ROOT_DIR/$APP_NAME.entitlements" "$APP"
+# Sign with the XCODE-PROCESSED entitlements (.xcent), never the source
+# template: codesign does NOT expand $(PRODUCT_BUNDLE_IDENTIFIER), so signing
+# from the template shipped literal "$(PRODUCT_BUNDLE_IDENTIFIER)-spks" strings
+# and silently disabled every Sparkle mach service. The .xcent also already
+# excludes get-task-allow because CODE_SIGN_INJECT_BASE_ENTITLEMENTS is NO for
+# Release.
+#
+# NO --options runtime. Hardened runtime turns on library validation, which
+# refuses to load an ad-hoc-signed framework into an ad-hoc-signed process
+# ("different Team IDs") — that shipped as v0.5.0 and could not launch at all.
+# Re-enable it only together with a real Developer ID, when every embedded
+# binary shares one Team ID.
+XCENT="$(find "$DERIVED" -name "$APP_NAME.app.xcent" -print -quit)"
+test -n "$XCENT" || { echo "ERROR: processed entitlements (.xcent) not found" >&2; exit 1; }
+codesign --force --sign - --entitlements "$XCENT" "$APP"
 
 codesign --verify --deep --strict "$APP" && echo "code signature OK (uniform ad-hoc)"
 
@@ -86,8 +99,9 @@ if codesign -dvv "$SPARKLE_FW" 2>&1 | grep -q "^TeamIdentifier=[^n]"; then
   exit 1
 fi
 APP_FLAGS="$(codesign -dvv "$APP" 2>&1 | grep -m1 '^CodeDirectory' || true)"
-if ! printf '%s' "$APP_FLAGS" | grep -q "runtime"; then
-  echo "ERROR: app is missing the hardened runtime flag" >&2
+if printf '%s' "$APP_FLAGS" | grep -q "runtime"; then
+  echo "ERROR: hardened runtime is set on an ad-hoc build — dyld will refuse to" >&2
+  echo "       load the ad-hoc Sparkle framework and the app will not launch." >&2
   echo "       codesign reported: $APP_FLAGS" >&2
   exit 1
 fi
@@ -98,16 +112,48 @@ fi
 # Sparkle's sandboxed installer needs all three mach services (-spki/-spks/
 # -spkp). A missing one does not fail the build or the launch — it stalls the
 # UPDATE, which is only discovered by a user who never gets the new version.
+BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist")"
 SIGNED_ENTITLEMENTS="$(codesign -d --entitlements - --xml "$APP" 2>/dev/null || true)"
+if printf '%s' "$SIGNED_ENTITLEMENTS" | grep -q 'PRODUCT_BUNDLE_IDENTIFIER'; then
+  echo "ERROR: entitlements contain unexpanded build variables — sign with the" >&2
+  echo "       .xcent, not the source template." >&2
+  exit 1
+fi
 for tag in spki spks spkp; do
-  printf '%s' "$SIGNED_ENTITLEMENTS" | grep -q -- "-$tag" \
-    || { echo "ERROR: entitlements are missing the Sparkle mach service -$tag" >&2; exit 1; }
+  # Must be the EXPANDED name; a substring match passes on the useless template.
+  printf '%s' "$SIGNED_ENTITLEMENTS" | grep -q -- "$BUNDLE_ID-$tag" \
+    || { echo "ERROR: entitlements are missing the Sparkle mach service $BUNDLE_ID-$tag" >&2; exit 1; }
 done
 
 for artifact in editor.js index.html; do
   test -s "$APP/Contents/Resources/dist/$artifact" \
     || { echo "ERROR: $artifact missing from the built app bundle" >&2; exit 1; }
 done
+
+# THE assertion that matters. Signature-flag checks are proxies; twice now a
+# release shipped an app that could not launch (v0.4.0: Sparkle kept its
+# Developer ID; v0.5.0: hardened runtime + ad-hoc nested code). Launch the real
+# thing from a copy outside the build tree and require it to still be alive a
+# few seconds later.
+echo "==> Smoke test: launching the signed app"
+SMOKE_DIR="$(mktemp -d)"
+cp -R "$APP" "$SMOKE_DIR/"
+SMOKE_APP="$SMOKE_DIR/$APP_NAME.app"
+SMOKE_LOG="$SMOKE_DIR/launch.log"
+"$SMOKE_APP/Contents/MacOS/$APP_NAME" >"$SMOKE_LOG" 2>&1 &
+SMOKE_PID=$!
+sleep 6
+if ! kill -0 "$SMOKE_PID" 2>/dev/null; then
+  echo "ERROR: the signed app exited immediately — it would not launch for users." >&2
+  echo "----- launch output -----" >&2
+  head -20 "$SMOKE_LOG" >&2
+  rm -rf "$SMOKE_DIR"
+  exit 1
+fi
+kill "$SMOKE_PID" 2>/dev/null || true
+wait "$SMOKE_PID" 2>/dev/null || true
+rm -rf "$SMOKE_DIR"
+echo "    app launches OK"
 
 mkdir -p "$DIST"
 DMG="$DIST/$APP_NAME-$VERSION.dmg"
