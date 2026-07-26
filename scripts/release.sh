@@ -95,6 +95,15 @@ if codesign -d --entitlements - --xml "$APP" 2>/dev/null | grep -q "get-task-all
   echo "ERROR: get-task-allow leaked into the release build" >&2
   exit 1
 fi
+# Sparkle's sandboxed installer needs all three mach services (-spki/-spks/
+# -spkp). A missing one does not fail the build or the launch — it stalls the
+# UPDATE, which is only discovered by a user who never gets the new version.
+SIGNED_ENTITLEMENTS="$(codesign -d --entitlements - --xml "$APP" 2>/dev/null || true)"
+for tag in spki spks spkp; do
+  printf '%s' "$SIGNED_ENTITLEMENTS" | grep -q -- "-$tag" \
+    || { echo "ERROR: entitlements are missing the Sparkle mach service -$tag" >&2; exit 1; }
+done
+
 for artifact in editor.js index.html; do
   test -s "$APP/Contents/Resources/dist/$artifact" \
     || { echo "ERROR: $artifact missing from the built app bundle" >&2; exit 1; }
