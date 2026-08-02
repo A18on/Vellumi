@@ -58,8 +58,8 @@ targets:
         CODE_SIGN_IDENTITY: "-"
         DEVELOPMENT_TEAM: ""
         ENABLE_HARDENED_RUNTIME: YES
-        CURRENT_PROJECT_VERSION: 8
-        MARKETING_VERSION: 0.5.1
+        CURRENT_PROJECT_VERSION: 9
+        MARKETING_VERSION: 0.5.2
       configs:
         # RELEASE ONLY. Xcode otherwise injects
         # com.apple.security.get-task-allow, which lets any process of this
