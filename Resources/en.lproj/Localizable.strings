@@ -238,3 +238,4 @@
 "find.matchCountLabel" = "Match count";
 "menu.findNext" = "Find Next";
 "menu.findPrevious" = "Find Previous";
+"prefs.lineWidth.adaptive" = "Adaptive";

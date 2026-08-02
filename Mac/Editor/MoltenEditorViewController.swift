@@ -132,6 +132,15 @@ final class MoltenEditorViewController: NSViewController {
 
     // MARK: - Swift → JS
 
+    /// Re-points the asset scheme at the document's (possibly new) folder.
+    /// Called after every completed save: the first save of an untitled
+    /// document and Save As both change fileURL, and without this pasted
+    /// images rendered as broken placeholders until the file was reopened —
+    /// the PNG and the markdown link were both correct, only display failed.
+    func noteDocumentURLChanged() {
+        assetSchemeHandler.documentDirectory = document?.fileURL?.deletingLastPathComponent()
+    }
+
     /// Pushes document content into the editor. Before the ready message this
     /// is a no-op: the surface pulls the authoritative text from the document
     /// via editorDidBecomeReady, so there is exactly one delivery path.

@@ -238,3 +238,4 @@
 "find.matchCountLabel" = "匹配数量";
 "menu.findNext" = "查找下一个";
 "menu.findPrevious" = "查找上一个";
+"prefs.lineWidth.adaptive" = "自适应";

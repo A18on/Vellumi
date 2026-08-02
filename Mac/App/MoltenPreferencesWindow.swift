@@ -108,7 +108,7 @@ struct MoltenPreferencesView: View {
                     L10n.string("prefs.lineWidth"),
                     value: $lineWidth,
                     range: 560...1080,
-                    display: lineWidth == 0 ? "760 px" : String(format: "%.0f px", lineWidth)
+                    display: lineWidth == 0 ? L10n.string("prefs.lineWidth.adaptive") : String(format: "%.0f px", lineWidth)
                 )
                 Button(L10n.string("prefs.typography.reset")) {
                     lineHeight = 0

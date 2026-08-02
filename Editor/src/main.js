@@ -176,6 +176,27 @@ function mermaidNodeView(node) {
 }
 // -----------------------------------------------------------------------------
 
+// Position-safe case-insensitive matching. Compares SLICES of the original
+// string (never indexes into a folded copy), so length-changing case folds
+// (U+0130) cannot skew offsets. Matches are the equal-code-unit-length subset,
+// which is exactly what a ProseMirror range replacement can express.
+function caseInsensitiveRanges(text, term) {
+  const matches = [];
+  if (!term || term.length > text.length) return matches;
+  const needle = term.toLowerCase();
+  let index = 0;
+  const limit = text.length - term.length;
+  while (index <= limit) {
+    if (text.substr(index, term.length).toLowerCase() === needle) {
+      matches.push({ start: index, end: index + term.length });
+      index += term.length;
+    } else {
+      index += 1;
+    }
+  }
+  return matches;
+}
+
 // ---- Smart punctuation & emoji completion ----------------------------------
 // Smart punctuation (curly quotes, …, —) uses the stock ProseMirror rules;
 // it is baked in at editor construction, so toggling rebuilds the editor
@@ -649,17 +670,11 @@ window.moltenAPI = {
   countMatches(term) {
     if (!crepe || typeof term !== "string" || !term) return 0;
     let count = 0;
-    const needle = term.toLowerCase();
     crepe.editor.action((ctx) => {
       const view = ctx.get(editorViewCtx);
       view.state.doc.descendants((node) => {
         if (!node.isText) return;
-        const text = (node.text ?? "").toLowerCase();
-        let index = 0;
-        while ((index = text.indexOf(needle, index)) !== -1) {
-          count += 1;
-          index += needle.length;
-        }
+        count += caseInsensitiveRanges(node.text ?? "", term).length;
       });
     });
     return count;
@@ -810,17 +825,14 @@ window.moltenAPI = {
       const { state } = view;
       const ranges = [];
       // Case-INSENSITIVE, matching window.find (navigation) and countMatches
-      // (the "N matches" label). They used to disagree: searching "hello" for
-      // "Hello" reported 3 matches and navigated through them, while Replace
-      // silently did nothing and Replace All returned 0.
-      const needle = term.toLowerCase();
+      // (the "N matches" label). Offsets MUST come from the original string:
+      // indexing into the toLowerCase() copy went wrong wherever case folding
+      // changes length (U+0130 İ folds to two units), pushing ranges past the
+      // node boundary — a cross-paragraph splice or a RangeError.
       state.doc.descendants((node, pos) => {
         if (!node.isText) return;
-        const text = (node.text ?? "").toLowerCase();
-        let index = 0;
-        while ((index = text.indexOf(needle, index)) !== -1) {
-          ranges.push({ from: pos + index, to: pos + index + term.length });
-          index += term.length;
+        for (const range of caseInsensitiveRanges(node.text ?? "", term)) {
+          ranges.push({ from: pos + range.start, to: pos + range.end });
         }
       });
       if (!ranges.length) return;

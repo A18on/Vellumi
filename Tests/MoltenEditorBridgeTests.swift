@@ -458,4 +458,23 @@ final class MoltenEditorBridgeTests: XCTestCase {
         XCTAssertFalse(markdown.lowercased().contains("hello"), "no occurrence may remain, got: \(markdown)")
     }
 
+    /// Offsets must come from the ORIGINAL string: U+0130 (İ) folds to two
+    /// UTF-16 units, so indexing into a toLowerCase() copy pushed replacement
+    /// ranges past the node boundary — cross-paragraph splices or a swallowed
+    /// RangeError reported as "0 replaced".
+    func testReplaceAllSurvivesLengthChangingCaseFolds() throws {
+        try loadEditorPage()
+        try setMarkdown("İstanbul hello İzmir hello sonra")
+
+        let count = try XCTUnwrap(try evaluate("window.moltenAPI.countMatches('hello')") as? Int)
+        XCTAssertEqual(count, 2)
+
+        let replaced = try XCTUnwrap(try evaluate("window.moltenAPI.replaceAll('hello', 'selam')") as? Int)
+        XCTAssertEqual(replaced, 2, "İ before the matches must not skew the ranges")
+
+        let markdown = try XCTUnwrap(try evaluate("window.moltenAPI.getMarkdown()") as? String)
+        XCTAssertTrue(markdown.contains("İstanbul selam İzmir selam sonra"),
+                      "text around the replacements must be untouched, got: \(markdown)")
+    }
+
 }

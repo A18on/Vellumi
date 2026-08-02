@@ -375,7 +375,16 @@ final class MoltenWorkspaceViewController: NSViewController {
     func noteDocumentContentReplaced() {
         guard isSourceMode, let document, let textView = sourceTextView else { return }
         let selected = textView.selectedRange()
+        // The source view shares the DOCUMENT's undo manager (no undoManager(for:)
+        // on the delegate → responder chain → window → document). Undo entries
+        // recorded before a wholesale .string swap hold UTF-16 ranges into the
+        // OLD storage; replaying them afterwards throws NSRangeException (crash)
+        // or splices stale bytes into the new content, which textDidChange then
+        // commits to the model. Discard IME composition first for the same
+        // reason, then drop the stale stack.
+        textView.inputContext?.discardMarkedText()
         textView.string = document.fullSourceText
+        textView.undoManager?.removeAllActions()
         // Keep the caret where it was when the range still exists.
         let limit = (textView.string as NSString).length
         textView.setSelectedRange(NSRange(
@@ -500,7 +509,11 @@ final class MoltenWorkspaceViewController: NSViewController {
                     scroll.bottomAnchor.constraint(equalTo: split.bottomAnchor),
                 ])
             }
+            // Same stale-undo hazard as noteDocumentContentReplaced: melt-mode
+            // edits shifted every offset the previous source session recorded.
+            self.sourceTextView?.inputContext?.discardMarkedText()
             self.sourceTextView?.string = document.fullSourceText
+            self.sourceTextView?.undoManager?.removeAllActions()
             scroll.isHidden = false
             self.splitViewController.view.isHidden = true
             self.view.window?.makeFirstResponder(self.sourceTextView)

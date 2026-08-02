@@ -45,9 +45,12 @@ final class MoltenAppDelegate: NSObject, NSApplicationDelegate {
               let data = try? Data(contentsOf: url) else {
             return
         }
-        UserDefaults.standard.set(true, forKey: key)
-        // Skip when state restoration already brought documents back.
+        // Consume the flag only when the welcome actually shows: a fresh
+        // install whose FIRST launch is a Finder double-click on an .md file
+        // lands here with a document already open — burning the flag then
+        // meant the welcome never appeared at all.
         guard NSDocumentController.shared.documents.isEmpty else { return }
+        UserDefaults.standard.set(true, forKey: key)
         do {
             let document = try NSDocumentController.shared.openUntitledDocumentAndDisplay(false)
             try document.read(from: data, ofType: MoltenDocument.markdownType)

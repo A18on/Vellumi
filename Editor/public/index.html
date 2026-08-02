@@ -17,7 +17,11 @@
       -webkit-text-size-adjust: 100%;
     }
     #editor {
-      max-width: var(--vellumi-max-width, 760px);
+      /* Default line width is ADAPTIVE: 75% of the window, never narrower
+         than the classic 760px reading column, capped at 1200px so lines stay
+         scannable on very wide displays. A fixed value set in Preferences ▸
+         排印 ▸ 行宽 overrides this via --vellumi-max-width. */
+      max-width: var(--vellumi-max-width, clamp(760px, 75%, 1200px));
       min-height: 100%;
       margin: 0 auto;
       padding: 48px 56px 40vh;

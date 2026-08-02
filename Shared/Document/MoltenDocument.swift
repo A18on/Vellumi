@@ -171,6 +171,10 @@ final class MoltenDocument: NSDocument {
             if error == nil, saveOperation != .autosaveElsewhereOperation {
                 self.savedText = snapshot
                 self.savedFrontMatter = frontMatterSnapshot
+                // fileURL may have just come into existence (first save of an
+                // untitled/draft document) or moved (Save As) — the image
+                // scheme must follow it or pastes render as broken images.
+                self.editorViewController?.noteDocumentURLChanged()
                 // Autosave-in-place cannot change the folder listing, and a
                 // full recursive rescan (one realpath per node) on every
                 // autosave was pure churn. Only real saves can add/rename.

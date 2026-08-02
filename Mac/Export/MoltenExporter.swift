@@ -73,17 +73,21 @@ enum MoltenExporter {
         let minLevel = headings.map(\.level).min() ?? 1
         let items = headings.map { heading in
             let indent = heading.level - minLevel
-            let escaped = heading.text
-                .replacingOccurrences(of: "&", with: "&amp;")
-                .replacingOccurrences(of: "<", with: "&lt;")
-            return "<li style=\"margin-left: \(indent)em\"><a href=\"#\(heading.slug)\">\(escaped)</a></li>"
+            // heading.text came from stripping tags out of already-valid HTML,
+            // so its entities are intact ("Q&amp;A"); escaping again rendered
+            // the literal "&amp;amp;" in the TOC. Only "<" could have been
+            // reintroduced by tag-stripping edge cases — guard just that.
+            let linkText = heading.text.replacingOccurrences(of: "<", with: "&lt;")
+            return "<li style=\"margin-left: \(indent)em\"><a href=\"#\(heading.slug)\">\(linkText)</a></li>"
         }.joined()
         let nav = "<nav class=\"vellumi-toc\"><ul style=\"list-style: none; padding-left: 0\">\(items)</ul></nav>"
 
-        // Replace paragraphs whose entire visible text is "[toc]".
+        // Replace paragraphs whose entire visible text is "[toc]". The nav is
+        // used as a REGEX TEMPLATE here, so "$" and "\\" inside heading text
+        // would be interpreted — escape it.
         return html.replacingOccurrences(
             of: "<p[^>]*>\\s*\\[toc\\]\\s*</p>",
-            with: nav,
+            with: NSRegularExpression.escapedTemplate(for: nav),
             options: [.regularExpression, .caseInsensitive]
         )
     }
